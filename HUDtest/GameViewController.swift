@@ -153,14 +153,17 @@ class GameViewController: GLKViewController {
     
   }
   
-  func drawLine(from : (x: GLfloat, y: GLfloat), to: (x: GLfloat, y: GLfloat), width: GLfloat) {
+  func drawLine(  from  : (x: GLfloat, y: GLfloat),
+                      to: (x: GLfloat, y: GLfloat),
+                  width : GLfloat,
+             transform  : GLKMatrix4 = GLKMatrix4Identity) {
     let width = width / pointScale
     
     // Calculate the rotation for this vector
     let rotation_angle = atan2(to.y-from.y, to.x-from.x)
 
     let length = sqrt(pow(to.y-from.y, 2) + pow(to.x-from.x, 2))
-    var baseMatrix = GLKMatrix4Identity
+    var baseMatrix = transform
     baseMatrix = GLKMatrix4Translate(baseMatrix, from.x, from.y, 0.1)
     baseMatrix = GLKMatrix4Rotate(baseMatrix, (0.5*3.1415926)-rotation_angle, 0, 0, -1)
     baseMatrix = GLKMatrix4Scale(baseMatrix, width, length, 1)
@@ -293,6 +296,35 @@ class GameViewController: GLKViewController {
     
     drawLogDisplay(currentDH, left: true)
     drawLogDisplay(currentDH, left: false)
+    
+    drawPitchDisplay(currentDH*10,roll: currentDH)
+  }
+  
+  func drawPitchDisplay(pitch : Float, roll : Float)
+  {
+    let minAngle = Int(floor((pitch - 67.5)/10))*10
+    let maxAngle = Int(ceil((pitch + 67.5)/10))*10
+    let offset = pitch / 90 / 2
+    // Build a transform to apply to all lines putting it in the right area
+    var pitchT = GLKMatrix4Identity
+    pitchT = GLKMatrix4Translate(pitchT, 0.5, 0.5, 0)
+    pitchT = GLKMatrix4Rotate(pitchT, roll, 0, 0, -1)
+    pitchT = GLKMatrix4Translate(pitchT, 0, -offset, 0)
+    
+    for var angle = minAngle; angle <= maxAngle; angle += 5 {
+      let x : GLfloat
+      if angle % 20 == 0 {
+        x = 0.1
+      } else if angle % 10 == 0 {
+        x = 0.05
+      } else {
+        x = 0.5*0.025
+      }
+
+      // Scale 0->90 to 0->1, then 0->0.5
+      let y : GLfloat = (GLfloat(angle))/90*0.5
+      drawLine((-x, y), to: (x, y), width: 1, transform: pitchT)
+    }
   }
   
   func drawLogDisplay(value : Float, left : Bool)
@@ -556,22 +588,31 @@ func crossHair(H : GLfloat, J : GLfloat, w : GLfloat, theta : GLfloat) -> [GLflo
   points.append((W+w,  BiY)) // 17
   points.append((W, -w/2)) // 18
   
-  // Jump to the upper cursor part
+  appendTriangleStrip(&points, with: boxPoints(0, bottom: 24, right: w/2, top: H+J))
+  appendTriangleStrip(&points, with: openSemiCircle(5, w: 2.5))
+  
+  return pointsTo3DVertices(points)
+}
+
+func boxPoints(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [(x: GLfloat, y: GLfloat)]
+{
+  return [
+    (left, top),
+    (right, top),
+    (left, bottom),
+    (right, bottom)
+  ]
+}
+
+func appendTriangleStrip(inout points : [(x: GLfloat, y: GLfloat)], with : [(x: GLfloat, y: GLfloat)])
+{
   points.append(points.last!)
-  points.append((w/2, 24))
-  // New squares
-  points.append((w/2, 24))
-  points.append((0, 24))
-  points.append((w/2, H+J))
-  points.append((0, H+J))
-  
-  // Finally, append the central semicircle
-  points.append(points.last!)
-  
-  let circPoints = openSemiCircle(5, w: 2.5)
-  points.append(circPoints.first!)
-  points.extend(circPoints)
-  
+  points.append(with.first!)
+  points.extend(with)
+}
+
+func pointsTo3DVertices(points : [(x: GLfloat, y: GLfloat)]) -> [GLfloat]
+{
   var flts : [GLfloat] = []
   for p in points {
     flts.append(p.x / 640)

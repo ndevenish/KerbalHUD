@@ -35,6 +35,7 @@ class GameViewController: GLKViewController {
   
   var pointScale : GLfloat = 1
   
+  var currentDH : GLfloat = 0
 
   deinit {
     self.tearDownGL()
@@ -279,13 +280,26 @@ class GameViewController: GLKViewController {
     // Left: 4 orders, right: 4.6 orders.
     
     // Do the height display
-    let currentDH : Float = 0
+//    let currentDH : Float = 0
+    currentDH += 0.01
+    
+    // Position the left log display
+    var baseMatrix = GLKMatrix4MakeTranslation(0.25, 0.25, 0)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, 0.5, 0.5, 1)
+    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+    withUnsafePointer(&mvp, {
+      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+    })
+    
     drawLogDisplay(currentDH, left: true)
+    drawLogDisplay(currentDH, left: false)
   }
   
   func drawLogDisplay(value : Float, left : Bool)
   {
-    let lgeTickSize = -0.1
+    let xPos : GLfloat = left ? 0.25 : 0.75
+
+    let lgeTickSize = 0.1
     let medTickSize = lgeTickSize / 2
     let smlTickSize = medTickSize / 2
     
@@ -301,18 +315,24 @@ class GameViewController: GLKViewController {
 //    let top    = center + logRange / 2
     // Draw the major marks
     for power in logMin...logMax {
-      var y = (Double(power)-bottom)/logRange
-      drawLine((0,GLfloat(y)), to: (GLfloat(lgeTickSize * (left ? -1 : 1)), GLfloat(y)), width: 1)
+      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
+      if y > 0.25 && y < 0.75 {
+        drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize * (left ? -1 : 1)), y), width: 1)
+      }
       
       var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let halfPoint = PseudoLog10(nextPow*0.5)
-      y = (halfPoint-bottom)/logRange
-      drawLine((0,GLfloat(y)), to: (GLfloat(medTickSize * (left ? -1 : 1)), GLfloat(y)), width: 1)
+      y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+      if y > 0.25 && y < 0.75 {
+        drawLine((xPos,y), to: (xPos+GLfloat(medTickSize * (left ? -1 : 1)), y), width: 1)
+      }
 
       nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let doubPoint = PseudoLog10(nextPow*0.1*2)
-      y = (doubPoint-bottom)/logRange
-      drawLine((0,GLfloat(y)), to: (GLfloat(smlTickSize * (left ? -1 : 1)), GLfloat(y)), width: 1)
+      y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
+      if y > 0.25 && y < 0.75 {
+        drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize * (left ? -1 : 1)), y), width: 1)
+      }
     }
     
   }

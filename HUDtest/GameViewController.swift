@@ -56,7 +56,8 @@ class GameViewController: GLKViewController {
     
     let view = self.view as! GLKView
     view.context = self.context!
-    view.drawableDepthFormat = .Format24
+//    view.drawableDepthFormat = .Format24
+    view.drawableStencilFormat = .Format8
     
     self.setupGL()
   }
@@ -81,8 +82,7 @@ class GameViewController: GLKViewController {
     
     self.loadShaders()
     
-    glEnable(GLenum(GL_DEPTH_TEST))
-    
+//    glEnable(GLenum(GL_DEPTH_TEST))
     glGenVertexArrays(1, &vertexArray)
     glBindVertexArray(vertexArray)
     
@@ -153,6 +153,19 @@ class GameViewController: GLKViewController {
     
   }
   
+  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  {
+    var baseMatrix = GLKMatrix4Identity
+    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+    withUnsafePointer(&mvp, {
+      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+    })
+    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
+
+  }
+
   func drawLine(  from  : (x: GLfloat, y: GLfloat),
                       to: (x: GLfloat, y: GLfloat),
                   width : GLfloat,
@@ -191,6 +204,27 @@ class GameViewController: GLKViewController {
     })
     glDrawArrays(GLenum(GL_TRIANGLES), 6, 3)
     
+  }
+  
+  func constrainDrawing(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  {
+    glEnable(GLenum(GL_STENCIL_TEST))
+    glStencilFunc(GLenum(GL_ALWAYS), 1, 0xFF)
+    glStencilOp(GLenum(GL_KEEP), GLenum(GL_KEEP), GLenum(GL_REPLACE))
+    glColorMask(GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE))
+    glStencilMask(0xFF)
+    glClear(GLenum(GL_STENCIL_BUFFER_BIT))
+
+    drawSquare(left, bottom: bottom, right: right, top: top)
+
+    glColorMask(GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE))
+    
+    glStencilFunc(GLenum(GL_EQUAL), 1, 0xFF)
+    // Prevent further writing to the stencil from this point
+    glStencilMask(0x00);
+  }
+  func unconstrainDrawing() {
+    glDisable(GLenum(GL_STENCIL_TEST))
   }
   
   func drawHUDCenter() {
@@ -293,11 +327,14 @@ class GameViewController: GLKViewController {
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    
+
+    constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
     drawLogDisplay(currentDH, left: true)
     drawLogDisplay(currentDH, left: false)
     
+    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
     drawPitchDisplay(currentDH*10,roll: currentDH)
+    unconstrainDrawing()
   }
   
   func drawPitchDisplay(pitch : Float, roll : Float)
@@ -348,23 +385,23 @@ class GameViewController: GLKViewController {
     // Draw the major marks
     for power in logMin...logMax {
       var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
-      if y > 0.25 && y < 0.75 {
-        drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize * (left ? -1 : 1)), y), width: 1)
-      }
+//      if y > 0.25 && y < 0.75 {
+      drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize * (left ? -1 : 1)), y), width: 1)
+//      }
       
       var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let halfPoint = PseudoLog10(nextPow*0.5)
       y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-      if y > 0.25 && y < 0.75 {
-        drawLine((xPos,y), to: (xPos+GLfloat(medTickSize * (left ? -1 : 1)), y), width: 1)
-      }
+//      if y > 0.25 && y < 0.75 {
+      drawLine((xPos,y), to: (xPos+GLfloat(medTickSize * (left ? -1 : 1)), y), width: 1)
+//      }
 
       nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let doubPoint = PseudoLog10(nextPow*0.1*2)
       y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
-      if y > 0.25 && y < 0.75 {
-        drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize * (left ? -1 : 1)), y), width: 1)
-      }
+//      if y > 0.25 && y < 0.75 {
+      drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize * (left ? -1 : 1)), y), width: 1)
+//      }
     }
     
   }

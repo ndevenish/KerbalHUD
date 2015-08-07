@@ -183,6 +183,8 @@ class GameViewController: GLKViewController {
   
   func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
   {
+    glBindVertexArray(vertexArray)
+    
     var baseMatrix = GLKMatrix4Identity
     baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
     baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
@@ -200,7 +202,8 @@ class GameViewController: GLKViewController {
                   width : GLfloat,
              transform  : GLKMatrix4 = GLKMatrix4Identity) {
     let width = width / pointScale
-    
+    glBindVertexArray(vertexArray)
+              
     // Calculate the rotation for this vector
     let rotation_angle = atan2(to.y-from.y, to.x-from.x)
 
@@ -222,6 +225,7 @@ class GameViewController: GLKViewController {
   func drawTriangle(point : (x: GLfloat, y: GLfloat), rotation : GLfloat, height : GLfloat)
   {
 //    let height = height / pointScale
+    glBindVertexArray(vertexArray)
     
     var baseMatrix = GLKMatrix4Identity
     baseMatrix = GLKMatrix4Translate(baseMatrix, point.x, point.y, 0.1)
@@ -258,6 +262,8 @@ class GameViewController: GLKViewController {
   }
   
   func drawHUDCenter() {
+    glBindVertexArray(vertexArray)
+    
 //    let hudOff = (gSquareVertexData.count + gTriangleData.count)/3
     var baseMatrix = GLKMatrix4MakeTranslation(0.5, 0.5, 0)
     var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
@@ -367,61 +373,41 @@ class GameViewController: GLKViewController {
     drawPitchDisplay(currentDH*10,roll: currentDH)
     unconstrainDrawing()
     
-    drawText("TEST")
+    drawText("TEST", left: false, position: (0.25,0.25), fontSize: 20)
+    
   }
   
-  func drawText(text: String) {
-//    //You may wish to use the extras to set an appropriate scale factor
-//    CGSize size = CGSizeMake(100,100);
-//    float scale = [[UIScreen mainScreen] scale];
-//    UIGraphicsBeginImageContextWithOptions(size, NO, scale);
-//    CGContextRef context = UIGraphicsGetCurrentContext();
-//    //Drawing code
-//    CGImageRef image = CGBitmapCreateFromContext(context);
-//    UIGraphicsEndImageContext();
-//    GLKTextureInfo *texture;
-//    texture = [GLKTextureLoader textureWithCGImage:image options:nil error:nil];
-//    CGImageRelease(image);
-//    self.scoreTexture = texture;
-//    let size = CGSize(width: 100, height: 100)
+  func drawText(text: String, left : Bool, position : (x: GLfloat, y: GLfloat), fontSize : GLfloat) {
+    // Let's work out the font size we want, approximately
+    let font = UIFont(name: "Menlo", size: CGFloat(fontSize))!
+    let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
     
-    
-//    CGColorSpaceRef    colorSpace = CGColorSpaceCreateDeviceGray();
-//    int sizeInBytes = height*width;
-//    void* data = malloc(sizeInBytes);
-//    memset(data, 0, sizeInBytes);
-//    CGContextRef context = CGBitmapContextCreate(data, width, height, 8, width, colorSpace, kCGImageAlphaNone);
-//    CGColorSpaceRelease(colorSpace);
-//    CGContextSetGrayFillColor(context, grayColor, 1.0);
-//    CGContextTranslateCTM(context, 0.0, height);
-//    CGContextScaleCTM(context, 1.0, -1.0);
-//    UIGraphicsPushContext(context);
-//    [txt drawInRect:CGRectMake(destRect.left, destRect.bottom, destRect.Width(), destRect.Height()) withFont:font
-//      lineBreakMode:UILineBreakModeWordWrap alignment:UITextAlignmentLeft];
-//    UIGraphicsPopContext();
-//    
-    
-    let attrs = [NSFontAttributeName: UIFont.systemFontOfSize(14.0)]
     let nsString: NSString = text as NSString
     let size: CGSize = nsString.sizeWithAttributes(attrs)
     UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
     let context = UIGraphicsGetCurrentContext()
     nsString.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
-//    let image = CGImageCreate
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()
     do {
       let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
       
       var name = texture.name;
-//      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-//        GL_UNSIGNED_BYTE, image);
+
       glBindVertexArray(texArray)
       glBindTexture(texture.target, texture.name)
 
+      // work out how tall we want it.
+      let squareHeight = GLfloat(fontSize) / pointScale
+      let squareWidth = squareHeight * GLfloat(size.width/size.height)
       var baseMatrix = GLKMatrix4Identity
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
-      baseMatrix = GLKMatrix4Scale(baseMatrix, 0.3, 0.3, 1)
+      if left {
+        baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y-squareHeight/2, 0)
+      } else {
+        baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y-squareHeight/2, 0)
+      }
+      baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
+
       var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
       withUnsafePointer(&mvp, {
         glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
@@ -676,10 +662,10 @@ var gSquareVertexData: [GLfloat] = [
 ]
 
 var gTextureSquareVertexData : [GLfloat] = [
-  0,0,0,0,0,
-  0,1,0,0,1,
-  1,0,0,1,0,
-  1,1,0,1,1
+  0,0,0,0,1,
+  0,1,0,0,0,
+  1,0,0,1,1,
+  1,1,0,1,0
 ]
 // Equilateral triangle with height 1, facing up, with point at 0,0
 var gTriangleData : [GLfloat] = [

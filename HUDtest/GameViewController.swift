@@ -25,6 +25,26 @@ let MESH_SQUARE = 0
 let MESH_TRIANGLE = 1
 let MESH_HUD = 2
 
+struct FlightData {
+  var Pitch   : GLfloat = 0
+  var Roll    : GLfloat = 0
+  var Heading : GLfloat = 0
+  
+  var DeltaH  : GLfloat = 0
+  var AtmHeight : GLfloat = 0
+  var TerrHeight : GLfloat = 0
+  var AtmPressure : GLfloat = 0
+  var AtmPercent : GLfloat = 0
+  
+  var ThrottleSet : GLfloat = 0
+  var ThrottleActual : GLfloat = 0
+  var Speed : GLfloat = 0
+  var Airpeed : GLfloat = 0
+  var HrzSpeed : GLfloat = 0
+  
+  var SAS : Bool = false
+}
+
 class GameViewController: GLKViewController {
   
   var program: GLuint = 0
@@ -49,6 +69,8 @@ class GameViewController: GLKViewController {
   
   var currentDH : GLfloat = 0
 
+  var data : FlightData = FlightData()
+  
   deinit {
     self.tearDownGL()
     
@@ -299,6 +321,15 @@ class GameViewController: GLKViewController {
   }
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
+    
+    currentDH += 0.01
+    data = FlightData()
+    data.DeltaH = currentDH
+    data.Pitch = currentDH*2
+    data.Roll = currentDH
+    data.AtmHeight = currentDH*10
+    
+    
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
     
@@ -331,98 +362,173 @@ class GameViewController: GLKViewController {
     let thick : GLfloat = 1.0
     let thin  : GLfloat = 0.5
 //    let fivepx : GLfloat = 5 //(5.0/640.0)*pointScale
+
+    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
+    drawPitchDisplay(data.Pitch,roll: data.Roll)
+
+
+    constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
+    drawLogDisplay(data.DeltaH, left: true)
+    drawLogDisplay(data.AtmHeight, left: false)
     
+    // Draw the heading indicator
+    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 1)
+    drawHeadingDisplay(data.Heading)
+    
+    unconstrainDrawing()
+
+    drawHUDCenter()
+    // Log display lines
     drawLine((0.25,0.25), to:(0.25,0.75), width: thick)
     drawLine((0.75,0.25), to:(0.75,0.75), width: thick)
     
-    // Line across
+    // Line across and triangles for HUD display
     drawLine((0.25,0.5), to: (0.75,0.5), width: thin)
-    
     drawTriangle((0.25, 0.5), rotation: 3.1415926/2, height: 0.03125)
     drawTriangle((0.75, 0.5), rotation: -3.1415926/2, height: 0.03125)
     drawTriangle((0.5, 0.75), rotation: 3.1415926, height: 0.03125)
-    
-    // box: 70x17, 60x7 inside (5 width)
-    // 86 between them
-//    drawLine((206.0/640.0, (320-8.5)/640.0), to: ((206.0+70.0)/640.0, (320-8.5)/640.0), width: 5)
+
     
     
-    drawHUDCenter()
+    // Fixed text
+//    drawText("TES10T", left: false, position: (0.25,0.25), fontSize: 20)
+    drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
+    drawText("ATM:", align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
+
+    drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
+    drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
+
+    drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
+    drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
+    drawText("HRZ:", align: .Left, position: (0.025, 0.025+0.05), fontSize: 16)
+    drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
+    // Indicators
+//    drawText("GEAR", align: .Right, position: (0.17,  1-0.325), fontSize: 16)
+//    drawText("SAS", align: .Right, position: (0.17,   1-(0.325+0.05)), fontSize: 16)
+//    drawText("LIGHT", align: .Right, position: (0.17, 1-(0.325+2*0.05)), fontSize: 16)
+    drawText(String(format:"%.4f",data.Pitch), align: .Left, position: (0,0), fontSize: 20)
     
-    // Draw the log displays
-    // Left: 4 orders, right: 4.6 orders.
+    // 8 =  0.0125
+    // 16 = 0.025
+    // 32 = 0.05
     
-    // Do the height display
-//    let currentDH : Float = 0
-    currentDH += 0.01
+    // Delete any unused text textures
+//    print ("Removing \(textCache.count-usedText.count) textures")
     
-    // Position the left log display
-    var baseMatrix = GLKMatrix4MakeTranslation(0.25, 0.25, 0)
-    baseMatrix = GLKMatrix4Scale(baseMatrix, 0.5, 0.5, 1)
+    for i in (0..<textCache.count).reverse() {
+      if usedText.contains(i) { continue }
+      print ("Removing \(textCache[i].text)/\(textCache[i].size)")
+      var name = textCache[i].texture.name
+      glDeleteTextures(1, &name)
+      textCache.removeAtIndex(i)
+    }
+    usedText.removeAll()
+  }
+
+  struct TextEntry {
+    let text : String
+    let size : GLfloat
+    let texture : GLKTextureInfo
+  }
+  var textCache : [TextEntry] = []
+  var usedText : Set<Int> = []
+  
+  
+  func drawText(text: String, align : NSTextAlignment, position : (x: GLfloat, y: GLfloat), fontSize : GLfloat,
+    rotate: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+    
+    let texture : GLKTextureInfo
+
+    var matchIndex : Optional<Int> = nil
+    // Look for an entry in the cache with this string and font size
+    for (index, entry) in textCache.enumerate() {
+      if entry.size == fontSize && entry.text == text {
+        matchIndex = index
+        break
+      }
+    }
+
+    if let index = matchIndex {
+      texture = textCache[index].texture
+      usedText.insert(index)
+    } else {
+      // Let's work out the font size we want, approximately
+      let font = UIFont(name: "Menlo", size: CGFloat(fontSize))!
+      let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
+      
+      let nsString: NSString = text as NSString
+      let size: CGSize = nsString.sizeWithAttributes(attrs)
+      UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
+      let context = UIGraphicsGetCurrentContext()
+      nsString.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
+      let image = CGBitmapContextCreateImage(context)!
+      UIGraphicsEndImageContext()
+      
+      do {
+        texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
+        textCache.append(TextEntry(text: text, size: fontSize, texture: texture))
+        usedText.insert(textCache.count-1)
+      } catch {
+        print("ERROR generating texture")
+        return
+      }
+    }
+    glBindVertexArray(texArray)
+    glBindTexture(texture.target, texture.name)
+    
+    // work out how tall we want it.
+    let squareHeight = GLfloat(fontSize) / pointScale
+    let squareWidth = squareHeight * GLfloat(texture.width/texture.height)
+    var baseMatrix = transform
+    switch(align) {
+    case .Left:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
+    case .Right:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
+    case .Center:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
+    default:
+      break
+    }
+    
+    //      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x - (left ? 0 : squareWidth), position.y, 0)
+    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotate, 0, 0, -1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
+    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
+    
     var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-
-    constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
-    drawLogDisplay(currentDH, left: true)
-    drawLogDisplay(currentDH, left: false)
+    glUniform1i(uniforms[UNIFORM_USETEX], 1)
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
     
-    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
-    drawPitchDisplay(currentDH*10,roll: currentDH)
-    unconstrainDrawing()
-    
-    drawText("TEST", left: false, position: (0.25,0.25), fontSize: 20)
+    glUniform1i(uniforms[UNIFORM_USETEX], 0)
+//    glDeleteTextures(1, &name);
     
   }
   
-  func drawText(text: String, left : Bool, position : (x: GLfloat, y: GLfloat), fontSize : GLfloat) {
-    // Let's work out the font size we want, approximately
-    let font = UIFont(name: "Menlo", size: CGFloat(fontSize))!
-    let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
-    
-    let nsString: NSString = text as NSString
-    let size: CGSize = nsString.sizeWithAttributes(attrs)
-    UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
-    let context = UIGraphicsGetCurrentContext()
-    nsString.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
-    let image = CGBitmapContextCreateImage(context)!
-    UIGraphicsEndImageContext()
-    do {
-      let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
-      
-      var name = texture.name;
+  func drawHeadingDisplay(heading : Float)
+  {
+    let minAngle = Int(floor((heading - 27.5)/10))*10
+    let maxAngle = Int(ceil((heading + 27.5)/10))*10
 
-      glBindVertexArray(texArray)
-      glBindTexture(texture.target, texture.name)
-
-      // work out how tall we want it.
-      let squareHeight = GLfloat(fontSize) / pointScale
-      let squareWidth = squareHeight * GLfloat(size.width/size.height)
-      var baseMatrix = GLKMatrix4Identity
-      if left {
-        baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y-squareHeight/2, 0)
-      } else {
-        baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y-squareHeight/2, 0)
-      }
-      baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
-
-      var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-      withUnsafePointer(&mvp, {
-        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-      })
-      glUniform1i(uniforms[UNIFORM_USETEX], 1)
-      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
-      
-      glUniform1i(uniforms[UNIFORM_USETEX], 0)
-      glDeleteTextures(1, &name);
-    } catch {
-      
+    for var angle = minAngle; angle <= maxAngle; angle += 10 {
+      let x = (Float(angle) - (heading - 27.5)) / 55.0
+      let height = angle % 20 == 0 ? 0.025 : 0.025*0.75
+      drawLine((0.25+x/2, 0.75), to: (0.25+x/2, GLfloat(0.75+height)), width: 1)
     }
-    
-    
+    for var angle = minAngle; angle <= maxAngle; angle += 10 {
+      if angle % 20 != 0 {
+        continue
+      }
+      let x = (Float(angle) - (heading - 27.5)) / 55.0
+//      drawLine((0.25+x/2, 0.75), to: (0.25+x/2, GLfloat(0.75+height)), width: 1)
+      drawText(String(format:"%d", angle), align: .Center, position: (0.25+x/2, 0.75+0.025+0.0125), fontSize: 10)
+    }
   }
+  
   func drawPitchDisplay(pitch : Float, roll : Float)
   {
     let minAngle = Int(floor((pitch - 67.5)/10))*10
@@ -448,13 +554,28 @@ class GameViewController: GLKViewController {
       let y : GLfloat = (GLfloat(angle))/90*0.5
       drawLine((-x, y), to: (x, y), width: 1, transform: pitchT)
     }
+    for var angle = minAngle; angle <= maxAngle; angle += 10 {
+      if angle % 20 != 0 {
+        continue
+      }
+      
+      // Scale 0->90 to 0->1, then 0->0.5
+      let y : GLfloat = (GLfloat(angle))/90*0.5
+      drawText(String(format: "%d", angle), align: .Left, position: (0.1125, y),
+        fontSize: (angle == 0 ? 16 : 8), rotate: 0, transform: pitchT)
+      drawText(String(format: "%d", angle), align: .Left, position: (-0.1125, y),
+        fontSize: (angle == 0 ? 16 : 8), rotate: 3.1415926, transform: pitchT)
+      
+//      drawLine((-x, y), to: (x, y), width: 1, transform: pitchT)
+    }
+
   }
   
   func drawLogDisplay(value : Float, left : Bool)
   {
     let xPos : GLfloat = left ? 0.25 : 0.75
 
-    let lgeTickSize = 0.1
+    let lgeTickSize : GLfloat = 0.025 * (left ? -1 : 1)
     let medTickSize = lgeTickSize / 2
     let smlTickSize = medTickSize / 2
     
@@ -462,32 +583,43 @@ class GameViewController: GLKViewController {
     // Calculate the minimum and maximum of the log range to draw
     let logRange = left ? 4 : 4.6
     var logMin = Int(floor(center)-logRange/2)
-    let logMax = Int(ceil(center)+logRange/2)
+    var logMax = Int(ceil(center)+logRange/2)
     if !left {
       logMin = max(0, logMin)
+      logMax = min(4, logMax)
     }
     let bottom = center - logRange / 2
 //    let top    = center + logRange / 2
     // Draw the major marks
     for power in logMin...logMax {
       var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
-//      if y > 0.25 && y < 0.75 {
-      drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize * (left ? -1 : 1)), y), width: 1)
-//      }
+      drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize), y), width: 1)
       
       var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let halfPoint = PseudoLog10(nextPow*0.5)
       y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-//      if y > 0.25 && y < 0.75 {
-      drawLine((xPos,y), to: (xPos+GLfloat(medTickSize * (left ? -1 : 1)), y), width: 1)
-//      }
+      drawLine((xPos,y), to: (xPos+GLfloat(medTickSize), y), width: 1)
 
       nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let doubPoint = PseudoLog10(nextPow*0.1*2)
       y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
-//      if y > 0.25 && y < 0.75 {
-      drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize * (left ? -1 : 1)), y), width: 1)
-//      }
+      drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize), y), width: 1)
+    }
+    // Draw text in a separate pass
+    for power in logMin...logMax {
+      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
+      var txt = NSString(format: "%.0f", InversePseudoLog10(Double(power)))
+      drawText(txt as String, align: left ? .Right : .Left, position: (xPos + lgeTickSize * 1.25, y), fontSize: 12)
+      
+      let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+      let halfPoint = PseudoLog10(nextPow*0.5)
+      y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+      if abs(nextPow) == 1 {
+        txt = NSString(format: "%.1f", nextPow*0.5)
+      } else {
+        txt = NSString(format: "%.0f", nextPow*0.5)
+      }
+      drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
     }
     
   }

@@ -18,6 +18,11 @@ let UNIFORM_MODELVIEWPROJECTION_MATRIX = 0
 let UNIFORM_NORMAL_MATRIX = 1
 let UNIFORM_COLOR = 2
 var uniforms = [GLint](count: 3, repeatedValue: 0)
+var meshes : [(offset: GLint, size: GLint)] = []
+
+let MESH_SQUARE = 0
+let MESH_TRIANGLE = 1
+let MESH_HUD = 2
 
 class GameViewController: GLKViewController {
   
@@ -28,8 +33,14 @@ class GameViewController: GLKViewController {
   var normalMatrix: GLKMatrix3 = GLKMatrix3Identity
   var rotation: Float = 0.0
   
+  var texAttrib : GLint = 0
+  var posAttrib : GLint = 0
+  
   var vertexArray: GLuint = 0
   var vertexBuffer: GLuint = 0
+  
+  var texArray : GLuint = 0
+  var texBuffer : GLuint = 0
   
   var context: EAGLContext? = nil
   
@@ -94,6 +105,8 @@ class GameViewController: GLKViewController {
     glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * vertexCount), nil, GLenum(GL_STATIC_DRAW))
     // Copy all data into the buffer
     glBufferSubData(GLenum(GL_ARRAY_BUFFER), 0, GLsizeiptr(sizeof(GLfloat)*gSquareVertexData.count), &gSquareVertexData)
+    meshes.append((0, GLint(gSquareVertexData.count/3)))
+    
 //    copy_to_buffer(gSquareVertexData, offset: 0)
 //    copy_to_buffer(gTriangleData, offset: gSquareVertexData.count)
 //    copy_to_buffer(gCenterHUD, offset: gSquareVertexData.count + gTriangleData.count)
@@ -101,14 +114,28 @@ class GameViewController: GLKViewController {
 //    
     glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*gSquareVertexData.count,
       GLsizeiptr(sizeof(GLfloat)*gTriangleData.count), &gTriangleData)
+    meshes.append((meshes.last!.size, GLint(gTriangleData.count/3)))
+
     glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*(gSquareVertexData.count + gTriangleData.count),
       GLsizeiptr(sizeof(GLfloat)*gCenterHUD.count), &gCenterHUD)
-    
+    meshes.append((meshes.last!.size+meshes.last!.offset, GLint(gCenterHUD.count/3)))
 //
-    glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Position.rawValue))
-    glVertexAttribPointer(GLuint(GLKVertexAttrib.Position.rawValue), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 12, BUFFER_OFFSET(0))
+    glEnableVertexAttribArray(GLuint(posAttrib))
+    glVertexAttribPointer(GLuint(posAttrib), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 12, BUFFER_OFFSET(0))
 //    glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Normal.rawValue))
 //    glVertexAttribPointer(GLuint(GLKVertexAttrib.Normal.rawValue), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 24, BUFFER_OFFSET(12))
+    glBindVertexArray(0);
+    
+    glGenVertexArrays(1, &texArray)
+    glBindVertexArray(texArray)
+    glGenBuffers(1, &texBuffer)
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), texBuffer)
+    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * gTextureSquareVertexData.count),
+      &gTextureSquareVertexData, GLenum(GL_STATIC_DRAW))
+    glEnableVertexAttribArray(GLuint(posAttrib))
+    glVertexAttribPointer(GLuint(posAttrib), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 20, BUFFER_OFFSET(0))
+    glEnableVertexAttribArray(GLuint(texAttrib))
+    glVertexAttribPointer(GLuint(texAttrib), 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 20, BUFFER_OFFSET(12))
     
     glBindVertexArray(0);
   }
@@ -162,7 +189,8 @@ class GameViewController: GLKViewController {
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
+    let mesh = meshes[MESH_SQUARE]
+    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
 
   }
 
@@ -186,7 +214,8 @@ class GameViewController: GLKViewController {
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
+    let mesh = meshes[MESH_SQUARE]
+    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
   }
   
   func drawTriangle(point : (x: GLfloat, y: GLfloat), rotation : GLfloat, height : GLfloat)
@@ -202,8 +231,8 @@ class GameViewController: GLKViewController {
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    glDrawArrays(GLenum(GL_TRIANGLES), 6, 3)
-    
+    let mesh = meshes[MESH_TRIANGLE]
+    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
   }
   
   func constrainDrawing(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
@@ -228,20 +257,21 @@ class GameViewController: GLKViewController {
   }
   
   func drawHUDCenter() {
-    let hudOff = (gSquareVertexData.count + gTriangleData.count)/3
+//    let hudOff = (gSquareVertexData.count + gTriangleData.count)/3
     var baseMatrix = GLKMatrix4MakeTranslation(0.5, 0.5, 0)
     var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), GLint(hudOff), GLint(gCenterHUD.count/3))
+    let mesh = meshes[MESH_HUD]
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
+//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), GLint(hudOff), GLint(gCenterHUD.count/3))
     baseMatrix = GLKMatrix4Scale(baseMatrix, -1, 1, 1)
     mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
     })
-    
-    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), GLint(hudOff), GLint(gCenterHUD.count/3))
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
   }
   
   func PseudoLog10(x : Double) -> Double
@@ -335,8 +365,76 @@ class GameViewController: GLKViewController {
     constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
     drawPitchDisplay(currentDH*10,roll: currentDH)
     unconstrainDrawing()
+    
+    drawText("TEST")
   }
   
+  func drawText(text: String) {
+//    //You may wish to use the extras to set an appropriate scale factor
+//    CGSize size = CGSizeMake(100,100);
+//    float scale = [[UIScreen mainScreen] scale];
+//    UIGraphicsBeginImageContextWithOptions(size, NO, scale);
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    //Drawing code
+//    CGImageRef image = CGBitmapCreateFromContext(context);
+//    UIGraphicsEndImageContext();
+//    GLKTextureInfo *texture;
+//    texture = [GLKTextureLoader textureWithCGImage:image options:nil error:nil];
+//    CGImageRelease(image);
+//    self.scoreTexture = texture;
+//    let size = CGSize(width: 100, height: 100)
+    
+    
+//    CGColorSpaceRef    colorSpace = CGColorSpaceCreateDeviceGray();
+//    int sizeInBytes = height*width;
+//    void* data = malloc(sizeInBytes);
+//    memset(data, 0, sizeInBytes);
+//    CGContextRef context = CGBitmapContextCreate(data, width, height, 8, width, colorSpace, kCGImageAlphaNone);
+//    CGColorSpaceRelease(colorSpace);
+//    CGContextSetGrayFillColor(context, grayColor, 1.0);
+//    CGContextTranslateCTM(context, 0.0, height);
+//    CGContextScaleCTM(context, 1.0, -1.0);
+//    UIGraphicsPushContext(context);
+//    [txt drawInRect:CGRectMake(destRect.left, destRect.bottom, destRect.Width(), destRect.Height()) withFont:font
+//      lineBreakMode:UILineBreakModeWordWrap alignment:UITextAlignmentLeft];
+//    UIGraphicsPopContext();
+//    
+    
+    let attrs = [NSFontAttributeName: UIFont.systemFontOfSize(14.0)]
+    let nsString: NSString = text as NSString
+    let size: CGSize = nsString.sizeWithAttributes(attrs)
+    UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
+    let context = UIGraphicsGetCurrentContext()
+    nsString.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
+//    let image = CGImageCreate
+    let image = CGBitmapContextCreateImage(context)!
+    UIGraphicsEndImageContext()
+    do {
+      let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
+      
+      var name = texture.name;
+//      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+//        GL_UNSIGNED_BYTE, image);
+      glBindVertexArray(texArray)
+//      glBindTexture(texture.target, texture.name)
+
+      var baseMatrix = GLKMatrix4Identity
+//      baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+//      baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+      var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+      withUnsafePointer(&mvp, {
+        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+      })
+      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
+      
+      
+      glDeleteTextures(1, &name);
+    } catch {
+      
+    }
+    
+    
+  }
   func drawPitchDisplay(pitch : Float, roll : Float)
   {
     let minAngle = Int(floor((pitch - 67.5)/10))*10
@@ -439,7 +537,10 @@ class GameViewController: GLKViewController {
     
     // Bind attribute locations.
     // This needs to be done prior to linking.
-    glBindAttribLocation(program, GLuint(GLKVertexAttrib.Position.rawValue), "position")
+//    glBindAttribLocation(program, GLuint(GLKVertexAttrib.Position.rawValue), "position")
+//    glBindAttribLocation(program, GLuint(GLKVertexAttrib.TexCoord0.rawValue), "texcoord")
+    
+    
 //    glBindAttribLocation(program, GLuint(GLKVertexAttrib.Normal.rawValue), "normal")
     
     // Link program.
@@ -462,6 +563,9 @@ class GameViewController: GLKViewController {
       return false
     }
     
+    posAttrib = glGetAttribLocation(program, "position")
+    texAttrib = glGetAttribLocation(program, "texcoord")
+
     // Get uniform locations.
     uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(program, "modelViewProjectionMatrix")
     uniforms[UNIFORM_COLOR] = glGetUniformLocation(program, "color")
@@ -569,6 +673,12 @@ var gSquareVertexData: [GLfloat] = [
   0,0,0,
 ]
 
+var gTextureSquareVertexData : [GLfloat] = [
+  0,0,0,0,0,
+  0,1,0,0,1,
+  1,0,0,1,0,
+  1,1,0,1,1
+]
 // Equilateral triangle with height 1, facing up, with point at 0,0
 var gTriangleData : [GLfloat] = [
   0,0,0,

@@ -1,3 +1,4 @@
+
 //
 //  Shader.fsh
 //  HUDtest
@@ -11,10 +12,16 @@ precision highp float;
 
 uniform lowp vec3 color;
 uniform sampler2D tex;
+uniform bool useTex;
 
 varying vec2 Texcoord;
 
 void main()
 {
-  gl_FragColor = vec4(color,1);
+  if (useTex) {
+    gl_FragColor = texture2D(tex, Texcoord)*vec4(color,1);
+//    gl_FragColor = vec4(Texcoord,0,1);
+  } else {
+    gl_FragColor = vec4(color,1);
+  }
 }

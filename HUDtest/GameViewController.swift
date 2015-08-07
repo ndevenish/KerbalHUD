@@ -17,7 +17,8 @@ func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
 let UNIFORM_MODELVIEWPROJECTION_MATRIX = 0
 let UNIFORM_NORMAL_MATRIX = 1
 let UNIFORM_COLOR = 2
-var uniforms = [GLint](count: 3, repeatedValue: 0)
+let UNIFORM_USETEX = 3
+var uniforms = [GLint](count: 4, repeatedValue: 0)
 var meshes : [(offset: GLint, size: GLint)] = []
 
 let MESH_SQUARE = 0
@@ -416,18 +417,19 @@ class GameViewController: GLKViewController {
 //      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
 //        GL_UNSIGNED_BYTE, image);
       glBindVertexArray(texArray)
-//      glBindTexture(texture.target, texture.name)
+      glBindTexture(texture.target, texture.name)
 
       var baseMatrix = GLKMatrix4Identity
 //      baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
-//      baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+      baseMatrix = GLKMatrix4Scale(baseMatrix, 0.3, 0.3, 1)
       var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
       withUnsafePointer(&mvp, {
         glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
       })
+      glUniform1i(uniforms[UNIFORM_USETEX], 1)
       glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
       
-      
+      glUniform1i(uniforms[UNIFORM_USETEX], 0)
       glDeleteTextures(1, &name);
     } catch {
       
@@ -569,7 +571,7 @@ class GameViewController: GLKViewController {
     // Get uniform locations.
     uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(program, "modelViewProjectionMatrix")
     uniforms[UNIFORM_COLOR] = glGetUniformLocation(program, "color")
-    
+    uniforms[UNIFORM_USETEX] = glGetUniformLocation(program, "useTex")
 //    uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation(program, "normalMatrix")
     
     // Release vertex and fragment shaders.

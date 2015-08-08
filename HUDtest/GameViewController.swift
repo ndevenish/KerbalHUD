@@ -9,6 +9,7 @@
 import GLKit
 import OpenGLES
 
+
 func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
   let p: UnsafePointer<Void> = nil
   return p.advancedBy(i)
@@ -45,7 +46,7 @@ struct FlightData {
   var SAS : Bool = false
 }
 
-class GameViewController: GLKViewController {
+class GameViewController: GLKViewController, WebSocketDelegate {
   
   var program: GLuint = 0
   
@@ -69,7 +70,7 @@ class GameViewController: GLKViewController {
   
   var currentDH : GLfloat = 0
 
-  var data : FlightData = FlightData()
+  var latestData : FlightData? = nil
   
   deinit {
     self.tearDownGL()
@@ -78,6 +79,8 @@ class GameViewController: GLKViewController {
       EAGLContext.setCurrentContext(nil)
     }
   }
+  
+  var socket : WebSocket? = nil
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -94,7 +97,43 @@ class GameViewController: GLKViewController {
     view.drawableStencilFormat = .Format8
     
     self.setupGL()
+    self.setupSocket()
   }
+  
+  func setupSocket()
+  {
+    socket = WebSocket(url: NSURL(string: "ws://192.168.1.73:8085/datalink")!)
+    if let s = socket {
+      s.delegate = self
+      s.connect()
+    } else {
+      print("Error opening websocket")
+    }
+  }
+  
+  func websocketDidConnect(socket: WebSocket)
+  {
+    print ("Connected to socket!")
+  }
+  func websocketDidDisconnect(socket: WebSocket, error: NSError?)
+  {
+    latestData = nil
+    if let err = error {
+      print ("Error: \(err). Disconnected.")
+    } else {
+      print ("Disconnected.")
+    }
+    socket.connect()
+  }
+  func websocketDidReceiveMessage(socket: WebSocket, text: String)
+  {
+    print ("Recieved Message: \(text)")
+  }
+  func websocketDidReceiveData(socket: WebSocket, data: NSData)
+  {
+       print ("Received \(data.length)b of data")
+  }
+
   
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
@@ -323,14 +362,15 @@ class GameViewController: GLKViewController {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     
     currentDH += 0.01
-
-    data = FlightData()
-    data.DeltaH = currentDH
-    data.Pitch = currentDH*2
-    data.Roll = currentDH*5
-    data.Heading = currentDH*5
-    data.AtmHeight = currentDH*10
-    
+//
+//    latestData = FlightData()
+//    
+//    latestData!.DeltaH = currentDH
+//    latestData!.Pitch = currentDH*2
+//    latestData!.Roll = currentDH*5
+//    latestData!.Heading = currentDH*5
+//    latestData!.AtmHeight = currentDH*10
+//    
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -341,30 +381,33 @@ class GameViewController: GLKViewController {
 
     glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
 
-    let thick : GLfloat = 1.0
-    let thin  : GLfloat = 0.5
+//    let thick : GLfloat = 1.0
+//    let thin  : GLfloat = 0.5
 
-    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
-    drawPitchDisplay(data.Pitch,roll: data.Roll)
+    if let data = latestData {
+      constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
+      drawPitchDisplay(data.Pitch,roll: data.Roll)
 
+      constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
+      drawLogDisplay(data.DeltaH, left: true)
+      drawLogDisplay(data.AtmHeight, left: false)
+      
+      // Draw the heading indicator
+      constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 1)
+      drawHeadingDisplay(data.Heading)
+      
+      unconstrainDrawing()
+    }
 
-    constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
-    drawLogDisplay(data.DeltaH, left: true)
-    drawLogDisplay(data.AtmHeight, left: false)
-    
-    // Draw the heading indicator
-    constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 1)
-    drawHeadingDisplay(data.Heading)
-    
-    unconstrainDrawing()
 
     drawHUDCenter()
+    
     // Log display lines
-    drawLine((0.25,0.25), to:(0.25,0.75), width: thick)
-    drawLine((0.75,0.25), to:(0.75,0.75), width: thick)
+    drawLine((0.25,0.25), to:(0.25,0.75), width: 1)
+    drawLine((0.75,0.25), to:(0.75,0.75), width: 1)
     
     // Line across and triangles for HUD display
-    drawLine((0.25,0.5), to: (0.75,0.5), width: thin)
+    drawLine((0.25,0.5), to: (0.75,0.5), width: 0.5)
     drawTriangle((0.25, 0.5), rotation: 3.1415926/2, height: 0.03125)
     drawTriangle((0.75, 0.5), rotation: -3.1415926/2, height: 0.03125)
     drawTriangle((0.5, 0.75), rotation: 3.1415926, height: 0.03125)
@@ -383,21 +426,32 @@ class GameViewController: GLKViewController {
     drawText("HRZ:", align: .Left, position: (0.025, 0.025+0.05), fontSize: 16)
     drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
-    drawText(String(format:"%.3fkPa", data.AtmPressure), align: .Right, position: (0.4, 1-0.075), fontSize: 16)
-    drawText(String(format:"%.1f%%", data.AtmPercent), align: .Right, position: (0.27, 1-(0.075+0.05)), fontSize: 16)
-    
-    drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
-    drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
-    
-    drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
-    drawText(String(format:"%.0fm/s", data.AirSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
-    drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+0.05), fontSize: 16)
-    drawText(String(format:"%5.1f%% [%5.1f%%]", data.ThrottleSet, data.ThrottleActual), align: .Right, position: (0.52, 0.025), fontSize: 16)
+    if let data = latestData {
+      drawText(String(format:"%.3fkPa", data.AtmPressure), align: .Right, position: (0.4, 1-0.075), fontSize: 16)
+      drawText(String(format:"%.1f%%", data.AtmPercent), align: .Right, position: (0.27, 1-(0.075+0.05)), fontSize: 16)
+      
+      drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
+      drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
+      
+      drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
+      drawText(String(format:"%.0fm/s", data.AirSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+0.05), fontSize: 16)
+      drawText(String(format:"%5.1f%% [%5.1f%%]", data.ThrottleSet, data.ThrottleActual), align: .Right, position: (0.52, 0.025), fontSize: 16)
 
-    drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
-    drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
-      position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
-
+      drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
+      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
+        position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
+    } else {
+      glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
+      
+      if let sock = socket {
+        if !sock.isConnected {
+          drawText("CONNECTING TO \(sock.url.host!):\(sock.url.port!)",
+            align: .Right, position: (1-0.05, 0.05), fontSize: 20)
+        }
+      }
+      drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
+    }
     // Indicators
 //    drawText("GEAR", align: .Right, position: (0.17,  1-0.325), fontSize: 16)
 //    drawText("SAS", align: .Right, position: (0.17,   1-(0.325+0.05)), fontSize: 16)

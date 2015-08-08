@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A05148F1B7682F0000C6DE2 /* Websocket.swift */; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -28,6 +29,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
 		0A3594001B7136B80072CC18 /* HUDtest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HUDtest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -66,6 +68,8 @@
 				0A3594021B7136B80072CC18 /* HUDtest */,
 				0A35941B1B7136B90072CC18 /* HUDtestTests */,
 				0A3594011B7136B80072CC18 /* Products */,
+				44B4D73A4444009EC6780DD9 /* Pods */,
+				A8A7C3E79B4481B321ABC461 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -89,6 +93,7 @@
 				0A35940E1B7136B80072CC18 /* Assets.xcassets */,
 				0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */,
 				0A3594131B7136B80072CC18 /* Info.plist */,
+				0A05148F1B7682F0000C6DE2 /* Websocket.swift */,
 			);
 			path = HUDtest;
 			sourceTree = "<group>";
@@ -100,6 +105,20 @@
 				0A35941E1B7136B90072CC18 /* Info.plist */,
 			);
 			path = HUDtestTests;
+			sourceTree = "<group>";
+		};
+		44B4D73A4444009EC6780DD9 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		A8A7C3E79B4481B321ABC461 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -206,6 +225,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A35940A1B7136B80072CC18 /* GameViewController.swift in Sources */,
+				0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */,
 				0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

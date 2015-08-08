@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A05148F1B7682F0000C6DE2 /* Websocket.swift */; };
+		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -30,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
+		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A3594001B7136B80072CC18 /* HUDtest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HUDtest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 				0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */,
 				0A3594131B7136B80072CC18 /* Info.plist */,
 				0A05148F1B7682F0000C6DE2 /* Websocket.swift */,
+				0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */,
 			);
 			path = HUDtest;
 			sourceTree = "<group>";
@@ -165,6 +168,7 @@
 		0A3593F81B7136B80072CC18 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Nicholas Devenish";
 				TargetAttributes = {
@@ -227,6 +231,7 @@
 				0A35940A1B7136B80072CC18 /* GameViewController.swift in Sources */,
 				0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */,
 				0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */,
+				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

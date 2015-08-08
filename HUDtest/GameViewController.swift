@@ -114,6 +114,16 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
+    socket.writeString("{\"+\":[\"v.altitude\",\"v.terrainHeight\",\"v.surfaceVelocity\",\"v.atmosphericDensity\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\"]}")
+//    socket.writeString("{\"+\":[\"v.altitude\", \"v.name\"],\"rate\": 500}")
+//    v.altitude
+//    v.terrainHeight
+//    v.surfaceVelocity
+//    v.atmosphericDensity
+//    n.pitch
+//    n.heading
+//    n.roll
+//    v.verticalSpeed
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
   {
@@ -123,11 +133,13 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     } else {
       print ("Disconnected.")
     }
+    print ("Attempting connection again..")
     socket.connect()
   }
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
     print ("Recieved Message: \(text)")
+    
   }
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {

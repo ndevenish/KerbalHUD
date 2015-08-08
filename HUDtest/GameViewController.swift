@@ -39,7 +39,7 @@ struct FlightData {
   var ThrottleSet : GLfloat = 0
   var ThrottleActual : GLfloat = 0
   var Speed : GLfloat = 0
-  var Airpeed : GLfloat = 0
+  var AirSpeed : GLfloat = 0
   var HrzSpeed : GLfloat = 0
   
   var SAS : Bool = false
@@ -323,10 +323,12 @@ class GameViewController: GLKViewController {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     
     currentDH += 0.01
+
     data = FlightData()
     data.DeltaH = currentDH
     data.Pitch = currentDH*2
-    data.Roll = currentDH
+    data.Roll = currentDH*5
+    data.Heading = currentDH*5
     data.AtmHeight = currentDH*10
     
     
@@ -336,32 +338,11 @@ class GameViewController: GLKViewController {
     glBindVertexArray(vertexArray)
     
     glUseProgram(program)
-    
-//    glDisable(GLenum(GL_CULL_FACE))
-    
-//    withUnsafePointer(&modelViewProjectionMatrix, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    
-//    glUniform1f(uniforms[UNIFORM_STEP], 1)
-//    glUniform1i(uniforms[UNIFORM_STEP], 1)
+
     glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
-    
-//    withUnsafePointer(&normalMatrix, {
-//      glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-    
-//    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
-//    glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
-//    glDrawArrays(GLenum(GL_TRIANGLES), 3, 3)
-    
-    //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
-//    glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
-    
-//    drawLine((0,0.2), to: (1,1), width: 2)
+
     let thick : GLfloat = 1.0
     let thin  : GLfloat = 0.5
-//    let fivepx : GLfloat = 5 //(5.0/640.0)*pointScale
 
     constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
     drawPitchDisplay(data.Pitch,roll: data.Roll)
@@ -391,7 +372,6 @@ class GameViewController: GLKViewController {
     
     
     // Fixed text
-//    drawText("TES10T", left: false, position: (0.25,0.25), fontSize: 20)
     drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
     drawText("ATM:", align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
 
@@ -403,22 +383,37 @@ class GameViewController: GLKViewController {
     drawText("HRZ:", align: .Left, position: (0.025, 0.025+0.05), fontSize: 16)
     drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
+    drawText(String(format:"%.3fkPa", data.AtmPressure), align: .Right, position: (0.4, 1-0.075), fontSize: 16)
+    drawText(String(format:"%.1f%%", data.AtmPercent), align: .Right, position: (0.27, 1-(0.075+0.05)), fontSize: 16)
+    
+    drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
+    drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
+    
+    drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
+    drawText(String(format:"%.0fm/s", data.AirSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+    drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+0.05), fontSize: 16)
+    drawText(String(format:"%5.1f%% [%5.1f%%]", data.ThrottleSet, data.ThrottleActual), align: .Right, position: (0.52, 0.025), fontSize: 16)
+
+    drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
+    drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
+      position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
+
     // Indicators
 //    drawText("GEAR", align: .Right, position: (0.17,  1-0.325), fontSize: 16)
 //    drawText("SAS", align: .Right, position: (0.17,   1-(0.325+0.05)), fontSize: 16)
 //    drawText("LIGHT", align: .Right, position: (0.17, 1-(0.325+2*0.05)), fontSize: 16)
-    drawText(String(format:"%.4f",data.Pitch), align: .Left, position: (0,0), fontSize: 20)
+//    drawText("0", align: .Left, position: (0,0), fontSize: 20)
     
     // 8 =  0.0125
     // 16 = 0.025
     // 32 = 0.05
-    
+
     // Delete any unused text textures
 //    print ("Removing \(textCache.count-usedText.count) textures")
     
     for i in (0..<textCache.count).reverse() {
       if usedText.contains(i) { continue }
-      print ("Removing \(textCache[i].text)/\(textCache[i].size)")
+//      print ("Removing \(textCache[i].text)/\(textCache[i].size)")
       var name = textCache[i].texture.name
       glDeleteTextures(1, &name)
       textCache.removeAtIndex(i)
@@ -448,7 +443,7 @@ class GameViewController: GLKViewController {
         break
       }
     }
-
+      
     if let index = matchIndex {
       texture = textCache[index].texture
       usedText.insert(index)
@@ -479,7 +474,7 @@ class GameViewController: GLKViewController {
     
     // work out how tall we want it.
     let squareHeight = GLfloat(fontSize) / pointScale
-    let squareWidth = squareHeight * GLfloat(texture.width/texture.height)
+    let squareWidth = squareHeight * GLfloat(texture.width)/GLfloat(texture.height)
     var baseMatrix = transform
     switch(align) {
     case .Left:
@@ -505,8 +500,6 @@ class GameViewController: GLKViewController {
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
     
     glUniform1i(uniforms[UNIFORM_USETEX], 0)
-//    glDeleteTextures(1, &name);
-    
   }
   
   func drawHeadingDisplay(heading : Float)
@@ -537,9 +530,9 @@ class GameViewController: GLKViewController {
     // Build a transform to apply to all lines putting it in the right area
     var pitchT = GLKMatrix4Identity
     pitchT = GLKMatrix4Translate(pitchT, 0.5, 0.5, 0)
-    pitchT = GLKMatrix4Rotate(pitchT, roll, 0, 0, -1)
+    pitchT = GLKMatrix4Rotate(pitchT, roll*3.1415926/180, 0, 0, -1)
     pitchT = GLKMatrix4Translate(pitchT, 0, -offset, 0)
-    
+
     for var angle = minAngle; angle <= maxAngle; angle += 5 {
       let x : GLfloat
       if angle % 20 == 0 {

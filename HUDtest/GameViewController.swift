@@ -44,6 +44,11 @@ struct FlightData {
   var HrzSpeed : GLfloat = 0
   
   var SAS : Bool = false
+  var Gear : Bool = false
+  var Lights : Bool = false
+  var Brake : Bool = false
+  var RCS : Bool = false
+  
 }
 
 class GameViewController: GLKViewController, WebSocketDelegate {
@@ -97,7 +102,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     view.drawableStencilFormat = .Format8
     
     self.setupGL()
-    self.setupSocket()
+//    self.setupSocket()
   }
   
   func setupSocket()
@@ -114,16 +119,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
-    socket.writeString("{\"+\":[\"v.altitude\",\"v.terrainHeight\",\"v.surfaceVelocity\",\"v.atmosphericDensity\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\"]}")
+    socket.writeString("{\"+\":[\"v.altitude\",\"v.terrainHeight\",\"v.surfaceVelocity\",\"v.atmosphericDensity\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.rcsValue\"],\"rate\": 0}")
 //    socket.writeString("{\"+\":[\"v.altitude\", \"v.name\"],\"rate\": 500}")
-//    v.altitude
-//    v.terrainHeight
-//    v.surfaceVelocity
-//    v.atmosphericDensity
-//    n.pitch
-//    n.heading
-//    n.roll
-//    v.verticalSpeed
+
+    
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
   {
@@ -138,9 +137,29 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   }
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-    print ("Recieved Message: \(text)")
-    
+//    print ("Recieved Message: \(text)")
+    let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!)
+    var data = FlightData()
+    data.AtmHeight = json["v.altitude"].floatValue
+    data.TerrHeight = json["v.terrainHeight"].floatValue
+    data.DeltaH = json["v.verticalSpeed"].floatValue
+    data.Pitch = json["n.pitch"].floatValue
+    data.Heading = json["n.heading"].floatValue
+    data.Roll = json["n.roll"].floatValue
+    data.Speed = json["v.surfaceVelocity"].floatValue
+    data.AtmPressure = json["v.atmosphericDensity"].floatValue
+    data.ThrottleSet = json["f.throttle"].floatValue
+    latestData = data
   }
+  
+  //    v.altitude
+  //    v.terrainHeight
+  //    v.surfaceVelocity
+  //    v.atmosphericDensity
+  //    n.pitch
+  //    n.heading
+  //    n.roll
+  //    v.verticalSpeed
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
        print ("Received \(data.length)b of data")
@@ -374,15 +393,15 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     
     currentDH += 0.01
-//
-//    latestData = FlightData()
-//    
-//    latestData!.DeltaH = currentDH
-//    latestData!.Pitch = currentDH*2
-//    latestData!.Roll = currentDH*5
-//    latestData!.Heading = currentDH*5
-//    latestData!.AtmHeight = currentDH*10
-//    
+
+    latestData = FlightData()
+    
+    latestData!.DeltaH = currentDH
+    latestData!.Pitch = currentDH*2
+    latestData!.Roll = currentDH*5
+    latestData!.Heading = currentDH*5
+    latestData!.AtmHeight = 1000+currentDH*10
+    
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -453,22 +472,36 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
       drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
         position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
+      
+
+      //    drawText("0", align: .Left, position: (0,0), fontSize: 20)
+      if data.Gear {
+        drawText("GEAR",  align: .Right, position: (0.15,   1-0.325), fontSize: 16)
+      }
+      if data.SAS {
+        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
+      }
+      if data.Lights {
+        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
+      }
+      if data.RCS {
+        drawText("RCS",   align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
+      }
+      if data.Brake {
+        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+4*0.05)), fontSize: 16)
+      }
     } else {
       glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
       
       if let sock = socket {
         if !sock.isConnected {
-          drawText("CONNECTING TO \(sock.url.host!):\(sock.url.port!)",
+          drawText("CONNECTING",
             align: .Right, position: (1-0.05, 0.05), fontSize: 20)
         }
       }
       drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
     }
     // Indicators
-//    drawText("GEAR", align: .Right, position: (0.17,  1-0.325), fontSize: 16)
-//    drawText("SAS", align: .Right, position: (0.17,   1-(0.325+0.05)), fontSize: 16)
-//    drawText("LIGHT", align: .Right, position: (0.17, 1-(0.325+2*0.05)), fontSize: 16)
-//    drawText("0", align: .Left, position: (0,0), fontSize: 20)
     
     // 8 =  0.0125
     // 16 = 0.025
@@ -499,6 +532,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func drawText(text: String, align : NSTextAlignment, position : (x: GLfloat, y: GLfloat), fontSize : GLfloat,
     rotate: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
     
+    let fontSize = fontSize * (pointScale / 375)///0.58 * GLfloat(UIScreen.mainScreen().scale)
+      
     let texture : GLKTextureInfo
 
     var matchIndex : Optional<Int> = nil

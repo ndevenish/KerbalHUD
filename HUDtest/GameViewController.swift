@@ -34,13 +34,13 @@ struct FlightData {
   var DeltaH  : GLfloat = 0
   var AtmHeight : GLfloat = 0
   var TerrHeight : GLfloat = 0
-  var AtmPressure : GLfloat = 0
+  var DynPressure : GLfloat = 0
   var AtmPercent : GLfloat = 0
-  
+  var AtmDensity : GLfloat = 0
   var ThrottleSet : GLfloat = 0
   var ThrottleActual : GLfloat = 0
   var Speed : GLfloat = 0
-  var AirSpeed : GLfloat = 0
+  var EASpeed : GLfloat = 0
   var HrzSpeed : GLfloat = 0
   
   var SAS : Bool = false
@@ -102,7 +102,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     view.drawableStencilFormat = .Format8
     
     self.setupGL()
-//    self.setupSocket()
+    self.setupSocket()
   }
   
   func setupSocket()
@@ -119,9 +119,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
-    socket.writeString("{\"+\":[\"v.altitude\",\"v.terrainHeight\",\"v.surfaceVelocity\",\"v.atmosphericDensity\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.rcsValue\"],\"rate\": 0}")
+    socket.writeString("{\"+\":[\"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\"],\"rate\": 0}")
 //    socket.writeString("{\"+\":[\"v.altitude\", \"v.name\"],\"rate\": 500}")
-
+//,\"v.terrainHeight\"
     
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
@@ -142,13 +142,22 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     var data = FlightData()
     data.AtmHeight = json["v.altitude"].floatValue
     data.TerrHeight = json["v.terrainHeight"].floatValue
-    data.DeltaH = json["v.verticalSpeed"].floatValue
     data.Pitch = json["n.pitch"].floatValue
     data.Heading = json["n.heading"].floatValue
     data.Roll = json["n.roll"].floatValue
-    data.Speed = json["v.surfaceVelocity"].floatValue
-    data.AtmPressure = json["v.atmosphericDensity"].floatValue
+    data.DynPressure = json["v.dynamicPressure"].floatValue
     data.ThrottleSet = json["f.throttle"].floatValue
+    data.SAS = json["v.sasValue"].stringValue == "True"
+    data.Brake = json["v.brakeValue"].stringValue == "True"
+    data.Lights = json["v.lightValue"].stringValue == "True"
+    data.Gear = json["v.gearValue"].stringValue == "True"
+//    data.RCS = json["v.rcsValue"].stringValue == "True"
+    data.Speed = json["v.surfaceSpeed"].floatValue
+    data.DeltaH = json["v.verticalSpeed"].floatValue
+    let sqHzSpeed = data.Speed*data.Speed - data.DeltaH*data.DeltaH
+    data.HrzSpeed = sqHzSpeed < 0 ? 0 : sqrt(sqHzSpeed)
+    data.AtmDensity = json["v.atmosphericDensity"].floatValue
+//    data.EASpeed = data.Speed * sqrt(data.AtmDensity /
     latestData = data
   }
   
@@ -393,15 +402,16 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     
     currentDH += 0.01
-
-    latestData = FlightData()
-    
-    latestData!.DeltaH = currentDH
-    latestData!.Pitch = currentDH*2
-    latestData!.Roll = currentDH*5
-    latestData!.Heading = currentDH*5
-    latestData!.AtmHeight = 1000+currentDH*10
-    
+//
+//    if latestData == nil {
+//      latestData = FlightData()
+//      
+//      latestData!.DeltaH = currentDH
+//      latestData!.Pitch = currentDH*2
+//      latestData!.Roll = currentDH*5
+//      latestData!.Heading = currentDH*5
+//      latestData!.AtmHeight = 1000+currentDH*10
+//    }
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -447,49 +457,52 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     // Fixed text
     drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
-    drawText("ATM:", align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
+//    drawText("ATM:", align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
 
     drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
     drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
 
     drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
-    drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
-    drawText("HRZ:", align: .Left, position: (0.025, 0.025+0.05), fontSize: 16)
+//    drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
+    drawText("HRZ:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
     drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
     if let data = latestData {
-      drawText(String(format:"%.3fkPa", data.AtmPressure), align: .Right, position: (0.4, 1-0.075), fontSize: 16)
-      drawText(String(format:"%.1f%%", data.AtmPercent), align: .Right, position: (0.27, 1-(0.075+0.05)), fontSize: 16)
+      drawText(String(format:"%7.3fkPa", data.DynPressure), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
+//      drawText(String(format:"%5.1f%%", data.AtmPercent), align: .Left, position: (0.14, 1-(0.075+0.05)), fontSize: 16)
       
       drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
       drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
       
       drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
-      drawText(String(format:"%.0fm/s", data.AirSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
-      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+0.05), fontSize: 16)
-      drawText(String(format:"%5.1f%% [%5.1f%%]", data.ThrottleSet, data.ThrottleActual), align: .Right, position: (0.52, 0.025), fontSize: 16)
-
+//      drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+      
+      drawText(String(format:"%5.1f%%", data.ThrottleSet, data.ThrottleActual), align: .Left, position: (0.14, 0.025), fontSize: 16)
+      // No actual throttle  [%5.1f%%]
       drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
       drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
         position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
+
+      drawText(String(format:"%6.0fm/s", data.DeltaH), align: .Right, position: (0.25, 0.75), fontSize: 12)
+      drawText(String(format:"%6.0fm", data.AtmHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
       
 
-      //    drawText("0", align: .Left, position: (0,0), fontSize: 20)
-      if data.Gear {
-        drawText("GEAR",  align: .Right, position: (0.15,   1-0.325), fontSize: 16)
-      }
       if data.SAS {
-        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
+        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325)), fontSize: 16)
       }
-      if data.Lights {
-        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
-      }
-      if data.RCS {
-        drawText("RCS",   align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
+      if data.Gear {
+        drawText("GEAR",  align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
       }
       if data.Brake {
-        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+4*0.05)), fontSize: 16)
+        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
       }
+      if data.Lights {
+        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
+      }
+//      if data.RCS {
+//        drawText("RCS",   align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
+//      }
     } else {
       glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
       

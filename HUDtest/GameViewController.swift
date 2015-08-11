@@ -420,11 +420,11 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   }
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
-    
-    currentDH += 0.01
 
     if let s = socket {
       if !s.isConnected {
+        currentDH += 0.01
+
         latestData = FlightData()
         
         latestData!.DeltaH = currentDH
@@ -434,6 +434,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
         latestData!.AtmHeight = 1000+currentDH*10
       }
     }
+    
+    latestData!.AtmHeight = 5000
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -529,17 +531,18 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //      if data.RCS {
 //        drawText("RCS",   align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
 //      }
-    } else {
-      glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
-      
+    }
+    
       if let sock = socket {
         if !sock.isConnected {
+          
+          glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
+          drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
+
           drawText("CONNECTING",
             align: .Right, position: (1-0.05, 0.05), fontSize: 20)
         }
       }
-      drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
-    }
     // Indicators
     
     // 8 =  0.0125
@@ -719,7 +722,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     var logMax = Int(ceil(center)+logRange/2)
     if !left {
       logMin = max(0, logMin)
-      logMax = min(4, logMax)
+      logMax = min(5, logMax)
     }
     let bottom = center - logRange / 2
 //    let top    = center + logRange / 2
@@ -727,16 +730,19 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     for power in logMin...logMax {
       var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
       drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize), y), width: 1)
-      
-      var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-      let halfPoint = PseudoLog10(nextPow*0.5)
-      y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-      drawLine((xPos,y), to: (xPos+GLfloat(medTickSize), y), width: 1)
 
-      nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-      let doubPoint = PseudoLog10(nextPow*0.1*2)
-      y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
-      drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize), y), width: 1)
+      
+      if !(power == logMax) {
+        var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+        let halfPoint = PseudoLog10(nextPow*0.5)
+        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+        drawLine((xPos,y), to: (xPos+GLfloat(medTickSize), y), width: 1)
+
+        nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+        let doubPoint = PseudoLog10(nextPow*0.1*2)
+        y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
+        drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize), y), width: 1)
+      }
     }
     // Draw text in a separate pass
     for power in logMin...logMax {
@@ -744,15 +750,17 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       var txt = NSString(format: "%.0f", abs(InversePseudoLog10(Double(power))))
       drawText(txt as String, align: left ? .Right : .Left, position: (xPos + lgeTickSize * 1.25, y), fontSize: 12)
       
-      let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-      let halfPoint = PseudoLog10(nextPow*0.5)
-      y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-      if abs(nextPow) == 1 {
-        txt = NSString(format: "%.1f", abs(nextPow*0.5))
-      } else {
-        txt = NSString(format: "%.0f", abs(nextPow*0.5))
+      if !(power == logMax) {
+        let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+        let halfPoint = PseudoLog10(nextPow*0.5)
+        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+        if abs(nextPow) == 1 {
+          txt = NSString(format: "%.1f", abs(nextPow*0.5))
+        } else {
+          txt = NSString(format: "%.0f", abs(nextPow*0.5))
+        }
+        drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
       }
-      drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
     }
     
   }

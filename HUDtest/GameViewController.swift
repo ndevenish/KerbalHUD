@@ -25,6 +25,7 @@ var meshes : [(offset: GLint, size: GLint)] = []
 let MESH_SQUARE = 0
 let MESH_TRIANGLE = 1
 let MESH_HUD = 2
+let MESH_PROGRADE = 3
 
 struct FlightData {
   var Pitch   : GLfloat = 0
@@ -42,7 +43,7 @@ struct FlightData {
   var Speed : GLfloat = 0
   var EASpeed : GLfloat = 0
   var HrzSpeed : GLfloat = 0
-  
+  var SurfaceVelocity : (x: GLfloat, y: GLfloat, z: GLfloat) = (0,0,0)
   var SAS : Bool = false
   var Gear : Bool = false
   var Lights : Bool = false
@@ -119,7 +120,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
-    socket.writeString("{\"+\":[\"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\"],\"rate\": 0}")
+    socket.writeString("{\"+\":[\"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\",\"v.surfaceVelocityx\",\"v.surfaceVelocityy\",\"v.surfaceVelocityz\"],\"rate\": 0}")
 //    socket.writeString("{\"+\":[\"v.altitude\", \"v.name\"],\"rate\": 500}")
 //,\"v.terrainHeight\"
     
@@ -157,6 +158,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     let sqHzSpeed = data.Speed*data.Speed - data.DeltaH*data.DeltaH
     data.HrzSpeed = sqHzSpeed < 0 ? 0 : sqrt(sqHzSpeed)
     data.AtmDensity = json["v.atmosphericDensity"].floatValue
+    data.SurfaceVelocity = (json["v.surfaceVelocityx"].floatValue, json["v.surfaceVelocityy"].floatValue, json["v.surfaceVelocityz"].floatValue)
 //    data.EASpeed = data.Speed * sqrt(data.AtmDensity /
     latestData = data
   }
@@ -201,7 +203,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     glGenBuffers(1, &vertexBuffer)
     glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBuffer)
-    let vertexCount = gSquareVertexData.count + gTriangleData.count + gCenterHUD.count
+    let vertexCount = gSquareVertexData.count + gTriangleData.count + gCenterHUD.count + gPrograde.count
 //    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * vertexCount), &gSquareVertexData, GLenum(GL_STATIC_DRAW))
 
     glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * vertexCount), nil, GLenum(GL_STATIC_DRAW))
@@ -222,6 +224,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       GLsizeiptr(sizeof(GLfloat)*gCenterHUD.count), &gCenterHUD)
     meshes.append((meshes.last!.size+meshes.last!.offset, GLint(gCenterHUD.count/3)))
 //
+    glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*(gSquareVertexData.count + gTriangleData.count + gCenterHUD.count), GLsizeiptr(sizeof(GLfloat)*gPrograde.count), &gPrograde)
+    meshes.append((meshes.last!.size+meshes.last!.offset, GLint(gPrograde.count/3)))
+    
     glEnableVertexAttribArray(GLuint(posAttrib))
     glVertexAttribPointer(GLuint(posAttrib), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 12, BUFFER_OFFSET(0))
 //    glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Normal.rawValue))
@@ -382,6 +387,21 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
   }
   
+  func drawPrograde(x: GLfloat, y: GLfloat) {
+    glBindVertexArray(vertexArray)
+    
+    let baseMatrix = GLKMatrix4MakeTranslation(x, y, 0)
+//    baseMatrix = GLKMatrix4Scale(baseMatrix, 0.01, 0.01, 1)
+
+    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+    withUnsafePointer(&mvp, {
+      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+    })
+    let mesh = meshes[MESH_PROGRADE]
+
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
+  }
+  
   func PseudoLog10(x : Double) -> Double
   {
     
@@ -402,16 +422,18 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     
     currentDH += 0.01
-//
-//    if latestData == nil {
-//      latestData = FlightData()
-//      
-//      latestData!.DeltaH = currentDH
-//      latestData!.Pitch = currentDH*2
-//      latestData!.Roll = currentDH*5
-//      latestData!.Heading = currentDH*5
-//      latestData!.AtmHeight = 1000+currentDH*10
-//    }
+
+    if let s = socket {
+      if !s.isConnected {
+        latestData = FlightData()
+        
+        latestData!.DeltaH = currentDH
+        latestData!.Pitch = currentDH*2
+        latestData!.Roll = currentDH*5
+        latestData!.Heading = currentDH*5
+        latestData!.AtmHeight = 1000+currentDH*10
+      }
+    }
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -424,10 +446,14 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 
 //    let thick : GLfloat = 1.0
 //    let thin  : GLfloat = 0.5
-
+    
     if let data = latestData {
       constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
       drawPitchDisplay(data.Pitch,roll: data.Roll)
+
+//      glUniform3f(uniforms[UNIFORM_COLOR], 0.84, 0.98, 0.0)
+//      drawPrograde(0.6, y: 0.6)
+//      glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
 
       constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
       drawLogDisplay(data.DeltaH, left: true)
@@ -439,8 +465,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       
       unconstrainDrawing()
     }
-
-
+    
     drawHUDCenter()
     
     // Log display lines
@@ -448,7 +473,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     drawLine((0.75,0.25), to:(0.75,0.75), width: 1)
     
     // Line across and triangles for HUD display
-    drawLine((0.25,0.5), to: (0.75,0.5), width: 0.5)
+    drawLine((0.25,0.5), to: (0.45,0.5), width: 0.5)
+    drawLine((0.55,0.5), to: (1.0,0.5), width: 0.5)
     drawTriangle((0.25, 0.5), rotation: 3.1415926/2, height: 0.03125)
     drawTriangle((0.75, 0.5), rotation: -3.1415926/2, height: 0.03125)
     drawTriangle((0.5, 0.75), rotation: 3.1415926, height: 0.03125)
@@ -468,7 +494,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
     if let data = latestData {
-      drawText(String(format:"%7.3fkPa", data.DynPressure), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
+      drawText(String(format:"%7.3fkPa", data.DynPressure/1000), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
 //      drawText(String(format:"%5.1f%%", data.AtmPercent), align: .Left, position: (0.14, 1-(0.075+0.05)), fontSize: 16)
       
       drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
@@ -478,14 +504,14 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //      drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
       drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
       
-      drawText(String(format:"%5.1f%%", data.ThrottleSet, data.ThrottleActual), align: .Left, position: (0.14, 0.025), fontSize: 16)
+      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet, data.ThrottleActual), align: .Left, position: (0.14, 0.025), fontSize: 16)
       // No actual throttle  [%5.1f%%]
       drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
-      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, data.Roll), align: .Center,
+      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), align: .Center,
         position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
 
       drawText(String(format:"%6.0fm/s", data.DeltaH), align: .Right, position: (0.25, 0.75), fontSize: 12)
-      drawText(String(format:"%6.0fm", data.AtmHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
+      drawText(String(format:"%6.0fm", data.AtmHeight-data.TerrHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
       
 
       if data.SAS {
@@ -715,16 +741,16 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     // Draw text in a separate pass
     for power in logMin...logMax {
       var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
-      var txt = NSString(format: "%.0f", InversePseudoLog10(Double(power)))
+      var txt = NSString(format: "%.0f", abs(InversePseudoLog10(Double(power))))
       drawText(txt as String, align: left ? .Right : .Left, position: (xPos + lgeTickSize * 1.25, y), fontSize: 12)
       
       let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
       let halfPoint = PseudoLog10(nextPow*0.5)
       y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
       if abs(nextPow) == 1 {
-        txt = NSString(format: "%.1f", nextPow*0.5)
+        txt = NSString(format: "%.1f", abs(nextPow*0.5))
       } else {
-        txt = NSString(format: "%.0f", nextPow*0.5)
+        txt = NSString(format: "%.0f", abs(nextPow*0.5))
       }
       drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
     }
@@ -928,6 +954,23 @@ func openSemiCircle(r : GLfloat, w : GLfloat) -> [(x: GLfloat, y: GLfloat)]
   return points
 }
 
+func openCircle(start : GLfloat, end : GLfloat, r : GLfloat, w : GLfloat) -> [(x: GLfloat, y: GLfloat)]
+{
+  var points : [(x: GLfloat, y: GLfloat)] = []
+  let Csteps = 20
+  let innerR = r - w/2
+  let outerR = r + w/2
+  
+  for step in 0...Csteps {
+    let theta = Float(start) + Float(Double(end-start) * (Double(step)/Double(Csteps)))
+    
+    points.append((innerR*sin(theta), innerR*cos(theta)))
+    points.append((outerR*sin(theta), outerR*cos(theta)))
+  }
+  return points
+}
+
+
 func crossHair(H : GLfloat, J : GLfloat, w : GLfloat, theta : GLfloat) -> [GLfloat]
 {
   var points : [(x: GLfloat, y: GLfloat)] = []
@@ -978,6 +1021,16 @@ func boxPoints(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> 
   ]
 }
 
+func progradeMarker() -> [GLfloat]
+{
+  var points = openCircle(0, end: 2*3.1415926, r: 12, w: 3)
+  appendTriangleStrip(&points, with: boxPoints(-30, bottom: -1, right: -14, top: 1))
+  appendTriangleStrip(&points, with: boxPoints(-1, bottom: 14, right: 1, top: 30))
+  appendTriangleStrip(&points, with: boxPoints(14, bottom: -1, right: 30, top: 1))
+  
+  return pointsTo3DVertices(points)
+}
+
 func appendTriangleStrip(inout points : [(x: GLfloat, y: GLfloat)], with : [(x: GLfloat, y: GLfloat)])
 {
   points.append(points.last!)
@@ -997,3 +1050,5 @@ func pointsTo3DVertices(points : [(x: GLfloat, y: GLfloat)]) -> [GLfloat]
 }
 
 var gCenterHUD : [GLfloat] = crossHair(16, J: 68, w: 5, theta: 0.7243116395776468)
+
+var gPrograde : [GLfloat] = progradeMarker()

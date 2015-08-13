@@ -128,30 +128,16 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
-    let APIvars = [
-      "v.atmosphericDensity", "v.dynamicPressure",
-      "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
-      "n.pitch", "n.heading", "n.roll",
-      "f.throttle",
-      "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
-      "v.surfaceSpeed", "v.verticalSpeed",
-      "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
-      // RPM Variables
-      "rpm.available",
-      "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
-      "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
-      "rpm.RADARALTOCEAN"
-    ]
-    
-    let APIcodeString = ",".join(APIvars.map({ "\"" + $0 + "\"" }))
-    socket.writeString("{\"+\":[" + APIcodeString + "],\"rate\": 0}")
-//         \"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\",\"v.surfaceVelocityx\",\"v.surfaceVelocityy\",\"v.surfaceVelocityz\"
 
-    
+    if let APIvars = display?.variables {
+      let APIcodeString = ",".join(APIvars.map({ "\"" + $0 + "\"" }))
+      socket.writeString("{\"+\":[" + APIcodeString + "],\"rate\": 0}")
+    } else {
+      print("Connected to server, but no instrument active")
+    }
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
   {
-//    latestData = nil
     if let err = error {
       print ("Error: \(err). Disconnected.")
     } else {

@@ -48,7 +48,7 @@
 		0A3593F71B7136B80072CC18 = {
 			isa = PBXGroup;
 			children = (
-				0A3594021B7136B80072CC18 /* HUDtest */,
+				0A3594021B7136B80072CC18 /* KerbalHUD */,
 				0A3594011B7136B80072CC18 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,7 +61,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		0A3594021B7136B80072CC18 /* HUDtest */ = {
+		0A3594021B7136B80072CC18 /* KerbalHUD */ = {
 			isa = PBXGroup;
 			children = (
 				0A3594031B7136B80072CC18 /* AppDelegate.swift */,
@@ -76,7 +76,8 @@
 				0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */,
 				0A1B0A011B76BE1000381CC7 /* Security.swift */,
 			);
-			path = HUDtest;
+			name = KerbalHUD;
+			path = KerbalHUD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,7 +96,7 @@
 			dependencies = (
 			);
 			name = KerbalHUD;
-			productName = HUDtest;
+			productName = KerbalHUD;
 			productReference = 0A3594001B7136B80072CC18 /* KerbalHUD.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -272,10 +273,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				INFOPLIST_FILE = HUDtest/Info.plist;
+				INFOPLIST_FILE = KerbalHUD/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.KerbalHUD;
 				PRODUCT_NAME = KerbalHUD;
 				PROVISIONING_PROFILE = "";
 			};
@@ -287,10 +288,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				INFOPLIST_FILE = HUDtest/Info.plist;
+				INFOPLIST_FILE = KerbalHUD/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtest;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.KerbalHUD;
 				PRODUCT_NAME = KerbalHUD;
 				PROVISIONING_PROFILE = "";
 			};

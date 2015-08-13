@@ -27,36 +27,36 @@ let MESH_TRIANGLE = 1
 let MESH_HUD = 2
 let MESH_PROGRADE = 3
 
-struct FlightData {
-  var Pitch   : GLfloat = 0
-  var Roll    : GLfloat = 0
-  var Heading : GLfloat = 0
-  
-  var DeltaH  : GLfloat = 0
-  var AtmHeight : GLfloat = 0
-  var TerrHeight : GLfloat = 0
-  var RadarHeight : GLfloat = 0
-  var DynPressure : GLfloat = 0
-  var AtmPercent : GLfloat = 0
-  var AtmDensity : GLfloat = 0
-  var ThrottleSet : GLfloat = 0
-  var ThrottleActual : GLfloat = 0
-  var Speed : GLfloat = 0
-  var EASpeed : GLfloat = 0
-  var HrzSpeed : GLfloat = 0
-  var SurfaceVelocity : (x: GLfloat, y: GLfloat, z: GLfloat) = (0,0,0)
-  var SAS : Bool = false
-  var Gear : Bool = false
-  var Lights : Bool = false
-  var Brake : Bool = false
-  var RCS : Bool = false
-  
-  var HeatAlarm : Bool = false
-  var GroundAlarm : Bool = false
-  var SlopeAlarm : Bool = false
-  
-  var RPMVariablesAvailable : Bool = false
-}
+//struct FlightData {
+//  var Pitch   : GLfloat = 0
+//  var Roll    : GLfloat = 0
+//  var Heading : GLfloat = 0
+//  
+//  var DeltaH  : GLfloat = 0
+//  var AtmHeight : GLfloat = 0
+//  var TerrHeight : GLfloat = 0
+//  var RadarHeight : GLfloat = 0
+//  var DynPressure : GLfloat = 0
+//  var AtmPercent : GLfloat = 0
+//  var AtmDensity : GLfloat = 0
+//  var ThrottleSet : GLfloat = 0
+//  var ThrottleActual : GLfloat = 0
+//  var Speed : GLfloat = 0
+//  var EASpeed : GLfloat = 0
+//  var HrzSpeed : GLfloat = 0
+//  var SurfaceVelocity : (x: GLfloat, y: GLfloat, z: GLfloat) = (0,0,0)
+//  var SAS : Bool = false
+//  var Gear : Bool = false
+//  var Lights : Bool = false
+//  var Brake : Bool = false
+//  var RCS : Bool = false
+//  
+//  var HeatAlarm : Bool = false
+//  var GroundAlarm : Bool = false
+//  var SlopeAlarm : Bool = false
+//  
+//  var RPMVariablesAvailable : Bool = false
+//}
 
 class GameViewController: GLKViewController, WebSocketDelegate {
   
@@ -82,7 +82,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   var currentDH : GLfloat = 0
 
-  var latestData : FlightData? = nil
+//  var latestData : FlightData? = nil
+  
+  var display : Instrument?
   
   deinit {
     self.tearDownGL()
@@ -149,7 +151,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
   {
-    latestData = nil
+//    latestData = nil
     if let err = error {
       print ("Error: \(err). Disconnected.")
     } else {
@@ -162,49 +164,12 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   {
 //    print ("Recieved Message: \(text)")
     let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!)
-    var data = FlightData()
-    data.AtmHeight = json["v.altitude"].floatValue
-    data.TerrHeight = json["v.terrainHeight"].floatValue
-    data.RadarHeight = min(data.AtmHeight, data.AtmHeight - data.TerrHeight)
-    data.Pitch = json["n.pitch"].floatValue
-    data.Heading = json["n.heading"].floatValue
-    data.Roll = json["n.roll"].floatValue
-    data.DynPressure = json["v.dynamicPressure"].floatValue
-    data.ThrottleSet = json["f.throttle"].floatValue
-    data.SAS = json["v.sasValue"].stringValue == "True"
-    data.Brake = json["v.brakeValue"].stringValue == "True"
-    data.Lights = json["v.lightValue"].stringValue == "True"
-    data.Gear = json["v.gearValue"].stringValue == "True"
-    data.Speed = json["v.surfaceSpeed"].floatValue
-    data.DeltaH = json["v.verticalSpeed"].floatValue
-    let sqHzSpeed = data.Speed*data.Speed - data.DeltaH*data.DeltaH
-    data.HrzSpeed = sqHzSpeed < 0 ? 0 : sqrt(sqHzSpeed)
-    data.AtmDensity = json["v.atmosphericDensity"].floatValue
-    data.SurfaceVelocity = (json["v.surfaceVelocityx"].floatValue, json["v.surfaceVelocityy"].floatValue, json["v.surfaceVelocityz"].floatValue)
-    data.RPMVariablesAvailable = json["rpm.available"].stringValue.uppercaseString == "TRUE"
-    if data.RPMVariablesAvailable {
-      data.AtmPercent = json["rpm.ATMOSPHEREDEPTH"].floatValue
-      data.EASpeed = json["rpm.EASPEED"].floatValue
-      data.ThrottleActual = json["rpm.EFFECTIVETHROTTLE"].floatValue
-      
-      data.HeatAlarm = json["rpm.ENGINEOVERHEATALARM"].intValue != 0
-      data.GroundAlarm = json["rpm.GROUNDPROXIMITYALARM"].intValue != 0
-      data.SlopeAlarm = json["rpm.SLOPEALARM"].intValue != 0
-      data.RadarHeight = json["rpm.RADARALTOCEAN"].floatValue
+    if let inst = display {
+      // Convert the JSON into a dictionary
+      inst.update(json.dictionaryValue)
     }
-    
-    
-    latestData = data
   }
   
-  //    v.altitude
-  //    v.terrainHeight
-  //    v.surfaceVelocity
-  //    v.atmosphericDensity
-  //    n.pitch
-  //    n.heading
-  //    n.roll
-  //    v.verticalSpeed
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
        print ("Received \(data.length)b of data")
@@ -279,6 +244,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     glVertexAttribPointer(GLuint(texAttrib), 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 20, BUFFER_OFFSET(12))
     
     glBindVertexArray(0);
+    
+//    display =
   }
   
   func tearDownGL() {
@@ -455,19 +422,20 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
 
-    if let s = socket {
-      if !s.isConnected {
-        currentDH += 0.01
-
-        latestData = FlightData()
-        
-        latestData!.DeltaH = currentDH
-        latestData!.Pitch = currentDH*2
-        latestData!.Roll = currentDH*5
-        latestData!.Heading = currentDH*5
-        latestData!.AtmHeight = 1000+currentDH*10
-      }
-    }
+    // TODO: Replace this with fake server-side data
+//    if let s = socket {
+//      if !s.isConnected {
+//        currentDH += 0.01
+//
+//        latestData = FlightData()
+//        
+//        latestData!.DeltaH = currentDH
+//        latestData!.Pitch = currentDH*2
+//        latestData!.Roll = currentDH*5
+//        latestData!.Heading = currentDH*5
+//        latestData!.AtmHeight = 1000+currentDH*10
+//      }
+//    }
     
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -480,6 +448,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 
 //    let thick : GLfloat = 1.0
 //    let thin  : GLfloat = 0.5
+    
+    if let instr = display {
+      instr.draw()
+    }
     
     if let data = latestData {
       constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)

@@ -35,6 +35,7 @@ struct FlightData {
   var DeltaH  : GLfloat = 0
   var AtmHeight : GLfloat = 0
   var TerrHeight : GLfloat = 0
+  var RadarHeight : GLfloat = 0
   var DynPressure : GLfloat = 0
   var AtmPercent : GLfloat = 0
   var AtmDensity : GLfloat = 0
@@ -50,6 +51,11 @@ struct FlightData {
   var Brake : Bool = false
   var RCS : Bool = false
   
+  var HeatAlarm : Bool = false
+  var GroundAlarm : Bool = false
+  var SlopeAlarm : Bool = false
+  
+  var RPMVariablesAvailable : Bool = false
 }
 
 class GameViewController: GLKViewController, WebSocketDelegate {
@@ -120,9 +126,25 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   func websocketDidConnect(socket: WebSocket)
   {
     print ("Connected to socket!")
-    socket.writeString("{\"+\":[\"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\",\"v.surfaceVelocityx\",\"v.surfaceVelocityy\",\"v.surfaceVelocityz\"],\"rate\": 0}")
-//    socket.writeString("{\"+\":[\"v.altitude\", \"v.name\"],\"rate\": 500}")
-//,\"v.terrainHeight\"
+    let APIvars = [
+      "v.atmosphericDensity", "v.dynamicPressure",
+      "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
+      "n.pitch", "n.heading", "n.roll",
+      "f.throttle",
+      "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
+      "v.surfaceSpeed", "v.verticalSpeed",
+      "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
+      // RPM Variables
+      "rpm.available",
+      "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
+      "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
+      "rpm.RADARALTOCEAN"
+    ]
+    
+    let APIcodeString = ",".join(APIvars.map({ "\"" + $0 + "\"" }))
+    socket.writeString("{\"+\":[" + APIcodeString + "],\"rate\": 0}")
+//         \"v.altitude\",\"v.surfaceSpeed\",\"v.dynamicPressure\",\"n.pitch\",\"n.heading\",\"n.roll\",\"v.verticalSpeed\",\"f.throttle\",\"v.sasValue\",\"v.lightValue\",\"v.brakeValue\",\"v.gearValue\",\"v.heightFromTerrain\",\"v.atmosphericDensity\",\"v.surfaceVelocityx\",\"v.surfaceVelocityy\",\"v.surfaceVelocityz\"
+
     
   }
   func websocketDidDisconnect(socket: WebSocket, error: NSError?)
@@ -143,6 +165,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     var data = FlightData()
     data.AtmHeight = json["v.altitude"].floatValue
     data.TerrHeight = json["v.terrainHeight"].floatValue
+    data.RadarHeight = min(data.AtmHeight, data.AtmHeight - data.TerrHeight)
     data.Pitch = json["n.pitch"].floatValue
     data.Heading = json["n.heading"].floatValue
     data.Roll = json["n.roll"].floatValue
@@ -152,14 +175,25 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     data.Brake = json["v.brakeValue"].stringValue == "True"
     data.Lights = json["v.lightValue"].stringValue == "True"
     data.Gear = json["v.gearValue"].stringValue == "True"
-//    data.RCS = json["v.rcsValue"].stringValue == "True"
     data.Speed = json["v.surfaceSpeed"].floatValue
     data.DeltaH = json["v.verticalSpeed"].floatValue
     let sqHzSpeed = data.Speed*data.Speed - data.DeltaH*data.DeltaH
     data.HrzSpeed = sqHzSpeed < 0 ? 0 : sqrt(sqHzSpeed)
     data.AtmDensity = json["v.atmosphericDensity"].floatValue
     data.SurfaceVelocity = (json["v.surfaceVelocityx"].floatValue, json["v.surfaceVelocityy"].floatValue, json["v.surfaceVelocityz"].floatValue)
-//    data.EASpeed = data.Speed * sqrt(data.AtmDensity /
+    data.RPMVariablesAvailable = json["rpm.available"].stringValue.uppercaseString == "TRUE"
+    if data.RPMVariablesAvailable {
+      data.AtmPercent = json["rpm.ATMOSPHEREDEPTH"].floatValue
+      data.EASpeed = json["rpm.EASPEED"].floatValue
+      data.ThrottleActual = json["rpm.EFFECTIVETHROTTLE"].floatValue
+      
+      data.HeatAlarm = json["rpm.ENGINEOVERHEATALARM"].intValue != 0
+      data.GroundAlarm = json["rpm.GROUNDPROXIMITYALARM"].intValue != 0
+      data.SlopeAlarm = json["rpm.SLOPEALARM"].intValue != 0
+      data.RadarHeight = json["rpm.RADARALTOCEAN"].floatValue
+    }
+    
+    
     latestData = data
   }
   
@@ -435,8 +469,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       }
     }
     
-    latestData!.AtmHeight = 5000
-    
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
     
@@ -459,7 +491,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 
       constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
       drawLogDisplay(data.DeltaH, left: true)
-      drawLogDisplay(data.AtmHeight, left: false)
+      drawLogDisplay(data.RadarHeight, left: false)
       
       // Draw the heading indicator
       constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 1)
@@ -485,35 +517,30 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     // Fixed text
     drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
-//    drawText("ATM:", align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
 
     drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
     drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
 
     drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
-//    drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
-    drawText("HRZ:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
+    drawText("HRZ:", align: .Left, position: (0.025, 0.025+1*0.05), fontSize: 16)
     drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
     
     if let data = latestData {
       drawText(String(format:"%7.3fkPa", data.DynPressure/1000), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
-//      drawText(String(format:"%5.1f%%", data.AtmPercent), align: .Left, position: (0.14, 1-(0.075+0.05)), fontSize: 16)
       
       drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
       drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
       
       drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
-//      drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
-      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+1*0.05), fontSize: 16)
       
-      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet, data.ThrottleActual), align: .Left, position: (0.14, 0.025), fontSize: 16)
-      // No actual throttle  [%5.1f%%]
+      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet), align: .Left, position: (0.14, 0.025), fontSize: 16)
       drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
       drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), align: .Center,
         position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
 
-      drawText(String(format:"%6.0fm/s", data.DeltaH), align: .Right, position: (0.25, 0.75), fontSize: 12)
-      drawText(String(format:"%6.0fm", data.AtmHeight-data.TerrHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
+      drawText(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)), align: .Right, position: (0.25, 0.75), fontSize: 12)
+      drawText(String(format:"%6.0fm", data.RadarHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
       
 
       if data.SAS {
@@ -528,21 +555,37 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       if data.Lights {
         drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
       }
-//      if data.RCS {
-//        drawText("RCS",   align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
-//      }
-    }
-    
-      if let sock = socket {
-        if !sock.isConnected {
-          
-          glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
-          drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
 
-          drawText("CONNECTING",
-            align: .Right, position: (1-0.05, 0.05), fontSize: 20)
+      if data.RPMVariablesAvailable {
+        drawText(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
+        drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
+        drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+        drawText(String(format:"[%5.1f%%]", data.ThrottleActual*100.0), align: .Left, position: (0.33, 0.025), fontSize: 16)
+        
+        if data.HeatAlarm {
+          drawText("HEAT!", align: .Left, position: (0.83,   1-(0.325)), fontSize: 16)
+        }
+        if data.GroundAlarm {
+          drawText("GEAR!", align: .Left, position: (0.83,   1-(0.325+0.05)), fontSize: 16)
+          
+        }
+        if data.SlopeAlarm {
+          drawText("SLOPE!", align: .Left, position: (0.83,   1-(0.325+2*0.05)), fontSize: 16)
         }
       }
+
+    }
+  
+    if let sock = socket {
+      if !sock.isConnected {
+        
+        glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
+        drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
+
+        drawText("CONNECTING",
+          align: .Right, position: (1-0.05, 0.05), fontSize: 20)
+      }
+    }
     // Indicators
     
     // 8 =  0.0125

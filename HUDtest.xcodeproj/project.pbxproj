@@ -17,18 +17,7 @@
 		0A35940D1B7136B80072CC18 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A35940B1B7136B80072CC18 /* Main.storyboard */; };
 		0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A35940E1B7136B80072CC18 /* Assets.xcassets */; };
 		0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */; };
-		0A35941D1B7136B90072CC18 /* HUDtestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A35941C1B7136B90072CC18 /* HUDtestTests.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		0A3594191B7136B90072CC18 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0A3593F81B7136B80072CC18 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0A3593FF1B7136B80072CC18;
-			remoteInfo = HUDtest;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
@@ -43,20 +32,10 @@
 		0A35940E1B7136B80072CC18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0A3594111B7136B80072CC18 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0A3594131B7136B80072CC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		0A3594181B7136B90072CC18 /* HUDtestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HUDtestTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		0A35941C1B7136B90072CC18 /* HUDtestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDtestTests.swift; sourceTree = "<group>"; };
-		0A35941E1B7136B90072CC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		0A3593FD1B7136B80072CC18 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0A3594151B7136B90072CC18 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -70,10 +49,7 @@
 			isa = PBXGroup;
 			children = (
 				0A3594021B7136B80072CC18 /* HUDtest */,
-				0A35941B1B7136B90072CC18 /* HUDtestTests */,
 				0A3594011B7136B80072CC18 /* Products */,
-				44B4D73A4444009EC6780DD9 /* Pods */,
-				A8A7C3E79B4481B321ABC461 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -81,7 +57,6 @@
 			isa = PBXGroup;
 			children = (
 				0A3594001B7136B80072CC18 /* HUDtest.app */,
-				0A3594181B7136B90072CC18 /* HUDtestTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,29 +79,6 @@
 			path = HUDtest;
 			sourceTree = "<group>";
 		};
-		0A35941B1B7136B90072CC18 /* HUDtestTests */ = {
-			isa = PBXGroup;
-			children = (
-				0A35941C1B7136B90072CC18 /* HUDtestTests.swift */,
-				0A35941E1B7136B90072CC18 /* Info.plist */,
-			);
-			path = HUDtestTests;
-			sourceTree = "<group>";
-		};
-		44B4D73A4444009EC6780DD9 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
-		A8A7C3E79B4481B321ABC461 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -147,24 +99,6 @@
 			productReference = 0A3594001B7136B80072CC18 /* HUDtest.app */;
 			productType = "com.apple.product-type.application";
 		};
-		0A3594171B7136B90072CC18 /* HUDtestTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0A3594241B7136B90072CC18 /* Build configuration list for PBXNativeTarget "HUDtestTests" */;
-			buildPhases = (
-				0A3594141B7136B90072CC18 /* Sources */,
-				0A3594151B7136B90072CC18 /* Frameworks */,
-				0A3594161B7136B90072CC18 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				0A35941A1B7136B90072CC18 /* PBXTargetDependency */,
-			);
-			name = HUDtestTests;
-			productName = HUDtestTests;
-			productReference = 0A3594181B7136B90072CC18 /* HUDtestTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -178,10 +112,6 @@
 					0A3593FF1B7136B80072CC18 = {
 						CreatedOnToolsVersion = 7.0;
 						DevelopmentTeam = M9XTZP285U;
-					};
-					0A3594171B7136B90072CC18 = {
-						CreatedOnToolsVersion = 7.0;
-						TestTargetID = 0A3593FF1B7136B80072CC18;
 					};
 				};
 			};
@@ -199,7 +129,6 @@
 			projectRoot = "";
 			targets = (
 				0A3593FF1B7136B80072CC18 /* HUDtest */,
-				0A3594171B7136B90072CC18 /* HUDtestTests */,
 			);
 		};
 /* End PBXProject section */
@@ -214,13 +143,6 @@
 				0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */,
 				0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0A3594161B7136B90072CC18 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,23 +161,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0A3594141B7136B90072CC18 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0A35941D1B7136B90072CC18 /* HUDtestTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		0A35941A1B7136B90072CC18 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 0A3593FF1B7136B80072CC18 /* HUDtest */;
-			targetProxy = 0A3594191B7136B90072CC18 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		0A35940B1B7136B80072CC18 /* Main.storyboard */ = {
@@ -390,30 +296,6 @@
 			};
 			name = Release;
 		};
-		0A3594251B7136B90072CC18 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = HUDtestTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtestTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HUDtest.app/HUDtest";
-			};
-			name = Debug;
-		};
-		0A3594261B7136B90072CC18 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = HUDtestTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtestTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HUDtest.app/HUDtest";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -431,15 +313,6 @@
 			buildConfigurations = (
 				0A3594221B7136B90072CC18 /* Debug */,
 				0A3594231B7136B90072CC18 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0A3594241B7136B90072CC18 /* Build configuration list for PBXNativeTarget "HUDtestTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0A3594251B7136B90072CC18 /* Debug */,
-				0A3594261B7136B90072CC18 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

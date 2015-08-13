@@ -23,7 +23,7 @@
 		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
 		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A1B0A011B76BE1000381CC7 /* Security.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Security.swift; sourceTree = "<group>"; };
-		0A3594001B7136B80072CC18 /* HUDtest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HUDtest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A3594001B7136B80072CC18 /* KerbalHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
 		0A3594071B7136B80072CC18 /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
@@ -56,7 +56,7 @@
 		0A3594011B7136B80072CC18 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0A3594001B7136B80072CC18 /* HUDtest.app */,
+				0A3594001B7136B80072CC18 /* KerbalHUD.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,9 +82,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0A3593FF1B7136B80072CC18 /* HUDtest */ = {
+		0A3593FF1B7136B80072CC18 /* KerbalHUD */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0A3594211B7136B90072CC18 /* Build configuration list for PBXNativeTarget "HUDtest" */;
+			buildConfigurationList = 0A3594211B7136B90072CC18 /* Build configuration list for PBXNativeTarget "KerbalHUD" */;
 			buildPhases = (
 				0A3593FC1B7136B80072CC18 /* Sources */,
 				0A3593FD1B7136B80072CC18 /* Frameworks */,
@@ -94,9 +94,9 @@
 			);
 			dependencies = (
 			);
-			name = HUDtest;
+			name = KerbalHUD;
 			productName = HUDtest;
-			productReference = 0A3594001B7136B80072CC18 /* HUDtest.app */;
+			productReference = 0A3594001B7136B80072CC18 /* KerbalHUD.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -115,7 +115,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 0A3593FB1B7136B80072CC18 /* Build configuration list for PBXProject "HUDtest" */;
+			buildConfigurationList = 0A3593FB1B7136B80072CC18 /* Build configuration list for PBXProject "KerbalHUD" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -128,7 +128,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0A3593FF1B7136B80072CC18 /* HUDtest */,
+				0A3593FF1B7136B80072CC18 /* KerbalHUD */,
 			);
 		};
 /* End PBXProject section */
@@ -276,7 +276,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = KerbalHUD;
 				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
@@ -291,7 +291,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.ndevenish.HUDtest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = KerbalHUD;
 				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
@@ -299,7 +299,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0A3593FB1B7136B80072CC18 /* Build configuration list for PBXProject "HUDtest" */ = {
+		0A3593FB1B7136B80072CC18 /* Build configuration list for PBXProject "KerbalHUD" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0A35941F1B7136B90072CC18 /* Debug */,
@@ -308,7 +308,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0A3594211B7136B90072CC18 /* Build configuration list for PBXNativeTarget "HUDtest" */ = {
+		0A3594211B7136B90072CC18 /* Build configuration list for PBXNativeTarget "KerbalHUD" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0A3594221B7136B90072CC18 /* Debug */,

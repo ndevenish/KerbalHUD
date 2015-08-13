@@ -19,6 +19,7 @@
 		0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */; };
 		0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F71F1B7CBFF9002A760F /* Instrument.swift */; };
 		0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */; };
+		0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7231B7CCC40002A760F /* DrawingTools.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		0A3594131B7136B80072CC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A77F71F1B7CBFF9002A760F /* Instrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Instrument.swift; sourceTree = "<group>"; };
 		0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSIHeadsUpDisplay.swift; sourceTree = "<group>"; };
+		0A77F7231B7CCC40002A760F /* DrawingTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawingTools.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@
 				0A1B0A011B76BE1000381CC7 /* Security.swift */,
 				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
 				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
+				0A77F7231B7CCC40002A760F /* DrawingTools.swift */,
 			);
 			path = KerbalHUD;
 			sourceTree = "<group>";
@@ -166,6 +169,7 @@
 				0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */,
 				0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */,
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
+				0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

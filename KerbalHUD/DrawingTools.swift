@@ -120,7 +120,7 @@ class DrawingTools
   
 //  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
-  private var textRenderers : [String : TextDrawing] = [:]
+  private var textRenderers : [String : TextRenderer] = [:]
   
   /// Scale for turning point values into current projection
   var pointsToScreenScale : GLfloat = 1
@@ -338,25 +338,20 @@ class DrawingTools
     if let existing = textRenderers[fontName] {
       return existing
     } else {
-      let new = TextDrawing(tool: self, font: fontName)
+      let new = TextRenderer(tool: self, font: fontName)
       textRenderers[fontName] = new
       return new
     }
   }
   
   /// A convenience text renderer that avoids having to grab a font named explicitly
-  func drawText(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D) {
-    textRenderer("Menlo").draw(text, size: size, align: align, position: position)
+  func drawText(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left, rotation : GLfloat = 0) {
+    textRenderer("Menlo").draw(text, size: size, position: position, align: align, rotation: rotation)
   }
   
 }
 
-protocol TextRenderer {
-  var fontName : String { get }
-  func draw(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D)
-}
-
-class TextDrawing : TextRenderer {
+class TextRenderer {
   private var tool : DrawingTools
   private(set) var fontName : String
   private struct TextEntry {
@@ -390,51 +385,21 @@ class TextDrawing : TextRenderer {
     }
     return nil
   }
-  
-  func draw(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D) {
+
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment,
+    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
     // Calculate a point size for this screen projection size
     let fontSize = Int(ceil(size / tool.pointsToScreenScale))
+    let entry = getTextEntry(text, size: fontSize)
     
-    if let existing = find_existing(text, size: fontSize) {
-      // We found that we drew this before!
-      drawTextEntry(existing, size: size, position: position, alignment: align)
-    } else {
-      // Let's work out the font size we want, approximately
-      let font = UIFont(name: fontName, size: CGFloat(fontSize))!
-      let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
-
-      // Render the text to a CGContext
-      let text = text as NSString
-      let renderedSize: CGSize = text.sizeWithAttributes(attrs)
-      UIGraphicsBeginImageContextWithOptions(renderedSize, false, UIScreen.mainScreen().scale)
-      let context = UIGraphicsGetCurrentContext()
-      text.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
-      let image = CGBitmapContextCreateImage(context)!
-      UIGraphicsEndImageContext()
-      
-      do {
-        let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
-        let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: fontSize, text: (text as String))
-        foundTextures.insert(textures.count)
-        textures.append(entry)
-        drawTextEntry(entry, size: size, position: position, alignment: align)
-      } catch {
-        print("ERROR generating texture from CGContext")
-        return
-      }
-    }
-    
-  }
-  
-  private func drawTextEntry(entry : TextEntry, size : GLfloat, position : Point2D, alignment align: NSTextAlignment) {
     let texture = entry.texture
     glBindVertexArray(tool.vertexArrayTextured)
     glBindTexture(texture.target, texture.name)
     
     // Work out how wide we want to draw
     let squareWidth = size * GLfloat(texture.width)/GLfloat(texture.height)
-
-    var baseMatrix = GLKMatrix4Identity
+    
+    var baseMatrix = transform
     switch(align) {
     case .Left:
       baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
@@ -445,12 +410,39 @@ class TextDrawing : TextRenderer {
     default:
       break
     }
+    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, 1)
     baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, size, 1)
     baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
     tool.program.setModelView(baseMatrix)
     tool.program.setUseTexture(true)
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
     tool.program.setUseTexture(false)
+  }
+
+  private func getTextEntry(text: String, size : Int) -> TextEntry {
+    // First see if we already built this texture
+    if let existing = find_existing(text, size: size) {
+      // We found that we drew this before!
+      return existing
+    }
+    // Let's work out the font size we want, approximately
+    let font = UIFont(name: fontName, size: CGFloat(size))!
+    let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
+
+    // Render the text to a CGContext
+    let text = text as NSString
+    let renderedSize: CGSize = text.sizeWithAttributes(attrs)
+    UIGraphicsBeginImageContextWithOptions(renderedSize, false, UIScreen.mainScreen().scale)
+    let context = UIGraphicsGetCurrentContext()
+    text.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
+    let image = CGBitmapContextCreateImage(context)!
+    UIGraphicsEndImageContext()
+    
+    let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
+    let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: size, text: (text as String))
+    foundTextures.insert(textures.count)
+    textures.append(entry)
+    return entry
   }
 }
 

@@ -235,9 +235,11 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     if aspect > 1 {
       let edge = (aspect-1)*0.5
       program!.projection = GLKMatrix4MakeOrtho(-edge*drawWidth, (1+edge)*drawWidth, 0, drawHeight, -10, 10)
+      drawing!.pointsToScreenScale = Float(self.view.bounds.size.height) / drawHeight
     } else {
       let edge = (1.0/aspect - 1)*0.5
       program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
+      drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
     }
   }
   
@@ -543,79 +545,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //  var usedText : Set<Int> = []
 //  
 //  
-//  func drawText(text: String, align : NSTextAlignment, position : (x: GLfloat, y: GLfloat), fontSize : GLfloat,
-//    rotate: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
-//    
-//    let fontSize = fontSize * (pointScale / 375)///0.58 * GLfloat(UIScreen.mainScreen().scale)
-//      
-//    let texture : GLKTextureInfo
-//
-//    var matchIndex : Optional<Int> = nil
-//    // Look for an entry in the cache with this string and font size
-//    for (index, entry) in textCache.enumerate() {
-//      if entry.size == fontSize && entry.text == text {
-//        matchIndex = index
-//        break
-//      }
-//    }
-//      
-//    if let index = matchIndex {
-//      texture = textCache[index].texture
-//      usedText.insert(index)
-//    } else {
-//      // Let's work out the font size we want, approximately
-//      let font = UIFont(name: "Menlo", size: CGFloat(fontSize))!
-//      let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
-//      
-//      let nsString: NSString = text as NSString
-//      let size: CGSize = nsString.sizeWithAttributes(attrs)
-//      UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
-//      let context = UIGraphicsGetCurrentContext()
-//      nsString.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
-//      let image = CGBitmapContextCreateImage(context)!
-//      UIGraphicsEndImageContext()
-//      
-//      do {
-//        texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
-//        textCache.append(TextEntry(text: text, size: fontSize, texture: texture))
-//        usedText.insert(textCache.count-1)
-//      } catch {
-//        print("ERROR generating texture")
-//        return
-//      }
-//    }
-//    glBindVertexArray(texArray)
-//    glBindTexture(texture.target, texture.name)
-//    
-//    // work out how tall we want it.
-//    let squareHeight = GLfloat(fontSize) / pointScale
-//    let squareWidth = squareHeight * GLfloat(texture.width)/GLfloat(texture.height)
-//    var baseMatrix = transform
-//    switch(align) {
-//    case .Left:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
-//    case .Right:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
-//    case .Center:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
-//    default:
-//      break
-//    }
-//    
-//    //      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x - (left ? 0 : squareWidth), position.y, 0)
-//    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotate, 0, 0, -1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
-//    
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    glUniform1i(uniforms[UNIFORM_USETEX], 1)
-//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
-//    
-//    glUniform1i(uniforms[UNIFORM_USETEX], 0)
-//  }
 //  
 //  func drawHeadingDisplay(heading : Float)
 //  {

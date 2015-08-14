@@ -126,15 +126,30 @@ class JSIHeadsUpDisplay {
   private var overlay : Drawable2D?
   private var prograde : Drawable2D?
   private var page : Instrument
+
+  private var verticalBars : [JSIHudVerticalBar] = []
   
   init(tools : DrawingTools, page : Instrument) {
     self.page = page
     drawing = tools
     overlay = GenerateHUDoverlay()
     prograde = GenerateProgradeMarker()
+    
+    let deltaH = JSIHudVerticalBar(tools: tools, useLog: true, direction: .Left, position: (160, 160, 64, 320), limits: (-10000,10000), verticalScale: 10000)
+    verticalBars.append(deltaH)
+    let radarAlt = JSIHudVerticalBar(tools: tools, useLog: true, direction: .Right, position: (640-160, 160, 64, 320), limits: (0,10000), verticalScale: InversePseudoLog10(4.6))
+    verticalBars.append(radarAlt)
+    
   }
   
   func RenderHUD() {
+    // Draw the vertical bars
+    for bar in self.verticalBars {
+      bar.draw()
+    }
+    // Draw the heading indicator bar
+    
+    // Draw the prograde icon
     drawing.program.setColor(progradeColor)
     drawing.Draw(prograde!)
     
@@ -220,7 +235,7 @@ class JSIHudVerticalBar {
   /// Which direction is the axis drawn in
   var direction : VerticalScaleDirection = .Left
   /// Where is this scale positioned
-  var position : (position: Point2D, size: Size2D) = ((0,0),(1,1))
+  var position : (x: GLfloat, y: GLfloat, width: GLfloat, height: GLfloat) = (0,0,1,1)
   /// What are the upper and lower display limits?
   var limits : (min: GLfloat, max: GLfloat)?
   /// How much should we display in one vertical sweep?
@@ -228,14 +243,110 @@ class JSIHudVerticalBar {
   
   var drawing : DrawingTools
   
-  init(tools : DrawingTools) {
+  var variable : GLfloat = 0
+  
+  init(tools : DrawingTools, useLog : Bool, direction: VerticalScaleDirection,
+    position: (x: GLfloat, y: GLfloat, width: GLfloat, height: GLfloat), limits: (min: GLfloat, max: GLfloat),
+    verticalScale : GLfloat) {
     drawing = tools
+      self.useLog = useLog
+      self.direction = direction
+      self.position = position
+      self.limits = limits
+      self.verticalScale = verticalScale
+  }
+  
+  func update(value : GLfloat) {
+    variable = value
   }
   
   func draw() {
+    let lgeTickSize : GLfloat = 14 * (direction == .Left ? -1 : 1)
+    let medTickSize = lgeTickSize / 2
+    let smlTickSize = medTickSize / 2
+    
+    drawing.DrawLine((position.x, position.y), to: (position.x, position.y+position.height), width: 1)
+    
+    // Calculate the visible range of markers
+    let center = useLog ? PseudoLog10(variable) : variable
+    let rangeOffset = (useLog ? PseudoLog10(verticalScale) : verticalScale) / 2
+    let range = (min: center - rangeOffset, max: center + rangeOffset)
+    var markerRange = (min: Int(floor(range.min)), max: Int(ceil(range.max)))
+
+    // If we are limited, then constrain these
+    if let limit = limits {
+      let lower = Int(floor(useLog ? PseudoLog10(limit.min) : limit.min))
+      let upper = Int(ceil(useLog ? PseudoLog10(limit.max) : limit.max))
+      // Calculate the minimum and maximum of the log range to draw
+      markerRange = (min: max(markerRange.min, lower), max: min(markerRange.max, upper))
+    }
+
+    // Draw the major marks now
+    for value in markerRange.min...markerRange.max {
+      let y : GLfloat = position.y + position.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
+      drawing.DrawLine((position.x, y), to: (position.x+lgeTickSize, y), width: 1)
+      
+      // Now, draw the intermediate markers
+      if !(value == markerRange.max) {
+        let halfValue : GLfloat
+        if useLog {
+          // Work out the next power
+          let nextPower = value >= 0 ? value + 1 : value
+          halfValue = PseudoLog10(InversePseudoLog10(Float(nextPower))*0.5)
+        } else {
+          halfValue = Float(value) + 0.5
+        }
+        let halfwayY : GLfloat = position.y + position.height * ((GLfloat(halfValue)-range.min) / (2*rangeOffset))
+        drawing.DrawLine((position.x, halfwayY), to: (position.x+medTickSize, halfwayY), width: 1)
+      }
+    }
     
   }
 }
+
+//    // Draw the major marks
+//    for power in logMin...logMax {
+//      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
+//      drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize), y), width: 1)
+//
+//
+//      if !(power == logMax) {
+//        var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+//        let halfPoint = PseudoLog10(nextPow*0.5)
+//        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+//        drawLine((xPos,y), to: (xPos+GLfloat(medTickSize), y), width: 1)
+//
+//        nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+//        let doubPoint = PseudoLog10(nextPow*0.1*2)
+//        y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
+//        drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize), y), width: 1)
+//      }
+//    }
+//    // Draw text in a separate pass
+//    for power in logMin...logMax {
+//      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
+//      var txt = NSString(format: "%.0f", abs(InversePseudoLog10(Double(power))))
+//      drawText(txt as String, align: left ? .Right : .Left, position: (xPos + lgeTickSize * 1.25, y), fontSize: 12)
+//
+//      if !(power == logMax) {
+//        let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
+//        let halfPoint = PseudoLog10(nextPow*0.5)
+//        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
+//        if abs(nextPow) == 1 {
+//          txt = NSString(format: "%.1f", abs(nextPow*0.5))
+//        } else {
+//          txt = NSString(format: "%.0f", abs(nextPow*0.5))
+//        }
+//        drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
+//      }
+//    }
+//
+//  }
+
+
+
+
+
 
 //PAGE
 //{
@@ -288,3 +399,21 @@ class JSIHudVerticalBar {
 //  textureLimit = 1845, 208
 //  textureSize = 640
 //}
+
+
+func PseudoLog10(x : Float) -> Float
+{
+
+  if abs(x) <= 1.0 {
+    return x
+  }
+  return (1.0 + log10(abs(x))) * sign(x)
+}
+
+func InversePseudoLog10(x : Float) -> Float
+{
+  if abs(x) <= 1.0 {
+    return x
+  }
+  return pow(10, abs(x)-1)*sign(x)
+}

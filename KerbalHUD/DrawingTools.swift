@@ -115,6 +115,10 @@ class DrawingTools
   var vertexArray2D : GLuint = 0
 //  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
+  private var textRenderers : [String : TextDrawing] = [:]
+  
+  /// Scale for turning point values into current projection
+  var pointsToScreenScale : GLfloat = 1
   
   private var meshSquare : Mesh?
   
@@ -304,15 +308,137 @@ class DrawingTools
     program.setModelViewProjection(mvp)
     Draw(meshSquare!)
   }
+
+  func textRenderer(fontName : String) -> TextRenderer {
+    if let existing = textRenderers[fontName] {
+      return existing
+    } else {
+      let new = TextDrawing(tool: self, font: fontName)
+      textRenderers[fontName] = new
+      return new
+    }
+  }
   
+  /// A convenience text renderer that avoids having to grab a font named explicitly
+  func drawText(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D) {
+    textRenderer("Menlo").draw(text, size: size, align: align, position: position)
+  }
   
-  //    withUnsafePointer(&mvp, {
-  //      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-  //    })
-  //    let mesh = meshes[MESH_SQUARE]
-  //    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
-  //  }
 }
+
+protocol TextRenderer {
+  var fontName : String { get }
+  func draw(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D)
+}
+
+class TextDrawing : TextRenderer {
+  private var tool : DrawingTools
+  private(set) var fontName : String
+  private struct TextEntry {
+    let texture : GLKTextureInfo
+    let uvPosition : Point2D
+    let areaSize : Point2D
+    let fontSize : Int
+    let text : String
+  }
+  private var textures : [TextEntry] = []
+  
+  init(tool : DrawingTools, font : String) {
+    fontName = font
+    self.tool = tool
+  }
+  
+  /// See if we have rendered this entry before
+  private func find_existing(text: String, size : Int) -> TextEntry? {
+    for entry in textures {
+      if entry.text == text && entry.fontSize == size {
+        return entry
+      }
+    }
+    return nil
+  }
+  
+  func draw(text: String, size : GLfloat, align : NSTextAlignment, position : Point2D) {
+    // Calculate a point size for this screen projection size
+    let fontSize = Int(ceil(size / tool.pointsToScreenScale))
+    
+    if let existing = find_existing(text, size: fontSize) {
+      // We found that we drew this before!
+      drawTextEntry(existing, size: size, position: position)
+    } else {
+      // Let's work out the font size we want, approximately
+      let font = UIFont(name: fontName, size: CGFloat(fontSize))!
+      let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
+
+      // Render the text to a CGContext
+      let text = text as NSString
+      let renderedSize: CGSize = text.sizeWithAttributes(attrs)
+      UIGraphicsBeginImageContextWithOptions(renderedSize, false, UIScreen.mainScreen().scale)
+      let context = UIGraphicsGetCurrentContext()
+      text.drawAtPoint(CGPoint(x: 0, y: 0), withAttributes: attrs)
+      let image = CGBitmapContextCreateImage(context)!
+      UIGraphicsEndImageContext()
+      
+      do {
+        let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
+        let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: fontSize, text: (text as String))
+        textures.append(entry)
+        drawTextEntry(entry, size: size, position: position)
+      } catch {
+        print("ERROR generating texture from CGContext")
+        return
+      }
+    }
+    
+  }
+  
+  private func drawTextEntry(entry : TextEntry, size : GLfloat, position : Point2D) {
+    
+  }
+}
+//
+//      do {
+//        texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
+//        textCache.append(TextEntry(text: text, size: fontSize, texture: texture))
+//        usedText.insert(textCache.count-1)
+//      } catch {
+//        print("ERROR generating texture")
+//        return
+//      }
+//    }
+//    glBindVertexArray(texArray)
+//    glBindTexture(texture.target, texture.name)
+//
+//    // work out how tall we want it.
+//    let squareHeight = GLfloat(fontSize) / pointScale
+//    let squareWidth = squareHeight * GLfloat(texture.width)/GLfloat(texture.height)
+//    var baseMatrix = transform
+//    switch(align) {
+//    case .Left:
+//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
+//    case .Right:
+//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
+//    case .Center:
+//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
+//    default:
+//      break
+//    }
+//
+//    //      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x - (left ? 0 : squareWidth), position.y, 0)
+//    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotate, 0, 0, -1)
+//    baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
+//    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
+//
+//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+//    withUnsafePointer(&mvp, {
+//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+//    })
+//    glUniform1i(uniforms[UNIFORM_USETEX], 1)
+//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
+//
+//    glUniform1i(uniforms[UNIFORM_USETEX], 0)
+//  }
+
 
 private let _glErrors = [
   GLenum(GL_NO_ERROR) : "",

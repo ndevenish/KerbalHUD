@@ -11,6 +11,9 @@ import Foundation
 protocol Instrument {
   var variables : [String] { get }
   
+  var screenWidth : Float { get }
+  var screenHeight : Float { get }
+  
   init(tools : DrawingTools)
   
   /// Update this instrument with all variables recieved from the server

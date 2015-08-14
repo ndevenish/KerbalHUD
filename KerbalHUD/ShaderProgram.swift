@@ -44,12 +44,20 @@ class ShaderProgram {
   func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat) {
     glUniform3f(uniforms.color, red, green, blue)
   }
+  func setColor(color : Color4) {
+      glUniform3f(uniforms.color, color.r, color.g, color.b)
+  }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
     var mvp = matrix
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms.mvp, 1, 0, UnsafePointer($0));
     })
+  }
+  
+  /// Sets the modelViewProjection matrix, by multiplying in the projection
+  func setModelView(matrix : GLKMatrix4) {
+    setModelViewProjection(GLKMatrix4Multiply(projection, matrix))
   }
   
   deinit {

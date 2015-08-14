@@ -56,7 +56,9 @@ extension VertexRepresentation {
 }
 
 typealias Point2D = (x: Float, y: Float)
+typealias Size2D = (w: Float, h: Float)
 typealias Triangle = (Point2D, Point2D, Point2D)
+typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 
 /// A real, cyclic mod
 private func mod(x : Int, m : Int) -> Int {
@@ -326,4 +328,37 @@ func processGLErrors() {
     print("OpenGL Error: " + _glErrors[error]!)
     error = glGetError()
   }
+}
+
+
+/// Generates a series of triangles for an open circle
+func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
+{
+  var tris : [Triangle] = []
+  let Csteps = 20
+  let innerR = r - w/2
+  let outerR = r + w/2
+  
+  for step in 0..<Csteps {
+    let theta = Float(2*M_PI*(Double(step)/Double(Csteps)))
+    let nextTheta = Float(2*M_PI*(Double(step+1)/Double(Csteps)))
+    tris.append((
+      Point2D(innerR*sin(theta), innerR*cos(theta)),
+      Point2D(outerR*sin(theta), outerR*cos(theta)),
+      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta))
+    ))
+    tris.append((
+      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta)),
+      Point2D(outerR*sin(theta), outerR*cos(theta)),
+      Point2D(outerR*sin(nextTheta), outerR*cos(nextTheta))
+    ))
+  }
+  return tris
+}
+
+func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [Triangle] {
+  return [
+    Triangle((left, bottom), (left, top), (right, top)),
+    Triangle((right, top), (right, bottom), (left, bottom))
+  ]
 }

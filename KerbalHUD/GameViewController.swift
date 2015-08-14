@@ -229,12 +229,15 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   func update() {
     let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
+    let drawWidth = display?.screenWidth ?? 1.0
+    let drawHeight = display?.screenHeight ?? 1.0
+    
     if aspect > 1 {
       let edge = (aspect-1)*0.5
-      program!.projection = GLKMatrix4MakeOrtho(-edge, 1+edge, 0, 1, -10, 10)
+      program!.projection = GLKMatrix4MakeOrtho(-edge*drawWidth, (1+edge)*drawWidth, 0, drawHeight, -10, 10)
     } else {
       let edge = (1.0/aspect - 1)*0.5
-      program!.projection = GLKMatrix4MakeOrtho(0, 1, -edge, 1+edge, -10, 10)
+      program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
     }
   }
   
@@ -396,7 +399,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
 //      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
 
-      program.setColor(red: 1, green: 0, blue: 0)
+//      program.setColor(red: 1, green: 0, blue: 0)
 //      let tk = drawing!
 //      let tri = tk.Load2DPolygon([(0,0), (0, 1), (1,0)])!
 //      tk.Draw(tri)

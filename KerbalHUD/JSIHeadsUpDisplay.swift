@@ -58,16 +58,16 @@ class RPMPlaneHUD : Instrument
     "rpm.RADARALTOCEAN"
     ]
   
+  var screenWidth : Float = 640.0
+  var screenHeight : Float = 640.0
+  
   private var latestData : HUDFlightData?
   private var drawing : DrawingTools
-  
-  private var overlay : Drawable2D?
-  private var prograde : Drawable2D?
+  private var hud : JSIHeadsUpDisplay?
   
   required init(tools : DrawingTools) {
       drawing = tools
-    overlay  = GenerateHUDoverlay()
-    prograde = GenerateProgradeMarker()
+    hud = JSIHeadsUpDisplay(tools: tools, page: self)
   }
   
   func update(vars : [String: JSON]) {
@@ -105,10 +105,43 @@ class RPMPlaneHUD : Instrument
   }
   
   func draw() {
-    drawing.program.setModelViewProjection(GLKMatrix4Multiply(drawing.program.projection, GLKMatrix4MakeTranslation(0.5, 0.5, 0)))
-    drawing.Draw(overlay!)
-    drawing.program.setColor(red: 1, green: 1, blue: 0)
+    hud?.RenderHUD()
+  }
+}
+
+class JSIHeadsUpDisplay {
+  /// Is the heading bar displayed?
+  var headingBar : Bool = true
+  /// The position of the heading bar
+  var headingBarPosition : (position: Point2D, size: Size2D) = ((160, 640-122-38), (320,38))
+  /// The visible width of the heading bar, in degrees
+  var headingBarScale : GLfloat = 58.0
+  
+  /// The colour the prograde icon is drawn in
+  var progradeColor : (GLfloat, GLfloat, GLfloat, GLfloat) = (0.84, 0.98, 0.0, 1.0)
+  /// The colour the rest of the HUD is drawn in
+  var foregroundColor : (GLfloat, GLfloat, GLfloat, GLfloat) = (0.0, 1.0, 0.0, 1.0)
+
+  private(set) var drawing : DrawingTools
+  private var overlay : Drawable2D?
+  private var prograde : Drawable2D?
+  private var page : Instrument
+  
+  init(tools : DrawingTools, page : Instrument) {
+    self.page = page
+    drawing = tools
+    overlay = GenerateHUDoverlay()
+    prograde = GenerateProgradeMarker()
+  }
+  
+  func RenderHUD() {
+    drawing.program.setColor(progradeColor)
     drawing.Draw(prograde!)
+    
+    // Draw the overlay, centered
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(page.screenWidth/2, page.screenHeight/2, 0))
+    drawing.program.setColor(foregroundColor)
+    drawing.Draw(overlay!)
   }
   
   private func GenerateHUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable2D
@@ -137,12 +170,9 @@ class RPMPlaneHUD : Instrument
       (W, Bh/2), (W+B, Bh/2), (W+B, -Bh/2), (W, -Bh/2), (W, -w/2),
       // Right under spur
       (m*(H+w/cos(theta)-w/2),-w/2), (w/2,m*w/2 - H - w/cos(theta)),
-      // Back to base
-//      (w/2, -H-J)
     ]
-    let ptScaled = points.map { Point2D($0.x/640.0, $0.y/640.0) }
     
-    var triangles = drawing.DecomposePolygon(ptScaled)
+    var triangles = drawing.DecomposePolygon(points)
     
     // Add the crosshair lines and triangles
     let cxW : GLfloat = 1.0
@@ -152,63 +182,59 @@ class RPMPlaneHUD : Instrument
       (-160, -cxW/2), (-160-cxTw, -cxTh/2), (-160-cxTw, cxTh/2), (-160, cxW/2),
       (-W-w, cxW/2), (-W-w, -cxW/2)
     ]
-    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D($0.x/640.0, $0.y/640.0) }))
-    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x/640.0, $0.y/640.0) }))
-    
+    triangles.extend(drawing.DecomposePolygon(crossHairPoints))
+    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x, $0.y) }))
+
     // Top Triangle
     let topTriangle : [Point2D] = [(0,160), (-cxTh/2, 160+cxTw), (cxTh/2, 160+cxTw)]
-    triangles.extend(drawing.DecomposePolygon(topTriangle.map { Point2D($0.x/640.0, $0.y/640.0) }))
+    triangles.extend(drawing.DecomposePolygon(topTriangle))
     
     // Upper target line
     let upperTarget : [Point2D] = [(-w/2, H), (-w/2, H+J), (w/2, H+J), (w/2, H)]
-    triangles.extend(drawing.DecomposePolygon(upperTarget.map { Point2D($0.x/640.0, $0.y/640.0) }))
+    triangles.extend(drawing.DecomposePolygon(upperTarget))
     
     // Finally, an open circle
-    triangles.extend(GenerateCircleTriangles(5/640.0, w: 2.5/640.0))
+    triangles.extend(GenerateCircleTriangles(5, w: 2.5))
     
     return drawing.LoadTriangles(triangles)!
   }
   
-  func GenerateProgradeMarker() -> Drawable2D {
-    var tris = GenerateCircleTriangles(12.0/640.0, w: 3.0/640.0)
-    tris.extend(GenerateBoxTriangles(-30/640.0, bottom: -1/640.0, right: -14/640.0, top: 1/640.0))
-    tris.extend(GenerateBoxTriangles(-1/640.0, bottom: 14/640.0, right: 1/640.0, top: 30/640.0))
-    tris.extend(GenerateBoxTriangles(14/640.0, bottom: -1/640.0, right: 30/640.0, top: 1/640.0))
+  func GenerateProgradeMarker(size : GLfloat = 64) -> Drawable2D {
+    let scale = size / 64.0
+    var tris = GenerateCircleTriangles(12.0 * scale, w: 3.0*scale)
+    tris.extend(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
+    tris.extend(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
+    tris.extend(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))
     
     return drawing.LoadTriangles(tris)!
   }
 }
 
-/// Generates a series of triangles for an open circle
-func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
-{
-  var tris : [Triangle] = []
-  let Csteps = 20
-  let innerR = r - w/2
-  let outerR = r + w/2
-  
-  for step in 0..<Csteps {
-    let theta = Float(2*M_PI*(Double(step)/Double(Csteps)))
-    let nextTheta = Float(2*M_PI*(Double(step+1)/Double(Csteps)))
-    tris.append((
-      Point2D(innerR*sin(theta), innerR*cos(theta)),
-      Point2D(outerR*sin(theta), outerR*cos(theta)),
-      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta))
-    ))
-    tris.append((
-      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta)),
-      Point2D(outerR*sin(theta), outerR*cos(theta)),
-      Point2D(outerR*sin(nextTheta), outerR*cos(nextTheta))
-    ))
+class JSIHudVerticalBar {
+  enum VerticalScaleDirection {
+    case Left
+    case Right
   }
-  return tris
-}
-
-func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [Triangle] {
-  return [
-    Triangle((left, bottom), (left, top), (right, top)),
-    Triangle((right, top), (right, bottom), (left, bottom))
-  ]
+  /// Use the Log10 function for scaling the axis
+  var useLog : Bool = true
+  /// Which direction is the axis drawn in
+  var direction : VerticalScaleDirection = .Left
+  /// Where is this scale positioned
+  var position : (position: Point2D, size: Size2D) = ((0,0),(1,1))
+  /// What are the upper and lower display limits?
+  var limits : (min: GLfloat, max: GLfloat)?
+  /// How much should we display in one vertical sweep?
+  var verticalScale : GLfloat = 100
+  
+  var drawing : DrawingTools
+  
+  init(tools : DrawingTools) {
+    drawing = tools
+  }
+  
+  func draw() {
+    
+  }
 }
 
 //PAGE

@@ -186,6 +186,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     program = ShaderProgram()
     drawing = DrawingTools(shaderProgram: program!)
+    
+    display = RPMPlaneHUD(tools: drawing!)
+
     //    glEnable(GLenum(GL_DEPTH_TEST))
 
 //    var squareVertexData: [GLfloat] = [
@@ -390,10 +393,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
         instr.draw()
       }
       
-      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
-      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
-//      drawSquare(0, bottom: 0, right: 0.5, top: 0.5)
-//      program.setColor(red: 1, green: 0, blue: 0)
+//      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
+//      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
+
+      program.setColor(red: 1, green: 0, blue: 0)
 //      let tk = drawing!
 //      let tri = tk.Load2DPolygon([(0,0), (0, 1), (1,0)])!
 //      tk.Draw(tri)
@@ -783,45 +786,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //}
 //
 //
-//func crossHair(H : GLfloat, J : GLfloat, w : GLfloat, theta : GLfloat) -> [GLfloat]
-//{
-//  var points : [(x: GLfloat, y: GLfloat)] = []
-//  let m = sin(theta)/cos(theta)
-//  
-//  points.append((w/2,-H-J))
-//  points.append((  0,-H-J))
-//  points.append((w/2,m*w/2 - H - w/cos(theta)))
-//  points.append((0,-H))
-//  points.append((m*(H+w/cos(theta)-w/2),-w/2))
-//  points.append((m*(H+w/2),w/2))
-//
-//  // W - the point the open box starts
-//  let W : GLfloat = 41.0
-//  points.append((W, -w/2))
-//  points.append((W, w/2))
-//  
-//  // B : Box Width
-//  // Bh : Box Height
-//  let B : GLfloat = 70
-//  let Bh : GLfloat = 17
-//  let BiY = (Bh-2*w)*0.5
-////  points.append((W+w, -BiX))
-//  points.append((W+w,  BiY))
-//  points.append((W, Bh/2))    // 10
-//  points.append((W+B-w, BiY)) // 11
-//  points.append((W+B, Bh/2))  // 12
-//  points.append((W+B-w, -BiY)) // 13
-//  points.append((W+B, -Bh/2))  // 14
-//  points.append((W+w,  -BiY)) // 15
-//  points.append((W, -Bh/2))    // 16
-//  points.append((W+w,  BiY)) // 17
-//  points.append((W, -w/2)) // 18
-//  
-//  appendTriangleStrip(&points, with: boxPoints(0, bottom: 24, right: w/2, top: H+J))
-//  appendTriangleStrip(&points, with: openSemiCircle(5, w: 2.5))
-//  
-//  return pointsTo3DVertices(points)
-//}
+
+
 //
 //func boxPoints(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [(x: GLfloat, y: GLfloat)]
 //{

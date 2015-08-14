@@ -211,7 +211,7 @@ class DrawingTools
       // Step over every vertex, and check to see if it is an ear
       for v in 0..<remaining.count {
         if isPolygonEar(remaining, index: v) {
-          let indices = (mod(v-1, m: points.count), v, mod(v+1, m: points.count))
+          let indices = (mod(v-1, m: remaining.count), v, mod(v+1, m: remaining.count))
           triangles.append((remaining[indices.0], remaining[indices.1], remaining[indices.2]))
           remaining.removeAtIndex(v)
           // Now go back to the beginning

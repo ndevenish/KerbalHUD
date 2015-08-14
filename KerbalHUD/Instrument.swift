@@ -11,6 +11,8 @@ import Foundation
 protocol Instrument {
   var variables : [String] { get }
   
+  init(tools : DrawingTools)
+  
   /// Update this instrument with all variables recieved from the server
   func update(variables : [String: JSON])
   

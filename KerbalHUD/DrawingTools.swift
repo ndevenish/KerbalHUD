@@ -74,9 +74,21 @@ func isPointInside(p : Point2D, x : (a: Point2D, b: Point2D, c: Point2D)) -> Boo
   return s>0 && t>0 && u>0
 }
 
+private func isPointConvex(let points : [Point2D], index : Int) -> Bool
+{
+  let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
+  let x = (a: points[indices.0], b: points[indices.1], c: points[indices.2])
+  let area = 0.5 * (-x.b.y*x.c.x  + x.a.y*(x.c.x-x.b.x) + x.a.x*(x.b.y - x.c.y) + x.b.x*x.c.y)
+  return area < 0
+}
+
 private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
   let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
   let triangle = (points[indices.0], points[indices.1], points[indices.2])
+  
+  if !isPointConvex(points, index: index) {
+    return false
+  }
   
   // This vertex, v, is an ear if v-1, v, v contains no other points
   for p in 0..<points.count {
@@ -86,7 +98,7 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
     }
     if isPointInside(points[p], x: triangle) {
       // Not an ear, as another point is inside
-      return false;
+      return false
     }
   }
   // If here, no other points are inside
@@ -206,8 +218,22 @@ class DrawingTools
     var triangles : [(Point2D,Point2D,Point2D)] = []
 
     // Continue until only three points remaing
-    var remaining = points
+    var remaining : [Point2D]
+    // Always iterate clockwise over the polygon
+    if CW {
+      remaining = points
+    } else {
+      remaining = points.reverse()
+    }
+    
+    var lastRemaining = 0
+
     while remaining.count > 3 {
+      if lastRemaining == remaining.count {
+        print ("Didn't remove any ears!!!! Error!!!!")
+        break
+      }
+      lastRemaining = remaining.count
       // Step over every vertex, and check to see if it is an ear
       for v in 0..<remaining.count {
         if isPolygonEar(remaining, index: v) {
@@ -225,15 +251,9 @@ class DrawingTools
     // Now, step over each and build the GLfloat data array, in clockwise format
     var vertexList : [Point2D] = []
     for tri in triangles {
-      if CW {
-        vertexList.append(tri.0)
-        vertexList.append(tri.1)
-        vertexList.append(tri.2)
-      } else {
-        vertexList.append(tri.0)
-        vertexList.append(tri.2)
-        vertexList.append(tri.1)
-      }
+      vertexList.append(tri.0)
+      vertexList.append(tri.1)
+      vertexList.append(tri.2)
     }
     
     return LoadVertices(.Triangles, vertices: vertexList)

@@ -139,7 +139,7 @@ class RPMPlaneHUD : Instrument
       // Right under spur
       (m*(H+w/cos(theta)-w/2),-w/2), (w/2,m*w/2 - H - w/cos(theta)),
       // Back to base
-      (w/2, -H-J)
+//      (w/2, -H-J)
     ]
     let ptScaled = points.map { Point2D($0.x/640.0, $0.y/640.0) }
     

@@ -242,13 +242,15 @@ class JSIHudVerticalBar {
   var verticalScale : GLfloat = 100
   
   var drawing : DrawingTools
+  private var text : TextRenderer
   
   var variable : GLfloat = 0
   
   init(tools : DrawingTools, useLog : Bool, direction: VerticalScaleDirection,
     position: (x: GLfloat, y: GLfloat, width: GLfloat, height: GLfloat), limits: (min: GLfloat, max: GLfloat),
     verticalScale : GLfloat) {
-    drawing = tools
+      drawing = tools
+      text = drawing.textRenderer("Menlo")
       self.useLog = useLog
       self.direction = direction
       self.position = position
@@ -301,6 +303,29 @@ class JSIHudVerticalBar {
       }
     }
     
+    // Now, draw text in a separate pass
+    let textAlign = direction == .Left ? NSTextAlignment.Right : NSTextAlignment.Left
+    for value in markerRange.min...markerRange.max {
+      let y : GLfloat = position.y + position.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
+      let realVal = useLog ? InversePseudoLog10(Float(value)) : Float(value)
+      text.draw(String(format: "%.0f", realVal), size: 16, position: (GLfloat(position.x + lgeTickSize + 2), y), align: (direction == .Left ? NSTextAlignment.Right : NSTextAlignment.Left))
+      if !(value == markerRange.max) {
+        let halfValue : GLfloat
+        let halfPosition : GLfloat
+        if useLog {
+          // Work out the next power
+          let nextPower = value >= 0 ? value + 1 : value
+          halfValue = InversePseudoLog10(Float(nextPower))*0.5
+          halfPosition = PseudoLog10(halfValue)
+        } else {
+          halfValue = Float(value) + 0.5
+          halfPosition = halfValue
+        }
+        let halfwayY : GLfloat = position.y + position.height * ((GLfloat(halfPosition)-range.min) / (2*rangeOffset))
+        let halfFormat = value == -1 || value == 0 ? "%.1f" : "%.0f"
+        text.draw(String(format: halfFormat, halfValue), size: 10, position: (GLfloat(position.x + lgeTickSize + 2), halfwayY), align: textAlign)
+      }
+    }
   }
 }
 

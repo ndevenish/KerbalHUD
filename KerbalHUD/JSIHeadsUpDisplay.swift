@@ -62,10 +62,12 @@ class RPMPlaneHUD : Instrument
   private var drawing : DrawingTools
   
   private var overlay : Drawable2D?
+  private var prograde : Drawable2D?
   
   required init(tools : DrawingTools) {
       drawing = tools
-    overlay = HUDoverlay()
+    overlay  = GenerateHUDoverlay()
+    prograde = GenerateProgradeMarker()
   }
   
   func update(vars : [String: JSON]) {
@@ -105,9 +107,11 @@ class RPMPlaneHUD : Instrument
   func draw() {
     drawing.program.setModelViewProjection(GLKMatrix4Multiply(drawing.program.projection, GLKMatrix4MakeTranslation(0.5, 0.5, 0)))
     drawing.Draw(overlay!)
+    drawing.program.setColor(red: 1, green: 1, blue: 0)
+    drawing.Draw(prograde!)
   }
   
-  private func HUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable2D
+  private func GenerateHUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable2D
   {
     let m = sin(theta)/cos(theta)
     let W : GLfloat = 41.0
@@ -115,13 +119,8 @@ class RPMPlaneHUD : Instrument
     let Bh : GLfloat = 17
     let BiY = (Bh-2*w)*0.5
     
-    //  appendTriangleStrip(&points, with: boxPoints(0, bottom: 24, right: w/2, top: H+J))
-    //  appendTriangleStrip(&points, with: openSemiCircle(5, w: 2.5))
-    //
-    //  return pointsTo3DVertices(points)
-    
     // Build it out of triangles - trace the edge
-    var points : [Point2D] = [
+    let points : [Point2D] = [
       (w/2, -H-J), (-w/2, -H-J),
       // Left spur
       (-w/2,m*w/2 - H - w/cos(theta)), (-m*(H+w/cos(theta)-w/2),-w/2),
@@ -143,8 +142,73 @@ class RPMPlaneHUD : Instrument
     ]
     let ptScaled = points.map { Point2D($0.x/640.0, $0.y/640.0) }
     
-    return drawing.Load2DPolygon(ptScaled)!
+    var triangles = drawing.DecomposePolygon(ptScaled)
+    
+    // Add the crosshair lines and triangles
+    let cxW : GLfloat = 1.0
+    let cxTw : GLfloat = 15.0
+    let cxTh : GLfloat = 20.0
+    let crossHairPoints : [Point2D] = [
+      (-160, -cxW/2), (-160-cxTw, -cxTh/2), (-160-cxTw, cxTh/2), (-160, cxW/2),
+      (-W-w, cxW/2), (-W-w, -cxW/2)
+    ]
+    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D($0.x/640.0, $0.y/640.0) }))
+    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x/640.0, $0.y/640.0) }))
+    
+    // Top Triangle
+    let topTriangle : [Point2D] = [(0,160), (-cxTh/2, 160+cxTw), (cxTh/2, 160+cxTw)]
+    triangles.extend(drawing.DecomposePolygon(topTriangle.map { Point2D($0.x/640.0, $0.y/640.0) }))
+    
+    // Upper target line
+    let upperTarget : [Point2D] = [(-w/2, H), (-w/2, H+J), (w/2, H+J), (w/2, H)]
+    triangles.extend(drawing.DecomposePolygon(upperTarget.map { Point2D($0.x/640.0, $0.y/640.0) }))
+    
+    // Finally, an open circle
+    triangles.extend(GenerateCircleTriangles(5/640.0, w: 2.5/640.0))
+    
+    return drawing.LoadTriangles(triangles)!
   }
+  
+  func GenerateProgradeMarker() -> Drawable2D {
+    var tris = GenerateCircleTriangles(12.0/640.0, w: 3.0/640.0)
+    tris.extend(GenerateBoxTriangles(-30/640.0, bottom: -1/640.0, right: -14/640.0, top: 1/640.0))
+    tris.extend(GenerateBoxTriangles(-1/640.0, bottom: 14/640.0, right: 1/640.0, top: 30/640.0))
+    tris.extend(GenerateBoxTriangles(14/640.0, bottom: -1/640.0, right: 30/640.0, top: 1/640.0))
+    
+    return drawing.LoadTriangles(tris)!
+  }
+}
+
+/// Generates a series of triangles for an open circle
+func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
+{
+  var tris : [Triangle] = []
+  let Csteps = 20
+  let innerR = r - w/2
+  let outerR = r + w/2
+  
+  for step in 0..<Csteps {
+    let theta = Float(2*M_PI*(Double(step)/Double(Csteps)))
+    let nextTheta = Float(2*M_PI*(Double(step+1)/Double(Csteps)))
+    tris.append((
+      Point2D(innerR*sin(theta), innerR*cos(theta)),
+      Point2D(outerR*sin(theta), outerR*cos(theta)),
+      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta))
+    ))
+    tris.append((
+      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta)),
+      Point2D(outerR*sin(theta), outerR*cos(theta)),
+      Point2D(outerR*sin(nextTheta), outerR*cos(nextTheta))
+    ))
+  }
+  return tris
+}
+
+func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [Triangle] {
+  return [
+    Triangle((left, bottom), (left, top), (right, top)),
+    Triangle((right, top), (right, bottom), (left, bottom))
+  ]
 }
 
 //PAGE

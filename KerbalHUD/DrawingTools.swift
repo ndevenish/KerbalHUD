@@ -56,6 +56,7 @@ extension VertexRepresentation {
 }
 
 typealias Point2D = (x: Float, y: Float)
+typealias Triangle = (Point2D, Point2D, Point2D)
 
 /// A real, cyclic mod
 private func mod(x : Int, m : Int) -> Int {
@@ -202,11 +203,9 @@ class DrawingTools
     return Mesh(vertexBuffer: buffer, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
   
-  /// Convert a series of polygon points into a metadata object for drawing.
-  ///
-  /// It first reduces the polygon to triangles by using ear clipping.
-  ///
-  func Load2DPolygon(points : [Point2D]) -> Drawable2D? {
+  // Converts a polygon into triangles
+  func DecomposePolygon(points : [Point2D]) -> [Triangle]
+  {
     // Calculate the signed area of this polygon
     var area : Float = 0.0
     for i in 0..<points.count {
@@ -215,8 +214,8 @@ class DrawingTools
     }
     let CW = area > 0
     
-    var triangles : [(Point2D,Point2D,Point2D)] = []
-
+    var triangles : [Triangle] = []
+    
     // Continue until only three points remaing
     var remaining : [Point2D]
     // Always iterate clockwise over the polygon
@@ -227,7 +226,7 @@ class DrawingTools
     }
     
     var lastRemaining = 0
-
+    
     while remaining.count > 3 {
       if lastRemaining == remaining.count {
         print ("Didn't remove any ears!!!! Error!!!!")
@@ -238,7 +237,7 @@ class DrawingTools
       for v in 0..<remaining.count {
         if isPolygonEar(remaining, index: v) {
           let indices = (mod(v-1, m: remaining.count), v, mod(v+1, m: remaining.count))
-          triangles.append((remaining[indices.0], remaining[indices.1], remaining[indices.2]))
+          triangles.append(Triangle(remaining[indices.0], remaining[indices.1], remaining[indices.2]))
           remaining.removeAtIndex(v)
           // Now go back to the beginning
           break
@@ -247,15 +246,25 @@ class DrawingTools
     }
     // Add the remaining triangle
     triangles.append((remaining[0], remaining[1], remaining[2]))
-    
-    // Now, step over each and build the GLfloat data array, in clockwise format
+    return triangles
+  }
+  
+  /// Convert a series of polygon points into a metadata object for drawing.
+  ///
+  /// It first reduces the polygon to triangles by using ear clipping.
+  ///
+  func Load2DPolygon(points : [Point2D]) -> Drawable2D? {
+    return LoadTriangles(DecomposePolygon(points))
+  }
+  
+  func LoadTriangles(triangles : [Triangle]) -> Drawable2D?
+  {
     var vertexList : [Point2D] = []
     for tri in triangles {
       vertexList.append(tri.0)
       vertexList.append(tri.1)
       vertexList.append(tri.2)
     }
-    
     return LoadVertices(.Triangles, vertices: vertexList)
   }
   

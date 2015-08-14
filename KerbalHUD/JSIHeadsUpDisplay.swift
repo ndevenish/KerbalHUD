@@ -263,7 +263,7 @@ class JSIHudVerticalBar {
   func draw() {
     let lgeTickSize : GLfloat = 14 * (direction == .Left ? -1 : 1)
     let medTickSize = lgeTickSize / 2
-    let smlTickSize = medTickSize / 2
+//    let smlTickSize = medTickSize / 2
     
     drawing.DrawLine((position.x, position.y), to: (position.x, position.y+position.height), width: 1)
     

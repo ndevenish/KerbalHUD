@@ -188,9 +188,12 @@ class JSIHeadsUpDisplay {
     let roll : GLfloat = 0
     
     let hScale = horizonScale*1.5
-    let angleRange = (min: Int(floor((pitch - hScale/2)/10)*10),
+    var angleRange = (min: Int(floor((pitch - hScale/2)/10)*10),
                       max: Int(ceil( (pitch + hScale/2)/10)*10))
-    
+    // Apply the constrained horizon, if turned on
+    if use360horizon == false {
+      angleRange = (max(angleRange.min, -90), min(angleRange.max, 90))
+    }
     // Build a transform to apply to all drawing to put us in horizon frame
     var horzFrame = GLKMatrix4Identity
     // Put us in the center of the screen

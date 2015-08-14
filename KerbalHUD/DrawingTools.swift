@@ -9,6 +9,8 @@
 import Foundation
 import GLKit
 
+let π : GLfloat = GLfloat(M_PI)
+
 protocol Drawable2D {
   
 }

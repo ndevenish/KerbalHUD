@@ -122,6 +122,13 @@ class JSIHeadsUpDisplay {
   /// The colour the rest of the HUD is drawn in
   var foregroundColor : (GLfloat, GLfloat, GLfloat, GLfloat) = (0.0, 1.0, 0.0, 1.0)
 
+  /// Use a 180 or 360 degree horizon
+  var use360horizon : Bool = true
+  /// The physical size of the horizon box
+  var horizonSize : (width: GLfloat, height: GLfloat) = (320, 320)
+  /// The vertical scale for the view box e.g. how many degrees it covers
+  var horizonScale : GLfloat = 90
+
   private(set) var drawing : DrawingTools
   private var overlay : Drawable2D?
   private var prograde : Drawable2D?
@@ -155,16 +162,62 @@ class JSIHeadsUpDisplay {
       drawing.ConstrainDrawing(headingBarBounds)
       drawHeadingDisplay()
     }
+    
+  
+    // Draw the main pitch view
+    drawing.ConstrainDrawing(page.screenWidth/2-horizonSize.width/2,
+                              bottom: page.screenHeight/2-horizonSize.height/2,
+                              right: page.screenWidth/2+horizonSize.width/2,
+                              top: page.screenHeight/2+horizonSize.height/2)
+    drawHorizonView()
     drawing.UnconstrainDrawing()
     
+    
     // Draw the prograde icon
-    drawing.program.setColor(progradeColor)
-    drawing.Draw(prograde!)
+//    drawing.program.setColor(progradeColor)
+//    drawing.Draw(prograde!)
     
     // Draw the overlay, centered
     drawing.program.setModelView(GLKMatrix4MakeTranslation(page.screenWidth/2, page.screenHeight/2, 0))
     drawing.program.setColor(foregroundColor)
     drawing.Draw(overlay!)
+  }
+  
+  private func drawHorizonView() {
+    let pitch : GLfloat = 0
+    let roll : GLfloat = 0
+    
+    let hScale = horizonScale*1.5
+    let angleRange = (min: Int(floor((pitch - hScale/2)/10)*10),
+                      max: Int(ceil( (pitch + hScale/2)/10)*10))
+    
+    // Build a transform to apply to all drawing to put us in horizon frame
+    var horzFrame = GLKMatrix4Identity
+    // Put us in the center of the screen
+    horzFrame = GLKMatrix4Translate(horzFrame, page.screenWidth/2, page.screenHeight/2, 0)
+    // Rotate according to the roll
+    horzFrame = GLKMatrix4Rotate(horzFrame, roll*π/180, 0, 0, -1)
+    // And translate for pitch in the center
+    horzFrame = GLKMatrix4Translate(horzFrame, 0, -pitch/horizonScale/2, 0)
+    
+    
+    for var angle = angleRange.min; angle <= angleRange.max; angle += 5 {
+      // How wide do we draw this bar?
+      let width : GLfloat = angle % 20 == 0 ? 128 : (angle % 10 == 0 ? 74 : 23)
+      let y = horizonSize.height * GLfloat(angle)/horizonScale
+      drawing.DrawLine((-width/2, y), to: (width/2, y), width: 1, transform: horzFrame)
+    }
+    // Do the text labels
+    for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
+      if angle % 20 != 0 {
+        continue
+      }
+      let y = horizonSize.height * GLfloat(angle)/horizonScale
+      text.draw(String(format: "%d", angle), size: (angle == 0 ? 16 : 10),
+        position: (-64-8, y), align: .Left, rotation: π, transform: horzFrame)
+      text.draw(String(format: "%d", angle), size: (angle == 0 ? 16 : 10),
+        position: (64+8, y), align: .Left, rotation: 0, transform: horzFrame)
+    }
   }
   
   private func drawHeadingDisplay() {

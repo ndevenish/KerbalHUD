@@ -47,6 +47,9 @@ class ShaderProgram {
   func setColor(color : Color4) {
       glUniform3f(uniforms.color, color.r, color.g, color.b)
   }
+  func setUseTexture(use : Bool) {
+    glUniform1i(uniforms.useTex, use ? 1 : 0)
+  }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
     var mvp = matrix

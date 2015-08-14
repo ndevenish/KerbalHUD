@@ -113,6 +113,11 @@ class DrawingTools
 {
   var program : ShaderProgram
   var vertexArray2D : GLuint = 0
+  // For textured squares
+  var vertexArrayTextured : GLuint = 0
+  var vertexBufferTextured : GLuint = 0
+
+  
 //  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
   private var textRenderers : [String : TextDrawing] = [:]
@@ -162,6 +167,26 @@ class DrawingTools
     ]
     meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as? Mesh
 
+    // Load the vertex information for a textured square
+    glGenVertexArrays(1, &vertexArrayTextured)
+    glBindVertexArray(vertexArrayTextured)
+    glGenBuffers(1, &vertexBufferTextured)
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBufferTextured)
+    // Set up the vertex array information
+    glEnableVertexAttribArray(program.attributes.position)
+    glEnableVertexAttribArray(program.attributes.texture)
+    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(0))
+    glVertexAttribPointer(program.attributes.texture, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(8))
+    // Now copy the data into the buffer
+    var texturedSquare : [GLfloat] = [
+      0,0,0,1,
+      0,1,0,0,
+      1,0,1,1,
+      1,1,1,0
+    ]
+    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
+    glBindVertexArray(0)
+    
   }
 
 //  private var current_buffer : GLuint
@@ -364,7 +389,7 @@ class TextDrawing : TextRenderer {
     
     if let existing = find_existing(text, size: fontSize) {
       // We found that we drew this before!
-      drawTextEntry(existing, size: size, position: position)
+      drawTextEntry(existing, size: size, position: position, alignment: align)
     } else {
       // Let's work out the font size we want, approximately
       let font = UIFont(name: fontName, size: CGFloat(fontSize))!
@@ -383,7 +408,7 @@ class TextDrawing : TextRenderer {
         let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
         let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: fontSize, text: (text as String))
         textures.append(entry)
-        drawTextEntry(entry, size: size, position: position)
+        drawTextEntry(entry, size: size, position: position, alignment: align)
       } catch {
         print("ERROR generating texture from CGContext")
         return
@@ -392,53 +417,33 @@ class TextDrawing : TextRenderer {
     
   }
   
-  private func drawTextEntry(entry : TextEntry, size : GLfloat, position : Point2D) {
+  private func drawTextEntry(entry : TextEntry, size : GLfloat, position : Point2D, alignment align: NSTextAlignment) {
+    let texture = entry.texture
+    glBindVertexArray(tool.vertexArrayTextured)
+    glBindTexture(texture.target, texture.name)
     
+    // Work out how wide we want to draw
+    let squareWidth = size * GLfloat(texture.width)/GLfloat(texture.height)
+
+    var baseMatrix = GLKMatrix4Identity
+    switch(align) {
+    case .Left:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
+    case .Right:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
+    case .Center:
+      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
+    default:
+      break
+    }
+    baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, size, 1)
+    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
+    tool.program.setModelView(baseMatrix)
+    tool.program.setUseTexture(true)
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+    tool.program.setUseTexture(false)
   }
 }
-//
-//      do {
-//        texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
-//        textCache.append(TextEntry(text: text, size: fontSize, texture: texture))
-//        usedText.insert(textCache.count-1)
-//      } catch {
-//        print("ERROR generating texture")
-//        return
-//      }
-//    }
-//    glBindVertexArray(texArray)
-//    glBindTexture(texture.target, texture.name)
-//
-//    // work out how tall we want it.
-//    let squareHeight = GLfloat(fontSize) / pointScale
-//    let squareWidth = squareHeight * GLfloat(texture.width)/GLfloat(texture.height)
-//    var baseMatrix = transform
-//    switch(align) {
-//    case .Left:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
-//    case .Right:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
-//    case .Center:
-//      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
-//    default:
-//      break
-//    }
-//
-//    //      baseMatrix = GLKMatrix4Translate(baseMatrix, position.x - (left ? 0 : squareWidth), position.y, 0)
-//    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotate, 0, 0, -1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, squareHeight, 1)
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
-//
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    glUniform1i(uniforms[UNIFORM_USETEX], 1)
-//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0,4)
-//
-//    glUniform1i(uniforms[UNIFORM_USETEX], 0)
-//  }
-
 
 private let _glErrors = [
   GLenum(GL_NO_ERROR) : "",

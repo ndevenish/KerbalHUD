@@ -398,6 +398,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
         instr.draw()
       }
       
+      drawing!.drawText("TEST", size: 20, align: .Left, position: (160,160))
+      
 //      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
 //      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
 

@@ -13,6 +13,11 @@ protocol Drawable2D {
   
 }
 
+func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
+  let p: UnsafePointer<Void> = nil
+  return p.advancedBy(i)
+}
+
 private struct Mesh : Drawable2D {
   // Need array here? Probably not, as anything in the same buffer
   // should match formats
@@ -59,6 +64,21 @@ typealias Point2D = (x: Float, y: Float)
 typealias Size2D = (w: Float, h: Float)
 typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
+//typealias Bounds = (left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+
+struct Bounds {
+  var left : GLfloat
+  var bottom : GLfloat
+  var right : GLfloat
+  var top : GLfloat
+  
+  var height : GLfloat {
+    return top-bottom
+  }
+  var width : GLfloat {
+    return right-left
+  }
+}
 
 /// A real, cyclic mod
 private func mod(x : Int, m : Int) -> Int {
@@ -347,6 +367,36 @@ class DrawingTools
   /// A convenience text renderer that avoids having to grab a font named explicitly
   func drawText(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left, rotation : GLfloat = 0) {
     textRenderer("Menlo").draw(text, size: size, position: position, align: align, rotation: rotation)
+  }
+  
+  private func startWritingStencilBuffer() {
+    glEnable(GLenum(GL_STENCIL_TEST))
+    glStencilFunc(GLenum(GL_ALWAYS), 1, 0xFF)
+    glStencilOp(GLenum(GL_KEEP), GLenum(GL_KEEP), GLenum(GL_REPLACE))
+    glColorMask(GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE))
+    glStencilMask(0xFF)
+    glClear(GLenum(GL_STENCIL_BUFFER_BIT))
+  }
+  private func stopWritingStencilBuffer() {
+    glColorMask(GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE))
+    glStencilFunc(GLenum(GL_EQUAL), 1, 0xFF)
+    // Prevent further writing to the stencil from this point
+    glStencilMask(0x00);
+  }
+  
+  func ConstrainDrawing(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) {
+    startWritingStencilBuffer()
+    DrawSquare(left, bottom: bottom, right: right, top: top)
+    stopWritingStencilBuffer()
+  }
+  func ConstrainDrawing(bounds : Bounds) {
+    startWritingStencilBuffer()
+    DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
+    stopWritingStencilBuffer()
+  }
+
+  func UnconstrainDrawing() {
+    glDisable(GLenum(GL_STENCIL_TEST))
   }
   
 }

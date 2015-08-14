@@ -9,86 +9,13 @@
 import GLKit
 import OpenGLES
 
-
-func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
-  let p: UnsafePointer<Void> = nil
-  return p.advancedBy(i)
-}
-
-let UNIFORM_MODELVIEWPROJECTION_MATRIX = 0
-let UNIFORM_NORMAL_MATRIX = 1
-let UNIFORM_COLOR = 2
-let UNIFORM_USETEX = 3
-var uniforms = [GLint](count: 4, repeatedValue: 0)
-var meshes : [(offset: GLint, size: GLint)] = []
-
-let MESH_SQUARE = 0
-let MESH_TRIANGLE = 1
-let MESH_HUD = 2
-let MESH_PROGRADE = 3
-
-//struct FlightData {
-//  var Pitch   : GLfloat = 0
-//  var Roll    : GLfloat = 0
-//  var Heading : GLfloat = 0
-//  
-//  var DeltaH  : GLfloat = 0
-//  var AtmHeight : GLfloat = 0
-//  var TerrHeight : GLfloat = 0
-//  var RadarHeight : GLfloat = 0
-//  var DynPressure : GLfloat = 0
-//  var AtmPercent : GLfloat = 0
-//  var AtmDensity : GLfloat = 0
-//  var ThrottleSet : GLfloat = 0
-//  var ThrottleActual : GLfloat = 0
-//  var Speed : GLfloat = 0
-//  var EASpeed : GLfloat = 0
-//  var HrzSpeed : GLfloat = 0
-//  var SurfaceVelocity : (x: GLfloat, y: GLfloat, z: GLfloat) = (0,0,0)
-//  var SAS : Bool = false
-//  var Gear : Bool = false
-//  var Lights : Bool = false
-//  var Brake : Bool = false
-//  var RCS : Bool = false
-//  
-//  var HeatAlarm : Bool = false
-//  var GroundAlarm : Bool = false
-//  var SlopeAlarm : Bool = false
-//  
-//  var RPMVariablesAvailable : Bool = false
-//}
-
 class GameViewController: GLKViewController, WebSocketDelegate {
-  
-//  var program: GLuint = 0
   var program : ShaderProgram?
   var drawing : DrawingTools?
   
-//  var modelViewProjectionMatrix:GLKMatrix4 = GLKMatrix4Identity
-//  var projectionMatrix : GLKMatrix4 = GLKMatrix4Identity
-//  var normalMatrix: GLKMatrix3 = GLKMatrix3Identity
-//  var rotation: Float = 0.0
-//  
-//  var texAttrib : GLint = 0
-//  var posAttrib : GLint = 0
-//  
-  var vertexArray: GLuint = 0
-  var vertexBuffer: GLuint = 0
-//
-//  var texArray : GLuint = 0
-//  var texBuffer : GLuint = 0
-  
   var context: EAGLContext? = nil
   
-//  var pointScale : GLfloat = 1
-  
-//  var currentDH : GLfloat = 0
-
-//  var latestData : FlightData? = nil
-  
   var display : Instrument?
-  
-  var square : Drawable2D?
   
   deinit {
     self.tearDownGL()
@@ -188,41 +115,11 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     drawing = DrawingTools(shaderProgram: program!)
     
     display = RPMPlaneHUD(tools: drawing!)
-
     //    glEnable(GLenum(GL_DEPTH_TEST))
-
-//    var squareVertexData: [GLfloat] = [
-//      0,0,
-//      0,1,
-//      1,1,
-//      1,1,
-//      1,0,
-//      0,0,
-//    ]
-
-//    let sqVpoints : [Point2D] = [
-//      (0,0),(0,1),(1,1),(1,1),(1,0),(0,0)
-//    ]
-//    square = drawing!.LoadVertices(VertexRepresentation.Triangles, vertices: sqVpoints)
-    
-//    glGenBuffers(1, &vertexBuffer)
-//    glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBuffer)
-//    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * squareVertexData.count), &squareVertexData, GLenum(GL_STATIC_DRAW))
-//    
-//    glGenVertexArrays(1, &vertexArray)
-//    glBindVertexArray(vertexArray)
-//    glEnableVertexAttribArray(program!.attributes.position)
-//    glVertexAttribPointer(program!.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 8, BUFFER_OFFSET(0))
-//    glBindVertexArray(0);
-//    
   }
   
   func tearDownGL() {
     EAGLContext.setCurrentContext(self.context)
-    
-//    glDeleteBuffers(1, &vertexBuffer)
-//    glDeleteVertexArrays(1, &vertexArray)
-    
   }
   
   // MARK: - GLKView and GLKViewController delegate methods
@@ -242,131 +139,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
     }
   }
-  
-//  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
-//  {
-//    glBindVertexArray(vertexArray)
-//    
-//    var baseMatrix = GLKMatrix4Identity
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
-//    let mvp = GLKMatrix4Multiply(program!.projection, baseMatrix)
-//    program!.setModelViewProjection(mvp)
-//    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
-//  }
-  
-//
-//  func drawLine(  from  : (x: GLfloat, y: GLfloat),
-//                      to: (x: GLfloat, y: GLfloat),
-//                  width : GLfloat,
-//             transform  : GLKMatrix4 = GLKMatrix4Identity) {
-//    let width = width / pointScale
-//    glBindVertexArray(vertexArray)
-//              
-//    // Calculate the rotation for this vector
-//    let rotation_angle = atan2(to.y-from.y, to.x-from.x)
-//
-//    let length = sqrt(pow(to.y-from.y, 2) + pow(to.x-from.x, 2))
-//    var baseMatrix = transform
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, from.x, from.y, 0.1)
-//    baseMatrix = GLKMatrix4Rotate(baseMatrix, (0.5*3.1415926)-rotation_angle, 0, 0, -1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, width, length, 1)
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, 0, 0)
-//    
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    let mesh = meshes[MESH_SQUARE]
-//    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
-//  }
-//  
-//  func drawTriangle(point : (x: GLfloat, y: GLfloat), rotation : GLfloat, height : GLfloat)
-//  {
-////    let height = height / pointScale
-//    glBindVertexArray(vertexArray)
-//    
-//    var baseMatrix = GLKMatrix4Identity
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, point.x, point.y, 0.1)
-//    baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, -1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, height, height, 1)
-//    
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    let mesh = meshes[MESH_TRIANGLE]
-//    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
-//  }
-//  
-//  func constrainDrawing(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
-//  {
-//    glEnable(GLenum(GL_STENCIL_TEST))
-//    glStencilFunc(GLenum(GL_ALWAYS), 1, 0xFF)
-//    glStencilOp(GLenum(GL_KEEP), GLenum(GL_KEEP), GLenum(GL_REPLACE))
-//    glColorMask(GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE), GLboolean(GL_FALSE))
-//    glStencilMask(0xFF)
-//    glClear(GLenum(GL_STENCIL_BUFFER_BIT))
-//
-//    drawSquare(left, bottom: bottom, right: right, top: top)
-//
-//    glColorMask(GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE), GLboolean(GL_TRUE))
-//    
-//    glStencilFunc(GLenum(GL_EQUAL), 1, 0xFF)
-//    // Prevent further writing to the stencil from this point
-//    glStencilMask(0x00);
-//  }
-//  func unconstrainDrawing() {
-//    glDisable(GLenum(GL_STENCIL_TEST))
-//  }
-//  
-//  func drawHUDCenter() {
-//    glBindVertexArray(vertexArray)
-//        var baseMatrix = GLKMatrix4MakeTranslation(0.5, 0.5, 0)
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    let mesh = meshes[MESH_HUD]
-//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, -1, 1, 1)
-//    mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
-//  }
-//  
-//  func drawPrograde(x: GLfloat, y: GLfloat) {
-//    glBindVertexArray(vertexArray)
-//    
-//    let baseMatrix = GLKMatrix4MakeTranslation(x, y, 0)
-//
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-//    let mesh = meshes[MESH_PROGRADE]
-//
-//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), mesh.offset, mesh.size)
-//  }
-//  
-//  func PseudoLog10(x : Double) -> Double
-//  {
-//    
-//    if abs(x) <= 1.0 {
-//      return x
-//    }
-//    return (1.0 + log10(abs(x))) * sign(x)
-//  }
-//  
-//  func InversePseudoLog10(x : Double) -> Double
-//  {
-//    if abs(x) <= 1.0 {
-//      return x
-//    }
-//    return pow(10, abs(x)-1)*sign(x)
-//  }
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
 
@@ -388,8 +160,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
     
-//    glBindVertexArray(vertexArray)
-    
     if let program = program {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
@@ -398,59 +168,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
         instr.draw()
       }
       
-      drawing!.drawText("TEST", size: 20, position: (160,160), align: .Left, rotation: 3.14/2)
-      
-//      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
-//      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
-
-//      program.setColor(red: 1, green: 0, blue: 0)
-//      let tk = drawing!
-//      let tri = tk.Load2DPolygon([(0,0), (0, 1), (1,0)])!
-//      tk.Draw(tri)
-
+//      drawing!.drawText("TEST", size: 20, position: (160,160), align: .Left, rotation: 3.14/2)
       processGLErrors()
-
     }
-//    glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
-    
-//    let thick : GLfloat = 1.0
-//    let thin  : GLfloat = 0.5
-    
-    
-//    if let data = latestData {
-//      constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 0.75)
-//      drawPitchDisplay(data.Pitch,roll: data.Roll)
-//
-////      glUniform3f(uniforms[UNIFORM_COLOR], 0.84, 0.98, 0.0)
-////      drawPrograde(0.6, y: 0.6)
-////      glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
-//
-//      constrainDrawing(0.0, bottom: 0.25, right: 1.0, top: 0.75)
-//      drawLogDisplay(data.DeltaH, left: true)
-//      drawLogDisplay(data.RadarHeight, left: false)
-//      
-//      // Draw the heading indicator
-//      constrainDrawing(0.25, bottom: 0.25, right: 0.75, top: 1)
-//      drawHeadingDisplay(data.Heading)
-//      
-//      unconstrainDrawing()
-//    }
-//    
-//    drawHUDCenter()
-//    
-//    // Log display lines
-//    drawLine((0.25,0.25), to:(0.25,0.75), width: 1)
-//    drawLine((0.75,0.25), to:(0.75,0.75), width: 1)
-//    
-//    // Line across and triangles for HUD display
-//    drawLine((0.25,0.5), to: (0.45,0.5), width: 0.5)
-//    drawLine((0.55,0.5), to: (1.0,0.5), width: 0.5)
-//    drawTriangle((0.25, 0.5), rotation: 3.1415926/2, height: 0.03125)
-//    drawTriangle((0.75, 0.5), rotation: -3.1415926/2, height: 0.03125)
-//    drawTriangle((0.5, 0.75), rotation: 3.1415926, height: 0.03125)
-//
-//    
-//    
 //    // Fixed text
 //    drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
 //
@@ -527,27 +247,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     // 8 =  0.0125
     // 16 = 0.025
     // 32 = 0.05
-
-//    // Delete any unused text textures
-//    for i in (0..<textCache.count).reverse() {
-//      if usedText.contains(i) { continue }
-//      var name = textCache[i].texture.name
-//      glDeleteTextures(1, &name)
-//      textCache.removeAtIndex(i)
-//    }
-//    usedText.removeAll()
   }
 
-//  struct TextEntry {
-//    let text : String
-//    let size : GLfloat
-//    let texture : GLKTextureInfo
-//  }
-//  var textCache : [TextEntry] = []
-//  var usedText : Set<Int> = []
-//  
-//  
-//  
 //  func drawHeadingDisplay(heading : Float)
 //  {
 //    let minAngle = Int(floor((heading - 27.5)/10))*10
@@ -610,157 +311,4 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //
 //  }
 //  
-//  func drawLogDisplay(value : Float, left : Bool)
-//  {
-//    let xPos : GLfloat = left ? 0.25 : 0.75
-//
-//    let lgeTickSize : GLfloat = 0.025 * (left ? -1 : 1)
-//    let medTickSize = lgeTickSize / 2
-//    let smlTickSize = medTickSize / 2
-//    
-//    let center = PseudoLog10(Double(value))
-//    // Calculate the minimum and maximum of the log range to draw
-//    let logRange = left ? 4 : 4.6
-//    var logMin = Int(floor(center)-logRange/2)
-//    var logMax = Int(ceil(center)+logRange/2)
-//    if !left {
-//      logMin = max(0, logMin)
-//      logMax = min(5, logMax)
-//    }
-//    let bottom = center - logRange / 2
-////    let top    = center + logRange / 2
-//    // Draw the major marks
-//    for power in logMin...logMax {
-//      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
-//      drawLine((xPos,y), to: (xPos+GLfloat(lgeTickSize), y), width: 1)
-//
-//      
-//      if !(power == logMax) {
-//        var nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-//        let halfPoint = PseudoLog10(nextPow*0.5)
-//        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-//        drawLine((xPos,y), to: (xPos+GLfloat(medTickSize), y), width: 1)
-//
-//        nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-//        let doubPoint = PseudoLog10(nextPow*0.1*2)
-//        y = 0.25 + 0.5 * GLfloat((doubPoint-bottom)/logRange)
-//        drawLine((xPos,y), to: (xPos+GLfloat(smlTickSize), y), width: 1)
-//      }
-//    }
-//    // Draw text in a separate pass
-//    for power in logMin...logMax {
-//      var y : GLfloat = 0.25 + 0.5 * GLfloat((Double(power)-bottom)/logRange)
-//      var txt = NSString(format: "%.0f", abs(InversePseudoLog10(Double(power))))
-//      drawText(txt as String, align: left ? .Right : .Left, position: (xPos + lgeTickSize * 1.25, y), fontSize: 12)
-//      
-//      if !(power == logMax) {
-//        let nextPow = InversePseudoLog10(Double(power >= 0 ? power+1 : power))
-//        let halfPoint = PseudoLog10(nextPow*0.5)
-//        y = 0.25 + GLfloat((halfPoint-bottom)/logRange * 0.5)
-//        if abs(nextPow) == 1 {
-//          txt = NSString(format: "%.1f", abs(nextPow*0.5))
-//        } else {
-//          txt = NSString(format: "%.0f", abs(nextPow*0.5))
-//        }
-//        drawText(txt as String, align: left ? .Right : .Left, position: (xPos + medTickSize * 1.25, y), fontSize: 9)
-//      }
-//    }
-//    
-//  }
-//  
-//
-
 }
-
-//
-
-//
-//var gTextureSquareVertexData : [GLfloat] = [
-//  0,0,0,0,1,
-//  0,1,0,0,0,
-//  1,0,0,1,1,
-//  1,1,0,1,0
-//]
-//// Equilateral triangle with height 1, facing up, with point at 0,0
-//var gTriangleData : [GLfloat] = [
-//  0,0,0,
-//  0.625,-1,0,
-//  -0.625,-1,0,
-//]
-//
-//func openSemiCircle(r : GLfloat, w : GLfloat) -> [(x: GLfloat, y: GLfloat)]
-//{
-//  var points : [(x: GLfloat, y: GLfloat)] = []
-//  let Csteps = 20
-//  let innerR = r - w/2
-//  let outerR = r + w/2
-//  
-//  for step in 0...Csteps {
-//    let theta = GLfloat((3.1415926/Double(Csteps))*Double(step))
-//    points.append((innerR*sin(theta), innerR*cos(theta)))
-//    points.append((outerR*sin(theta), outerR*cos(theta)))
-//  }
-//  return points
-//}
-//
-//func openCircle(start : GLfloat, end : GLfloat, r : GLfloat, w : GLfloat) -> [(x: GLfloat, y: GLfloat)]
-//{
-//  var points : [(x: GLfloat, y: GLfloat)] = []
-//  let Csteps = 20
-//  let innerR = r - w/2
-//  let outerR = r + w/2
-//  
-//  for step in 0...Csteps {
-//    let theta = Float(start) + Float(Double(end-start) * (Double(step)/Double(Csteps)))
-//    
-//    points.append((innerR*sin(theta), innerR*cos(theta)))
-//    points.append((outerR*sin(theta), outerR*cos(theta)))
-//  }
-//  return points
-//}
-//
-//
-
-
-//
-//func boxPoints(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [(x: GLfloat, y: GLfloat)]
-//{
-//  return [
-//    (left, top),
-//    (right, top),
-//    (left, bottom),
-//    (right, bottom)
-//  ]
-//}
-//
-//func progradeMarker() -> [GLfloat]
-//{
-//  var points = openCircle(0, end: 2*3.1415926, r: 12, w: 3)
-//  appendTriangleStrip(&points, with: boxPoints(-30, bottom: -1, right: -14, top: 1))
-//  appendTriangleStrip(&points, with: boxPoints(-1, bottom: 14, right: 1, top: 30))
-//  appendTriangleStrip(&points, with: boxPoints(14, bottom: -1, right: 30, top: 1))
-//  
-//  return pointsTo3DVertices(points)
-//}
-//
-//func appendTriangleStrip(inout points : [(x: GLfloat, y: GLfloat)], with : [(x: GLfloat, y: GLfloat)])
-//{
-//  points.append(points.last!)
-//  points.append(with.first!)
-//  points.extend(with)
-//}
-//
-//func pointsTo3DVertices(points : [(x: GLfloat, y: GLfloat)]) -> [GLfloat]
-//{
-//  var flts : [GLfloat] = []
-//  for p in points {
-//    flts.append(p.x / 640)
-//    flts.append(p.y / 640)
-//    flts.append(0.0)
-//  }
-//  return flts
-//}
-//
-//var gCenterHUD : [GLfloat] = crossHair(16, J: 68, w: 5, theta: 0.7243116395776468)
-//
-//var gPrograde : [GLfloat] = progradeMarker()

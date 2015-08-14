@@ -145,8 +145,11 @@ class JSIHeadsUpDisplay {
   func RenderHUD() {
     // Draw the vertical bars
     for bar in self.verticalBars {
+      drawing.ConstrainDrawing(bar.bounds)
       bar.draw()
     }
+    drawing.UnconstrainDrawing()
+    
     // Draw the heading indicator bar
     
     // Draw the prograde icon
@@ -235,11 +238,14 @@ class JSIHudVerticalBar {
   /// Which direction is the axis drawn in
   var direction : VerticalScaleDirection = .Left
   /// Where is this scale positioned
-  var position : (x: GLfloat, y: GLfloat, width: GLfloat, height: GLfloat) = (0,0,1,1)
+//  var position : (x: GLfloat, y: GLfloat, width: GLfloat, height: GLfloat) = (0,0,1,1)
+  var bounds : Bounds
+  
   /// What are the upper and lower display limits?
   var limits : (min: GLfloat, max: GLfloat)?
   /// How much should we display in one vertical sweep?
   var verticalScale : GLfloat = 100
+  
   
   var drawing : DrawingTools
   private var text : TextRenderer
@@ -253,7 +259,11 @@ class JSIHudVerticalBar {
       text = drawing.textRenderer("Menlo")
       self.useLog = useLog
       self.direction = direction
-      self.position = position
+      if self.direction == .Left {
+        self.bounds = Bounds(left: position.x-position.width, bottom: position.y, right: position.x, top: position.y+position.height)
+      } else {
+        self.bounds = Bounds(left: position.x, bottom: position.y, right: position.x+position.width, top: position.y+position.height)
+      }
       self.limits = limits
       self.verticalScale = verticalScale
   }
@@ -266,8 +276,8 @@ class JSIHudVerticalBar {
     let lgeTickSize : GLfloat = 14 * (direction == .Left ? -1 : 1)
     let medTickSize = lgeTickSize / 2
 //    let smlTickSize = medTickSize / 2
-    
-    drawing.DrawLine((position.x, position.y), to: (position.x, position.y+position.height), width: 1)
+    let axisLinePos = direction == .Left ? bounds.right : bounds.left
+    drawing.DrawLine((axisLinePos, bounds.bottom), to: (axisLinePos, bounds.top), width: 1)
     
     // Calculate the visible range of markers
     let center = useLog ? PseudoLog10(variable) : variable
@@ -285,8 +295,8 @@ class JSIHudVerticalBar {
 
     // Draw the major marks now
     for value in markerRange.min...markerRange.max {
-      let y : GLfloat = position.y + position.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
-      drawing.DrawLine((position.x, y), to: (position.x+lgeTickSize, y), width: 1)
+      let y : GLfloat = bounds.bottom + bounds.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
+      drawing.DrawLine((axisLinePos, y), to: (axisLinePos+lgeTickSize, y), width: 1)
       
       // Now, draw the intermediate markers
       if !(value == markerRange.max) {
@@ -298,17 +308,17 @@ class JSIHudVerticalBar {
         } else {
           halfValue = Float(value) + 0.5
         }
-        let halfwayY : GLfloat = position.y + position.height * ((GLfloat(halfValue)-range.min) / (2*rangeOffset))
-        drawing.DrawLine((position.x, halfwayY), to: (position.x+medTickSize, halfwayY), width: 1)
+        let halfwayY : GLfloat = bounds.bottom + bounds.height * ((GLfloat(halfValue)-range.min) / (2*rangeOffset))
+        drawing.DrawLine((axisLinePos, halfwayY), to: (axisLinePos+medTickSize, halfwayY), width: 1)
       }
     }
     
     // Now, draw text in a separate pass
     let textAlign = direction == .Left ? NSTextAlignment.Right : NSTextAlignment.Left
     for value in markerRange.min...markerRange.max {
-      let y : GLfloat = position.y + position.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
+      let y : GLfloat = bounds.bottom + bounds.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
       let realVal = useLog ? InversePseudoLog10(Float(value)) : Float(value)
-      text.draw(String(format: "%.0f", realVal), size: 16, position: (GLfloat(position.x + lgeTickSize + 2), y), align: (direction == .Left ? NSTextAlignment.Right : NSTextAlignment.Left))
+      text.draw(String(format: "%.0f", realVal), size: 16, position: (GLfloat(axisLinePos + lgeTickSize + 2), y), align: (direction == .Left ? NSTextAlignment.Right : NSTextAlignment.Left))
       if !(value == markerRange.max) {
         let halfValue : GLfloat
         let halfPosition : GLfloat
@@ -321,9 +331,9 @@ class JSIHudVerticalBar {
           halfValue = Float(value) + 0.5
           halfPosition = halfValue
         }
-        let halfwayY : GLfloat = position.y + position.height * ((GLfloat(halfPosition)-range.min) / (2*rangeOffset))
+        let halfwayY : GLfloat = bounds.bottom + bounds.height * ((GLfloat(halfPosition)-range.min) / (2*rangeOffset))
         let halfFormat = value == -1 || value == 0 ? "%.1f" : "%.0f"
-        text.draw(String(format: halfFormat, halfValue), size: 10, position: (GLfloat(position.x + lgeTickSize + 2), halfwayY), align: textAlign)
+        text.draw(String(format: halfFormat, halfValue), size: 10, position: (GLfloat(axisLinePos + lgeTickSize + 2), halfwayY), align: textAlign)
       }
     }
   }

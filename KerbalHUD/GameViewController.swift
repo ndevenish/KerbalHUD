@@ -62,6 +62,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
 //  var program: GLuint = 0
   var program : ShaderProgram?
+  var drawing : DrawingTools?
   
 //  var modelViewProjectionMatrix:GLKMatrix4 = GLKMatrix4Identity
 //  var projectionMatrix : GLKMatrix4 = GLKMatrix4Identity
@@ -71,9 +72,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //  var texAttrib : GLint = 0
 //  var posAttrib : GLint = 0
 //  
-//  var vertexArray: GLuint = 0
-//  var vertexBuffer: GLuint = 0
-//  
+  var vertexArray: GLuint = 0
+  var vertexBuffer: GLuint = 0
+//
 //  var texArray : GLuint = 0
 //  var texBuffer : GLuint = 0
   
@@ -86,6 +87,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //  var latestData : FlightData? = nil
   
   var display : Instrument?
+  
+  var square : Drawable2D?
   
   deinit {
     self.tearDownGL()
@@ -182,58 +185,33 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     EAGLContext.setCurrentContext(self.context)
     
     program = ShaderProgram()
-//    self.loadShaders()
+    drawing = DrawingTools(shaderProgram: program!)
+    //    glEnable(GLenum(GL_DEPTH_TEST))
+
+//    var squareVertexData: [GLfloat] = [
+//      0,0,
+//      0,1,
+//      1,1,
+//      1,1,
+//      1,0,
+//      0,0,
+//    ]
+
+    let sqVpoints : [Point2D] = [
+      (0,0),(0,1),(1,1),(1,1),(1,0),(0,0)
+    ]
+    square = drawing!.LoadVertices(VertexRepresentation.Triangles, vertices: sqVpoints)
     
-////    glEnable(GLenum(GL_DEPTH_TEST))
-//    glGenVertexArrays(1, &vertexArray)
-//    glBindVertexArray(vertexArray)
-//    
 //    glGenBuffers(1, &vertexBuffer)
 //    glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBuffer)
-//    let vertexCount = gSquareVertexData.count + gTriangleData.count + gCenterHUD.count + gPrograde.count
-////    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * vertexCount), &gSquareVertexData, GLenum(GL_STATIC_DRAW))
-//
-//    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * vertexCount), nil, GLenum(GL_STATIC_DRAW))
-//    // Copy all data into the buffer
-//    glBufferSubData(GLenum(GL_ARRAY_BUFFER), 0, GLsizeiptr(sizeof(GLfloat)*gSquareVertexData.count), &gSquareVertexData)
-//    meshes.append((0, GLint(gSquareVertexData.count/3)))
+//    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * squareVertexData.count), &squareVertexData, GLenum(GL_STATIC_DRAW))
 //    
-////    copy_to_buffer(gSquareVertexData, offset: 0)
-////    copy_to_buffer(gTriangleData, offset: gSquareVertexData.count)
-////    copy_to_buffer(gCenterHUD, offset: gSquareVertexData.count + gTriangleData.count)
-//    
-////    
-//    glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*gSquareVertexData.count,
-//      GLsizeiptr(sizeof(GLfloat)*gTriangleData.count), &gTriangleData)
-//    meshes.append((meshes.last!.size, GLint(gTriangleData.count/3)))
-//
-//    glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*(gSquareVertexData.count + gTriangleData.count),
-//      GLsizeiptr(sizeof(GLfloat)*gCenterHUD.count), &gCenterHUD)
-//    meshes.append((meshes.last!.size+meshes.last!.offset, GLint(gCenterHUD.count/3)))
-////
-//    glBufferSubData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*(gSquareVertexData.count + gTriangleData.count + gCenterHUD.count), GLsizeiptr(sizeof(GLfloat)*gPrograde.count), &gPrograde)
-//    meshes.append((meshes.last!.size+meshes.last!.offset, GLint(gPrograde.count/3)))
-//    
-//    glEnableVertexAttribArray(GLuint(posAttrib))
-//    glVertexAttribPointer(GLuint(posAttrib), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 12, BUFFER_OFFSET(0))
-////    glEnableVertexAttribArray(GLuint(GLKVertexAttrib.Normal.rawValue))
-////    glVertexAttribPointer(GLuint(GLKVertexAttrib.Normal.rawValue), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 24, BUFFER_OFFSET(12))
+//    glGenVertexArrays(1, &vertexArray)
+//    glBindVertexArray(vertexArray)
+//    glEnableVertexAttribArray(program!.attributes.position)
+//    glVertexAttribPointer(program!.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 8, BUFFER_OFFSET(0))
 //    glBindVertexArray(0);
 //    
-//    glGenVertexArrays(1, &texArray)
-//    glBindVertexArray(texArray)
-//    glGenBuffers(1, &texBuffer)
-//    glBindBuffer(GLenum(GL_ARRAY_BUFFER), texBuffer)
-//    glBufferData(GLenum(GL_ARRAY_BUFFER), GLsizeiptr(sizeof(GLfloat) * gTextureSquareVertexData.count),
-//      &gTextureSquareVertexData, GLenum(GL_STATIC_DRAW))
-//    glEnableVertexAttribArray(GLuint(posAttrib))
-//    glVertexAttribPointer(GLuint(posAttrib), 3, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 20, BUFFER_OFFSET(0))
-//    glEnableVertexAttribArray(GLuint(texAttrib))
-//    glVertexAttribPointer(GLuint(texAttrib), 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), 20, BUFFER_OFFSET(12))
-//    
-//    glBindVertexArray(0);
-    
-//    display =
   }
   
   func tearDownGL() {
@@ -257,21 +235,22 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     }
   }
   
-//  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
-//  {
-//    glBindVertexArray(vertexArray)
-//    
-//    var baseMatrix = GLKMatrix4Identity
-//    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
-//    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
-//    var mvp = GLKMatrix4Multiply(projectionMatrix, baseMatrix)
+  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  {
+    glBindVertexArray(vertexArray)
+//    glBindVertexArray(drawing!.vertexArray2D)
+    
+    var baseMatrix = GLKMatrix4Identity
+    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+    let mvp = GLKMatrix4Multiply(program!.projection, baseMatrix)
+    program!.setModelViewProjection(mvp)
 //    withUnsafePointer(&mvp, {
 //      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
 //    })
-//    let mesh = meshes[MESH_SQUARE]
-//    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
-//
-//  }
+    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
+
+  }
 //
 //  func drawLine(  from  : (x: GLfloat, y: GLfloat),
 //                      to: (x: GLfloat, y: GLfloat),
@@ -410,10 +389,20 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     if let program = program {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
-      
+      program.setModelViewProjection(program.projection)
       if let instr = display {
         instr.draw()
       }
+      
+      drawing!.Draw(square!)
+//      drawSquare(0, bottom: 0, right: 0.5, top: 0.5)
+//      program.setColor(red: 1, green: 0, blue: 0)
+//      let tk = drawing!
+//      let tri = tk.Load2DPolygon([(0,0), (0, 1), (1,0)])!
+//      tk.Draw(tri)
+
+      processGLErrors()
+
     }
 //    glUniform3f(uniforms[UNIFORM_COLOR], 0.0, 1.0, 0.0)
     
@@ -750,14 +739,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 }
 
 //
-//var gSquareVertexData: [GLfloat] = [
-//  0,0,0,
-//  0,1,0,
-//  1,1,0,
-//  1,1,0,
-//  1,0,0,
-//  0,0,0,
-//]
+
 //
 //var gTextureSquareVertexData : [GLfloat] = [
 //  0,0,0,0,1,

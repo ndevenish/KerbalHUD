@@ -97,7 +97,7 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
 class DrawingTools
 {
   var program : ShaderProgram
-  private var vertexArray2D : GLuint
+  var vertexArray2D : GLuint = 0
 //  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
   
@@ -111,26 +111,40 @@ class DrawingTools
     }
     mutating func write(size : GLsizeiptr, data : UnsafePointer<Void>) {
       assert(spaceFree >= size)
+      glBindBuffer(GLenum(GL_ARRAY_BUFFER), index)
       glBufferSubData(GLenum(GL_ARRAY_BUFFER), offset, size, data)
+      glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
       offset += size
     }
   }
-  
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
+    
+    // Generate the array, but wait for a buffer to set it up
     vertexArray2D = 0
     glGenVertexArrays(1, &vertexArray2D)
+    glBindVertexArray(vertexArray2D);
+
+    // Create an initial buffer
+    let buffer = generate_buffer()
+    
+    // Now create the vertex array
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
     glEnableVertexAttribArray(program.attributes.position)
     glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
     glBindVertexArray(0);
   }
 
 //  private var current_buffer : GLuint
   private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> GLuint {
     var buffer : GLuint = 0
+//    glBindVertexArray(vertexArray2D)
     glGenBuffers(1, &buffer)
-    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*Int(size), nil, GLenum(GL_STATIC_DRAW))
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
+    glBufferData(GLenum(GL_ARRAY_BUFFER), size, nil, GLenum(GL_STATIC_DRAW))
     buffers[buffer] = BufferInfo(array: vertexArray2D, index: buffer, size: sizeof(GLfloat)*Int(size), offset: 0)
+//    glBindVertexArray(0)
     return buffer
   }
   
@@ -141,11 +155,12 @@ class DrawingTools
         return buffer.index
       }
     }
-    if space > 1024*sizeof(GLfloat) {
-      return generate_buffer(space)
-    } else {
-      return generate_buffer()
-    }
+    return generate_buffer(space)
+//    if space > 1024*sizeof(GLfloat) {
+//      return generate_buffer(space)
+//    } else {
+//      return generate_buffer()
+//    }
   }
   
   // Takes a list of 2D vertices and converts them into a drawable representation
@@ -159,8 +174,8 @@ class DrawingTools
     assert(vertices.count < 1024)
 
     let buffer = bufferWithSpace(sizeof(GLfloat)*asFloat.count)
-    let offset = GLuint(buffers[buffer]!.offset)
-    buffers[buffer]?.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
+    let offset = GLuint(buffers[buffer]!.offset) / GLuint(sizeof(GLfloat)) / 2
+    buffers[buffer]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
     
     return Mesh(vertexBuffer: buffer, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
@@ -217,8 +232,23 @@ class DrawingTools
   func Draw(item : Drawable2D) {
     let mesh = item as! Mesh
     glBindVertexArray(buffers[mesh.vertexBuffer]!.array)
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), mesh.vertexBuffer)
     glDrawArrays(mesh.vertexType, GLint(mesh.bufferOffset), GLint(mesh.bufferCount))
   }
   
+}
+
+private let _glErrors = [
+  GLenum(GL_NO_ERROR) : "",
+  GLenum(GL_INVALID_ENUM): "GL_INVALID_ENUM",
+  GLenum(GL_INVALID_VALUE): "GL_INVALID_VALUE",
+  GLenum(GL_INVALID_OPERATION): "GL_INVALID_OPERATION",
+  GLenum(GL_INVALID_FRAMEBUFFER_OPERATION): "GL_INVALID_FRAMEBUFFER_OPERATION",
+  GLenum(GL_OUT_OF_MEMORY): "GL_OUT_OF_MEMORY"
+]
+func processGLErrors() {
+  var error = glGetError()
+  while error != 0 {
+    print("OpenGL Error: " + _glErrors[error]!)
+    error = glGetError()
+  }
 }

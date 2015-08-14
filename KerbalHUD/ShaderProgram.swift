@@ -46,7 +46,10 @@ class ShaderProgram {
   }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
-    
+    var mvp = matrix
+    withUnsafePointer(&mvp, {
+      glUniformMatrix4fv(uniforms.mvp, 1, 0, UnsafePointer($0));
+    })
   }
   
   deinit {

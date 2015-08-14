@@ -367,6 +367,13 @@ class TextDrawing : TextRenderer {
     let text : String
   }
   private var textures : [TextEntry] = []
+  /// A list of all textures accessed since the last flush
+  private var foundTextures : Set<Int> = []
+  
+  /// Cleans out textures not used recently
+  func flush() {
+    
+  }
   
   init(tool : DrawingTools, font : String) {
     fontName = font
@@ -375,8 +382,9 @@ class TextDrawing : TextRenderer {
   
   /// See if we have rendered this entry before
   private func find_existing(text: String, size : Int) -> TextEntry? {
-    for entry in textures {
+    for (i, entry) in textures.enumerate() {
       if entry.text == text && entry.fontSize == size {
+        foundTextures.insert(i)
         return entry
       }
     }
@@ -407,6 +415,7 @@ class TextDrawing : TextRenderer {
       do {
         let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
         let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: fontSize, text: (text as String))
+        foundTextures.insert(textures.count)
         textures.append(entry)
         drawTextEntry(entry, size: size, position: position, alignment: align)
       } catch {

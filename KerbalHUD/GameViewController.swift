@@ -197,10 +197,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //      0,0,
 //    ]
 
-    let sqVpoints : [Point2D] = [
-      (0,0),(0,1),(1,1),(1,1),(1,0),(0,0)
-    ]
-    square = drawing!.LoadVertices(VertexRepresentation.Triangles, vertices: sqVpoints)
+//    let sqVpoints : [Point2D] = [
+//      (0,0),(0,1),(1,1),(1,1),(1,0),(0,0)
+//    ]
+//    square = drawing!.LoadVertices(VertexRepresentation.Triangles, vertices: sqVpoints)
     
 //    glGenBuffers(1, &vertexBuffer)
 //    glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBuffer)
@@ -235,22 +235,18 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     }
   }
   
-  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
-  {
-    glBindVertexArray(vertexArray)
-//    glBindVertexArray(drawing!.vertexArray2D)
-    
-    var baseMatrix = GLKMatrix4Identity
-    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
-    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
-    let mvp = GLKMatrix4Multiply(program!.projection, baseMatrix)
-    program!.setModelViewProjection(mvp)
-//    withUnsafePointer(&mvp, {
-//      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
-//    })
-    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
-
-  }
+//  func drawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+//  {
+//    glBindVertexArray(vertexArray)
+//    
+//    var baseMatrix = GLKMatrix4Identity
+//    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+//    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+//    let mvp = GLKMatrix4Multiply(program!.projection, baseMatrix)
+//    program!.setModelViewProjection(mvp)
+//    glDrawArrays(GLenum(GL_TRIANGLES), 0, 6)
+//  }
+  
 //
 //  func drawLine(  from  : (x: GLfloat, y: GLfloat),
 //                      to: (x: GLfloat, y: GLfloat),
@@ -394,7 +390,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
         instr.draw()
       }
       
-      drawing!.Draw(square!)
+      drawing!.DrawLine((0.1,0.1), to: (0.9,0.9), width: 0.1)
+      drawing!.DrawSquare(0.3, bottom: 0.1, right: 0.5, top: 0.3)
 //      drawSquare(0, bottom: 0, right: 0.5, top: 0.5)
 //      program.setColor(red: 1, green: 0, blue: 0)
 //      let tk = drawing!

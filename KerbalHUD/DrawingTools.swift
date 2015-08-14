@@ -101,6 +101,8 @@ class DrawingTools
 //  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
   
+  private var meshSquare : Mesh?
+  
   private struct BufferInfo {
     let array : GLuint
     let index : GLuint
@@ -134,6 +136,13 @@ class DrawingTools
     glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
     glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
     glBindVertexArray(0);
+    
+    // Load a basic set of square vertices
+    let sqVpoints : [Point2D] = [
+      (0,0),(0,1),(1,0),(1,1)
+    ]
+    meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as? Mesh
+
   }
 
 //  private var current_buffer : GLuint
@@ -155,12 +164,13 @@ class DrawingTools
         return buffer.index
       }
     }
-    return generate_buffer(space)
-//    if space > 1024*sizeof(GLfloat) {
-//      return generate_buffer(space)
-//    } else {
-//      return generate_buffer()
-//    }
+    print ("Cannot find space, generating new buffer")
+//    return generate_buffer(space)
+    if space > 1024*sizeof(GLfloat) {
+      return generate_buffer(space)
+    } else {
+      return generate_buffer()
+    }
   }
   
   // Takes a list of 2D vertices and converts them into a drawable representation
@@ -235,6 +245,42 @@ class DrawingTools
     glDrawArrays(mesh.vertexType, GLint(mesh.bufferOffset), GLint(mesh.bufferCount))
   }
   
+  func DrawLine(  from  : (x: GLfloat, y: GLfloat),
+                      to: (x: GLfloat, y: GLfloat),
+                  width : GLfloat,
+             transform  : GLKMatrix4 = GLKMatrix4Identity) {
+    // Calculate the rotation for this vector
+    let rotation_angle = atan2(to.y-from.y, to.x-from.x)
+
+    let length = sqrt(pow(to.y-from.y, 2) + pow(to.x-from.x, 2))
+    var baseMatrix = transform
+    baseMatrix = GLKMatrix4Translate(baseMatrix, from.x, from.y, 0.1)
+    baseMatrix = GLKMatrix4Rotate(baseMatrix, (0.5*3.1415926)-rotation_angle, 0, 0, -1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, width, length, 1)
+    baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, 0, 0)
+    let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
+    program.setModelViewProjection(mvp)
+    
+    Draw(meshSquare!)
+  }
+  
+  func DrawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  {
+    var baseMatrix = GLKMatrix4Identity
+    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+    let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
+    program.setModelViewProjection(mvp)
+    Draw(meshSquare!)
+  }
+  
+  
+  //    withUnsafePointer(&mvp, {
+  //      glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, UnsafePointer($0));
+  //    })
+  //    let mesh = meshes[MESH_SQUARE]
+  //    glDrawArrays(GLenum(GL_TRIANGLES), mesh.offset, mesh.size)
+  //  }
 }
 
 private let _glErrors = [

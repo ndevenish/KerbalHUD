@@ -113,7 +113,7 @@ class JSIHeadsUpDisplay {
   /// Is the heading bar displayed?
   var headingBar : Bool = true
   /// The position of the heading bar
-  var headingBarPosition : (position: Point2D, size: Size2D) = ((160, 640-122-38), (320,38))
+  var headingBarBounds : Bounds = Bounds(left: 160, bottom: 640-122-38, right: 160+320,top: 640-122)
   /// The visible width of the heading bar, in degrees
   var headingBarScale : GLfloat = 58.0
   
@@ -126,12 +126,13 @@ class JSIHeadsUpDisplay {
   private var overlay : Drawable2D?
   private var prograde : Drawable2D?
   private var page : Instrument
-
+  private var text : TextRenderer
   private var verticalBars : [JSIHudVerticalBar] = []
   
   init(tools : DrawingTools, page : Instrument) {
     self.page = page
     drawing = tools
+    text = tools.textRenderer("Menlo")
     overlay = GenerateHUDoverlay()
     prograde = GenerateProgradeMarker()
     
@@ -148,9 +149,13 @@ class JSIHeadsUpDisplay {
       drawing.ConstrainDrawing(bar.bounds)
       bar.draw()
     }
-    drawing.UnconstrainDrawing()
     
     // Draw the heading indicator bar
+    if headingBar {
+      drawing.ConstrainDrawing(headingBarBounds)
+      drawHeadingDisplay()
+    }
+    drawing.UnconstrainDrawing()
     
     // Draw the prograde icon
     drawing.program.setColor(progradeColor)
@@ -162,6 +167,29 @@ class JSIHeadsUpDisplay {
     drawing.Draw(overlay!)
   }
   
+  private func drawHeadingDisplay() {
+    let heading : GLfloat = 0
+    let halfScale = headingBarScale/2
+    let minAngle = Int(floor((heading - halfScale)/10))*10
+    let maxAngle = Int(ceil( (heading + halfScale)/10))*10
+    let lowAngle = heading-halfScale
+    
+    for var angle = minAngle; angle <= maxAngle; angle += 10 {
+      let x = headingBarBounds.left + headingBarBounds.width*((Float(angle)-lowAngle)/headingBarScale)
+      let height = angle % 20 == 0 ? 19 : 11
+      drawing.DrawLine((x, headingBarBounds.bottom), to: (x, headingBarBounds.bottom+GLfloat(height)), width: 1)
+    }
+    
+    for var angle = minAngle; angle <= maxAngle; angle += 10 {
+      if angle % 20 != 0 {
+        continue
+      }
+      let x = headingBarBounds.left + headingBarBounds.width*((Float(angle)-lowAngle)/headingBarScale)
+      
+      text.draw(String(format: "%d", angle), size: 15, position: (x, headingBarBounds.bottom+19+9), align: .Center)
+    }
+  }
+
   private func GenerateHUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable2D
   {
     let m = sin(theta)/cos(theta)

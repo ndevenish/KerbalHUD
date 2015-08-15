@@ -175,21 +175,23 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       if let instr = display {
         instr.draw()
       }
-      
-//      drawing!.drawText("TEST", size: 20, position: (160,160), align: .Left, rotation: 3.14/2)
-      processGLErrors()
+      if let sock = socket {
+        if !sock.isConnected {
+          program.setColor(red: 1, green: 0, blue: 0)
+          drawing?.drawText("NO DATA", size: display!.screenHeight/10,
+            position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)
+          drawing?.drawText("(Connecting)", size: display!.screenHeight/15,
+            position: ((display!.screenWidth/2),(display!.screenHeight/30)), align: .Center)
+
+          //        drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
+          //
+          //        drawText("CONNECTING",
+          //          align: .Right, position: (1-0.05, 0.05), fontSize: 20)
+        }
+      }
     }
+    processGLErrors()
   
-//    if let sock = socket {
-//      if !sock.isConnected {
-//        
-////        glUniform3f(uniforms[UNIFORM_COLOR], 1.0, 0.0, 0.0)
-////        drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
-////
-////        drawText("CONNECTING",
-////          align: .Right, position: (1-0.05, 0.05), fontSize: 20)
-//      }
-//    }
 
   }
 }

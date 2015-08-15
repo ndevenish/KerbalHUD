@@ -134,7 +134,7 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
 class DrawingTools
 {
   var program : ShaderProgram
-  var vertexArray2D : GLuint = 0
+//  var vertexArray2D : GLuint = 0
   // For textured squares
   var vertexArrayTextured : GLuint = 0
   var vertexBufferTextured : GLuint = 0
@@ -151,7 +151,7 @@ class DrawingTools
   
   private struct BufferInfo {
     let array : GLuint
-    let index : GLuint
+    let name : GLuint
     let size : GLsizeiptr
     var offset : GLintptr = 0
     var spaceFree : GLsizeiptr {
@@ -159,7 +159,7 @@ class DrawingTools
     }
     mutating func write(size : GLsizeiptr, data : UnsafePointer<Void>) {
       assert(spaceFree >= size)
-      glBindBuffer(GLenum(GL_ARRAY_BUFFER), index)
+      glBindBuffer(GLenum(GL_ARRAY_BUFFER), name)
       glBufferSubData(GLenum(GL_ARRAY_BUFFER), offset, size, data)
       glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
       offset += size
@@ -175,21 +175,9 @@ class DrawingTools
   
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
-    
-    // Generate the array, but wait for a buffer to set it up
-    vertexArray2D = 0
-    glGenVertexArrays(1, &vertexArray2D)
-    glBindVertexArray(vertexArray2D);
 
     // Create an initial buffer
-    let buffer = generate_buffer()
-    
-    // Now create the vertex array
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
-    glEnableVertexAttribArray(program.attributes.position)
-    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
-    glBindVertexArray(0);
+    generate_buffer()
     
     // Load a basic set of square vertices
     let sqVpoints : [Point2D] = [
@@ -220,22 +208,31 @@ class DrawingTools
   }
 
 //  private var current_buffer : GLuint
-  private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> GLuint {
+  private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> BufferInfo {
     var buffer : GLuint = 0
-//    glBindVertexArray(vertexArray2D)
+    var array : GLuint = 0
+    glGenVertexArrays(1, &array)
+    glBindVertexArray(array)
     glGenBuffers(1, &buffer)
     glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
     glBufferData(GLenum(GL_ARRAY_BUFFER), size, nil, GLenum(GL_STATIC_DRAW))
-    buffers[buffer] = BufferInfo(array: vertexArray2D, index: buffer, size: sizeof(GLfloat)*Int(size), offset: 0)
-//    glBindVertexArray(0)
-    return buffer
+    buffers[buffer] = BufferInfo(array: array, name: buffer, size: sizeof(GLfloat)*Int(size), offset: 0)
+
+    // Now create the vertex array settings
+    glEnableVertexAttribArray(program.attributes.position)
+    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
+
+    glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
+    glBindVertexArray(0);
+    
+    return buffers[buffer]!
   }
   
-  private func bufferWithSpace(space : GLsizeiptr) -> GLuint
+  private func bufferWithSpace(space : GLsizeiptr) -> BufferInfo
   {
     for buffer in buffers.values {
       if buffer.spaceFree >= space {
-        return buffer.index
+        return buffer
       }
     }
     print ("Cannot find space, generating new buffer")
@@ -258,10 +255,10 @@ class DrawingTools
     assert(vertices.count < 1024)
 
     let buffer = bufferWithSpace(sizeof(GLfloat)*asFloat.count)
-    let offset = GLuint(buffers[buffer]!.offset) / GLuint(sizeof(GLfloat)) / 2
-    buffers[buffer]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
+    let offset = GLuint(buffer.offset) / GLuint(sizeof(GLfloat)) / 2
+    buffers[buffer.name]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
     
-    return Mesh(vertexBuffer: buffer, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
+    return Mesh(vertexBuffer: buffer.name, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
   
   // Converts a polygon into triangles

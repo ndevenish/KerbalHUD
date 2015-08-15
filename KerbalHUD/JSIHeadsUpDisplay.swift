@@ -176,6 +176,7 @@ class RPMPlaneHUD : RPMInstrument
     hud?.RenderHUD()
     
     if let data = latestData {
+      drawing.program.setColor(settings.fontColor)
       let lineHeight = floor(screenHeight / settings.textSize.height)
       // 16, 48
       //16, 80

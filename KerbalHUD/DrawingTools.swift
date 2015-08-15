@@ -427,7 +427,20 @@ class TextRenderer {
   
   /// Cleans out textures not used recently
   func flush() {
-    
+//        // Delete any unused text textures
+//    -    for i in (0..<textCache.count).reverse() {
+//      -      if usedText.contains(i) { continue }
+//      -      var name = textCache[i].texture.name
+//      -      glDeleteTextures(1, &name)
+//      -      textCache.removeAtIndex(i)
+//      -    }
+//    -    usedText.removeAll()
+    for i in foundTextures.sort().reverse() {
+      let oldTex = textures.removeAtIndex(i)
+      var name = oldTex.texture.name
+      glDeleteTextures(1, &name)
+    }
+    foundTextures.removeAll()
   }
   
   init(tool : DrawingTools, font : String) {

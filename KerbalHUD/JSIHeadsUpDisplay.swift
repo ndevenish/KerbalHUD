@@ -156,18 +156,18 @@ class RPMPlaneHUD : Instrument
       text.draw(String(format:"%6.0fm", data.RadarHeight),
         size: 18, position: (screenWidth*0.75, screenHeight*0.75+8), align: .Left)
   
-//      if data.SAS {
-//        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325)), fontSize: 16)
-//      }
-//      if data.Gear {
-//        drawText("GEAR",  align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
-//      }
-//      if data.Brake {
-//        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
-//      }
-//      if data.Lights {
-//        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
-//      }
+      if data.SAS {
+        text.draw(" SAS", size: lineHeight, position: (8, lineY[5]))
+      }
+      if data.Gear {
+        text.draw(" GEAR", size: lineHeight, position: (8, lineY[6]))
+      }
+      if data.Brake {
+        text.draw(" BRAKE", size: lineHeight, position: (8, lineY[7]))
+      }
+      if data.Lights {
+        text.draw(" LIGHT", size: lineHeight, position: (8, lineY[8]))
+      }
 
       if data.RPMVariablesAvailable {
         text.draw(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), size: lineHeight, position: (16, lineY[2]))
@@ -176,18 +176,17 @@ class RPMPlaneHUD : Instrument
         text.draw(String(format:"THR: %5.1f%% [%5.1f%%]", data.ThrottleSet*100, data.ThrottleActual*100.0),
           size: lineHeight, position: (16, lineY[19]))
 
-//        if data.HeatAlarm {
-//          drawText("HEAT!", align: .Left, position: (0.83,   1-(0.325)), fontSize: 16)
-//        }
-//        if data.GroundAlarm {
-//          drawText("GEAR!", align: .Left, position: (0.83,   1-(0.325+0.05)), fontSize: 16)
-//          
-//        }
-//        if data.SlopeAlarm {
-//          drawText("SLOPE!", align: .Left, position: (0.83,   1-(0.325+2*0.05)), fontSize: 16)
-//        }
+        if data.HeatAlarm {
+          text.draw("HEAT! ", size: lineHeight, position: (screenWidth-8, lineY[5]), align: .Right)
+        }
+        if data.GroundAlarm {
+          text.draw("GEAR! ", size: lineHeight, position: (screenWidth-8, lineY[6]), align: .Right)
+        }
+        if data.SlopeAlarm {
+          text.draw("SLOPE!", size: lineHeight, position: (screenWidth-8, lineY[7]), align: .Right)
+        }
       } else {
-        // Other things without RPM
+        // Only display partial throttle without RPM
         text.draw(String(format:"THR: %5.1f%%", data.ThrottleSet*100), size: lineHeight, position: (16, lineY[19]))
 
       }

@@ -149,8 +149,19 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["n.pitch"]           = JSON(current*2)
       fakeData["n.heading"]         = JSON(current*5 + 90)
       fakeData["rpm.available"]     = true
+      fakeData["v.sasValue"]        = true
+      fakeData["v.brakeValue"]      = true
+      fakeData["v.lightValue"]      = true
+      fakeData["v.gearValue"]       = true
+      fakeData["rpm.ENGINEOVERHEATALARM"] = true
+      fakeData["rpm.GROUNDPROXIMITYALARM"] = true
+      fakeData["rpm.SLOPEALARM"] = true
+      
       display?.update(fakeData)
     }
+
+    // Just flush unused textures every frame for now
+    drawing?.flush()
   }
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {

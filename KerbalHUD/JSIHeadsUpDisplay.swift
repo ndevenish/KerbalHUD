@@ -130,43 +130,32 @@ class RPMPlaneHUD : Instrument
       let lineHeight = floor(screenHeight / screenTextSize.h)
       // 16, 48
       //16, 80
+      let lineY = (0...19).map { (line : Int) -> Float in screenHeight-lineHeight*(Float(line) + 0.5)}
       
       // Render the text!
-      text.draw(String(format:"PRS: %7.3fkPa", data.DynPressure/1000), size: lineHeight,
-        position: (16, screenHeight-48))
+      text.draw(String(format:"PRS: %7.3fkPa", data.DynPressure/1000),
+        size: lineHeight, position: (16, lineY[1]))
       
-      text.draw(String(format:"ASL: %6.0fm", data.AtmHeight), size: lineHeight,
-        position: (screenWidth-16, screenHeight-48), align: .Right)
+      text.draw(String(format:"ASL: %6.0fm", data.AtmHeight),
+        size: lineHeight, position: (screenWidth-16, lineY[1]), align: .Right)
       text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
-        position: (screenWidth-16, screenHeight-lineHeight*2.5), align: .Right)
+        position: (screenWidth-16, lineY[2]), align: .Right)
       
+      // Heading note
       text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
-        position: (screenWidth/2, screenHeight-lineHeight*3.5), align: .Center)
-      
-//      drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
-//      drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
-//
-//      drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
-//      drawText("HRZ:", align: .Left, position: (0.025, 0.025+1*0.05), fontSize: 16)
-//      drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
-//
-//      drawText(String(format:), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
-//
-//      drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
-//      drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
-//
-//      drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
-//      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+1*0.05), fontSize: 16)
-//
-//      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet), align: .Left, position: (0.14, 0.025), fontSize: 16)
+        position: (screenWidth/2, lineY[3]), align: .Center)
 
-//      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), align: .Center,
-//        position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
-//
-//      drawText(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)), align: .Right, position: (0.25, 0.75), fontSize: 12)
-//      drawText(String(format:"%6.0fm", data.RadarHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
-//
-//
+      text.draw(String(format:"SPD: %6.0fm/s", data.Speed), size: lineHeight, position: (16, lineY[16]))
+      text.draw(String(format:"HRZ: %6.0fm/s", data.HrzSpeed), size: lineHeight, position: (16, lineY[18]))
+      
+      text.draw(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), size: 16,
+        position:(screenWidth/2, screenHeight*0.25-8), align: .Center)
+
+      text.draw(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)),
+        size: 18, position: (screenWidth*0.25, screenHeight*0.75+8), align: .Right)
+      text.draw(String(format:"%6.0fm", data.RadarHeight),
+        size: 18, position: (screenWidth*0.75, screenHeight*0.75+8), align: .Left)
+  
 //      if data.SAS {
 //        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325)), fontSize: 16)
 //      }
@@ -181,11 +170,12 @@ class RPMPlaneHUD : Instrument
 //      }
 
       if data.RPMVariablesAvailable {
-        text.draw(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), size: lineHeight, position: (16, screenHeight-80))
-//        drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
-//        drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
-//        drawText(String(format:"[%5.1f%%]", data.ThrottleActual*100.0), align: .Left, position: (0.33, 0.025), fontSize: 16)
-//
+        text.draw(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), size: lineHeight, position: (16, lineY[2]))
+        text.draw(String(format:"EAS: %6.0fm/s", data.EASpeed), size: lineHeight, position: (16, lineY[17]))
+
+        text.draw(String(format:"THR: %5.1f%% [%5.1f%%]", data.ThrottleSet*100, data.ThrottleActual*100.0),
+          size: lineHeight, position: (16, lineY[19]))
+
 //        if data.HeatAlarm {
 //          drawText("HEAT!", align: .Left, position: (0.83,   1-(0.325)), fontSize: 16)
 //        }
@@ -196,6 +186,10 @@ class RPMPlaneHUD : Instrument
 //        if data.SlopeAlarm {
 //          drawText("SLOPE!", align: .Left, position: (0.83,   1-(0.325+2*0.05)), fontSize: 16)
 //        }
+      } else {
+        // Other things without RPM
+        text.draw(String(format:"THR: %5.1f%%", data.ThrottleSet*100), size: lineHeight, position: (16, lineY[19]))
+
       }
     }
   }
@@ -462,7 +456,8 @@ class JSIHudVerticalBar {
     let medTickSize = lgeTickSize / 2
 //    let smlTickSize = medTickSize / 2
     let axisLinePos = direction == .Left ? bounds.right : bounds.left
-    drawing.DrawLine((axisLinePos, bounds.bottom), to: (axisLinePos, bounds.top), width: 1)
+    let lineOffset : GLfloat = direction == .Left ? -0.5 : 0.5
+    drawing.DrawLine((axisLinePos+lineOffset, bounds.bottom), to: (axisLinePos+lineOffset, bounds.top), width: 1)
     
     // Calculate the visible range of markers
     let center = useLog ? PseudoLog10(variable) : variable

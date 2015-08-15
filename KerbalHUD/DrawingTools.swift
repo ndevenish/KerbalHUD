@@ -165,6 +165,14 @@ class DrawingTools
       offset += size
     }
   }
+  
+  /// Clear memory that is no longer used
+  func flush() {
+    for txt in textRenderers.values {
+      txt.flush()
+    }
+  }
+  
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
     

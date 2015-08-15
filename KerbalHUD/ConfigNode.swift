@@ -49,7 +49,7 @@ class ConfigStringTokenizer {
   
   func next() -> String? {
 //    let finder = NSRegularExpression(pattern: " \t\n\r={{}}", options: nil)
-    
+    return nil
     
   }
 }

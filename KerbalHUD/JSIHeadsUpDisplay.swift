@@ -52,40 +52,89 @@ private struct HUDFlightData {
   }
 }
 
-class RPMPlaneHUD : Instrument
+struct RPMPageSettings
 {
-  let variables = [
-    "v.atmosphericDensity", "v.dynamicPressure",
-    "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
-    "n.pitch", "n.heading", "n.roll",
-    "f.throttle",
-    "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
-    "v.surfaceSpeed", "v.verticalSpeed",
-    "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
-    // RPM Variables
-    "rpm.available",
-    "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
-    "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
-    "rpm.RADARALTOCEAN"
-    ]
+  var textSize : (width: GLfloat, height: GLfloat) = (32, 8)
+  var screenSize : (width: GLfloat, height: GLfloat) = (512, 256)
   
-  var screenWidth : Float = 640.0
-  var screenHeight : Float = 640.0
+  var backgroundColor : Color4 = (0,0,0,1)
+  var fontName : String = "Menlo"
+  var fontColor : Color4 = (1,1,1,1)
+}
+
+class RPMInstrument : Instrument
+{
+  private(set) var variables : [String] = []
+  var drawing : DrawingTools
+  var text : TextRenderer
   
-  var screenTextSize : (w: GLfloat, h: GLfloat) = (40, 20)
+  private var _settings : RPMPageSettings
+  var settings : RPMPageSettings {
+    get { return _settings }
+    set {
+      _settings = newValue
+      // If the font changed, reload the font object
+      if _settings.fontName != text.fontName {
+        text = drawing.textRenderer(_settings.fontName)
+      }
+    }
+  }
   
+  var screenWidth : GLfloat { return settings.screenSize.width }
+  var screenHeight : GLfloat { return settings.screenSize.height }
+  
+  required convenience init(tools: DrawingTools) {
+    self.init(tools: tools, settings: RPMPageSettings())
+  }
+  
+  init(tools : DrawingTools,  settings: RPMPageSettings)
+  {
+    self.drawing = tools
+    self._settings = settings
+    self.text = tools.textRenderer(_settings.fontName)
+  }
+  
+  func update(variables : [String: JSON]) {
+    
+  }
+  
+  func draw() {
+    
+  }
+}
+
+
+class RPMPlaneHUD : RPMInstrument
+{
+//  private var drawing : DrawingTools
+
   private var latestData : HUDFlightData?
-  private var drawing : DrawingTools
   private var hud : JSIHeadsUpDisplay?
-  private var text : TextRenderer
   
   required init(tools : DrawingTools) {
-      drawing = tools
-    text = drawing.textRenderer("Menlo")
+    let set = RPMPageSettings(textSize: (40,20), screenSize: (640,640),
+      backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(0,1,0,1))
+    super.init(tools: tools, settings: set)
+    
+    variables = [
+      "v.atmosphericDensity", "v.dynamicPressure",
+      "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
+      "n.pitch", "n.heading", "n.roll",
+      "f.throttle",
+      "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
+      "v.surfaceSpeed", "v.verticalSpeed",
+      "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
+      // RPM Variables
+      "rpm.available",
+      "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
+      "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
+      "rpm.RADARALTOCEAN"
+    ]
+
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
   }
   
-  func update(vars : [String: JSON]) {
+  override func update(vars : [String: JSON]) {
     var data = HUDFlightData()
     data.AtmHeight = vars["v.altitude"]?.floatValue ?? 0
     data.TerrHeight = vars["v.terrainHeight"]?.floatValue ?? 0
@@ -123,11 +172,11 @@ class RPMPlaneHUD : Instrument
     hud?.update(latestData!)
   }
   
-  func draw() {
+  override func draw() {
     hud?.RenderHUD()
     
     if let data = latestData {
-      let lineHeight = floor(screenHeight / screenTextSize.h)
+      let lineHeight = floor(screenHeight / settings.textSize.height)
       // 16, 48
       //16, 80
       let lineY = (0...19).map { (line : Int) -> Float in screenHeight-lineHeight*(Float(line) + 0.5)}

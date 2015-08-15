@@ -434,9 +434,6 @@ class TextRenderer {
   
   /// Cleans out textures not used recently
   func flush() {
-//    print ("Text Cache: \(hit)/\(miss) (Removing \(textures.count-foundTextures.count))")
-//    hit = 0
-//    miss = 0
     let to_remove = Set(0..<textures.count).subtract(foundTextures)
     for i in to_remove.sort().reverse() {
       let oldTex = textures.removeAtIndex(i)
@@ -470,7 +467,6 @@ class TextRenderer {
     
     let texture = entry.texture
     tool.bindArray(tool.vertexArrayTextured)
-//    glBindVertexArray(tool.vertexArrayTextured)
     glBindTexture(texture.target, texture.name)
     
     // Work out how wide we want to draw
@@ -495,18 +491,14 @@ class TextRenderer {
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
     tool.program.setUseTexture(false)
   }
-//
-//  var hit : Int = 0
-//  var miss : Int = 0
-  
+
   private func getTextEntry(text: String, size : Int) -> TextEntry {
     // First see if we already built this texture
     if let existing = find_existing(text, size: size) {
       // We found that we drew this before!
-//      hit += 1
       return existing
     }
-//    miss += 1
+
     // Let's work out the font size we want, approximately
     let font = UIFont(name: fontName, size: CGFloat(size))!
     let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]

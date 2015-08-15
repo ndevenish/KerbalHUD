@@ -12,11 +12,14 @@ import GLKit
 
 class ShaderProgram {
 
+  private(set) static var activeProgram : ShaderProgram?
+  
   private var _program : GLuint = 0
   var program : GLuint { return _program }
 
   var attributes : (position : GLuint, texture : GLuint)
   private var uniforms : (mvp : Int32, color : Int32, useTex : Int32)
+  private var currentUseTex = false
   
   var projection : GLKMatrix4 = GLKMatrix4Identity
   
@@ -48,7 +51,10 @@ class ShaderProgram {
       glUniform3f(uniforms.color, color.r, color.g, color.b)
   }
   func setUseTexture(use : Bool) {
-    glUniform1i(uniforms.useTex, use ? 1 : 0)
+    if use != currentUseTex {
+      glUniform1i(uniforms.useTex, use ? 1 : 0)
+      currentUseTex = use
+    }
   }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
@@ -70,6 +76,8 @@ class ShaderProgram {
   
   func use() {
     glUseProgram(_program)
+    ShaderProgram.activeProgram = self
+    setUseTexture(false)
   }
 }
 

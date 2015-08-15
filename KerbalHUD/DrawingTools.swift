@@ -133,14 +133,14 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
 /// Contains tools for drawing simple objects
 class DrawingTools
 {
+  private static var lastArray : GLuint = 0
+  
   var program : ShaderProgram
-//  var vertexArray2D : GLuint = 0
+  
   // For textured squares
   var vertexArrayTextured : GLuint = 0
   var vertexBufferTextured : GLuint = 0
 
-  
-//  private var meshes : [Mesh] = []
   private var buffers : [GLuint : BufferInfo] = [:]
   private var textRenderers : [String : TextRenderer] = [:]
   
@@ -326,9 +326,19 @@ class DrawingTools
     return LoadVertices(.Triangles, vertices: vertexList)
   }
   
+  private var lastArray : GLuint = 0
+  
+  /// Binds a vertex array, with caching
+  func bindArray(array : GLuint) {
+    if array != lastArray {
+      glBindVertexArray(array)
+      lastArray = array
+    }
+  }
+  
   func Draw(item : Drawable2D) {
     let mesh = item as! Mesh
-    glBindVertexArray(buffers[mesh.vertexBuffer]!.array)
+    bindArray(buffers[mesh.vertexBuffer]!.array)
     glDrawArrays(mesh.vertexType, GLint(mesh.bufferOffset), GLint(mesh.bufferCount))
   }
   
@@ -463,7 +473,8 @@ class TextRenderer {
     let entry = getTextEntry(text, size: fontSize)
     
     let texture = entry.texture
-    glBindVertexArray(tool.vertexArrayTextured)
+    tool.bindArray(tool.vertexArrayTextured)
+//    glBindVertexArray(tool.vertexArrayTextured)
     glBindTexture(texture.target, texture.name)
     
     // Work out how wide we want to draw

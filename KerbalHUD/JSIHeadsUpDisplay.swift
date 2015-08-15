@@ -39,6 +39,17 @@ private struct HUDFlightData {
   var SlopeAlarm : Bool = false
   
   var RPMVariablesAvailable : Bool = false
+  
+  func DataNamed<T>(name : String) -> T? {
+    switch name {
+      case "v.verticalSpeed":
+        return DeltaH as? T
+      case "rpm.RADARALTOCEAN":
+        return RadarHeight as? T
+    default:
+      fatalError("Unknown variable " + name)
+    }
+  }
 }
 
 class RPMPlaneHUD : Instrument
@@ -72,36 +83,40 @@ class RPMPlaneHUD : Instrument
   
   func update(vars : [String: JSON]) {
     var data = HUDFlightData()
-    data.AtmHeight = vars["v.altitude"]!.floatValue ?? 0
-    data.TerrHeight = vars["v.terrainHeight"]!.floatValue
+    data.AtmHeight = vars["v.altitude"]?.floatValue ?? 0
+    data.TerrHeight = vars["v.terrainHeight"]?.floatValue ?? 0
     data.RadarHeight = min(data.AtmHeight, data.AtmHeight - data.TerrHeight)
-    data.Pitch = vars["n.pitch"]!.floatValue
-    data.Heading = vars["n.heading"]!.floatValue
-    data.Roll = vars["n.roll"]!.floatValue
-    data.DynPressure = vars["v.dynamicPressure"]!.floatValue
-    data.ThrottleSet = vars["f.throttle"]!.floatValue
-    data.SAS = vars["v.sasValue"]!.stringValue == "True"
-    data.Brake = vars["v.brakeValue"]!.stringValue == "True"
-    data.Lights = vars["v.lightValue"]!.stringValue == "True"
-    data.Gear = vars["v.gearValue"]!.stringValue == "True"
-    data.Speed = vars["v.surfaceSpeed"]!.floatValue
-    data.DeltaH = vars["v.verticalSpeed"]!.floatValue
+    data.Pitch = vars["n.pitch"]?.floatValue ?? 0
+    data.Heading = vars["n.heading"]?.floatValue ?? 0
+    data.Roll = vars["n.roll"]?.floatValue ?? 0
+    data.DynPressure = vars["v.dynamicPressure"]?.floatValue ?? 0
+    data.ThrottleSet = vars["f.throttle"]?.floatValue ?? 0
+    data.SAS = vars["v.sasValue"]?.boolValue ?? false
+    data.Brake = vars["v.brakeValue"]?.boolValue ?? false
+    data.Lights = vars["v.lightValue"]?.boolValue ?? false
+    data.Gear = vars["v.gearValue"]?.boolValue ?? false
+    data.Speed = vars["v.surfaceSpeed"]?.floatValue ?? 0
+    data.DeltaH = vars["v.verticalSpeed"]?.floatValue ?? 0
     let sqHzSpeed = data.Speed*data.Speed - data.DeltaH*data.DeltaH
     data.HrzSpeed = sqHzSpeed < 0 ? 0 : sqrt(sqHzSpeed)
-    data.AtmDensity = vars["v.atmosphericDensity"]!.floatValue
-    data.SurfaceVelocity = (vars["v.surfaceVelocityx"]!.floatValue, vars["v.surfaceVelocityy"]!.floatValue, vars["v.surfaceVelocityz"]!.floatValue)
-    data.RPMVariablesAvailable = vars["rpm.available"]!.stringValue.uppercaseString == "TRUE"
+    data.AtmDensity = vars["v.atmosphericDensity"]?.floatValue ?? 0
+    data.SurfaceVelocity = (vars["v.surfaceVelocityx"]?.floatValue ?? 0,
+                            vars["v.surfaceVelocityy"]?.floatValue ?? 0,
+                            vars["v.surfaceVelocityz"]?.floatValue ?? 0)
+    data.RPMVariablesAvailable = vars["rpm.available"]?.boolValue ?? false
     if data.RPMVariablesAvailable {
-      data.AtmPercent = vars["rpm.ATMOSPHEREDEPTH"]!.floatValue
-      data.EASpeed = vars["rpm.EASPEED"]!.floatValue
-      data.ThrottleActual = vars["rpm.EFFECTIVETHROTTLE"]!.floatValue
+      data.AtmPercent = vars["rpm.ATMOSPHEREDEPTH"]?.floatValue ?? 0
+      data.EASpeed = vars["rpm.EASPEED"]?.floatValue ?? 0
+      data.ThrottleActual = vars["rpm.EFFECTIVETHROTTLE"]?.floatValue ?? 0
       
-      data.HeatAlarm = vars["rpm.ENGINEOVERHEATALARM"]!.intValue != 0
-      data.GroundAlarm = vars["rpm.GROUNDPROXIMITYALARM"]!.intValue != 0
-      data.SlopeAlarm = vars["rpm.SLOPEALARM"]!.intValue != 0
-      data.RadarHeight = vars["rpm.RADARALTOCEAN"]!.floatValue
+      data.HeatAlarm = vars["rpm.ENGINEOVERHEATALARM"]?.boolValue ?? false
+      data.GroundAlarm = vars["rpm.GROUNDPROXIMITYALARM"]?.boolValue ?? false
+      data.SlopeAlarm = vars["rpm.SLOPEALARM"]?.boolValue ?? false
+      data.RadarHeight = vars["rpm.RADARALTOCEAN"]?.floatValue ?? 0
     }
     latestData = data
+    
+    hud?.update(latestData!)
   }
   
   func draw() {
@@ -134,7 +149,8 @@ class JSIHeadsUpDisplay {
   private var prograde : Drawable2D?
   private var page : Instrument
   private var text : TextRenderer
-  private var verticalBars : [JSIHudVerticalBar] = []
+  private var verticalBars : [String: JSIHudVerticalBar] = [:]
+  private var latestData : HUDFlightData?
   
   init(tools : DrawingTools, page : Instrument) {
     self.page = page
@@ -144,15 +160,21 @@ class JSIHeadsUpDisplay {
     prograde = GenerateProgradeMarker()
     
     let deltaH = JSIHudVerticalBar(tools: tools, useLog: true, direction: .Left, position: (160, 160, 64, 320), limits: (-10000,10000), verticalScale: 10000)
-    verticalBars.append(deltaH)
+    verticalBars["v.verticalSpeed"] = deltaH
     let radarAlt = JSIHudVerticalBar(tools: tools, useLog: true, direction: .Right, position: (640-160, 160, 64, 320), limits: (0,10000), verticalScale: InversePseudoLog10(4.6))
-    verticalBars.append(radarAlt)
-    
+    verticalBars["rpm.RADARALTOCEAN"] = radarAlt
+  }
+  
+  private func update(data : HUDFlightData) {
+    latestData = data
+    for barvar in self.verticalBars.keys {
+      self.verticalBars[barvar]!.update(latestData!.DataNamed(barvar)!)
+    }
   }
   
   func RenderHUD() {
     // Draw the vertical bars
-    for bar in self.verticalBars {
+    for bar in self.verticalBars.values {
       drawing.ConstrainDrawing(bar.bounds)
       bar.draw()
     }
@@ -184,10 +206,12 @@ class JSIHeadsUpDisplay {
   }
   
   private func drawHorizonView() {
-    let pitch : GLfloat = 0
-    let roll : GLfloat = 0
+    let pitch : GLfloat = latestData?.Pitch ?? 0
+    let roll : GLfloat = latestData?.Roll ?? 0
     
-    let hScale = horizonScale*1.5
+    // Because of roll corners, effective size is increased according to aspect
+    let hScale = horizonScale*sqrt(pow(horizonSize.width/horizonSize.height, 2)+1)
+    
     var angleRange = (min: Int(floor((pitch - hScale/2)/10)*10),
                       max: Int(ceil( (pitch + hScale/2)/10)*10))
     // Apply the constrained horizon, if turned on
@@ -201,7 +225,7 @@ class JSIHeadsUpDisplay {
     // Rotate according to the roll
     horzFrame = GLKMatrix4Rotate(horzFrame, roll*π/180, 0, 0, -1)
     // And translate for pitch in the center
-    horzFrame = GLKMatrix4Translate(horzFrame, 0, -pitch/horizonScale/2, 0)
+    horzFrame = GLKMatrix4Translate(horzFrame, 0, (-pitch/horizonScale)*horizonSize.height, 0)
     
     
     for var angle = angleRange.min; angle <= angleRange.max; angle += 5 {
@@ -224,7 +248,7 @@ class JSIHeadsUpDisplay {
   }
   
   private func drawHeadingDisplay() {
-    let heading : GLfloat = 0
+    let heading : GLfloat = latestData?.Heading ?? 0
     let halfScale = headingBarScale/2
     let minAngle = Int(floor((heading - halfScale)/10))*10
     let maxAngle = Int(ceil( (heading + halfScale)/10))*10

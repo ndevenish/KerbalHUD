@@ -17,6 +17,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   var display : Instrument?
   
+  var current : GLfloat = 0
   deinit {
     self.tearDownGL()
     
@@ -138,25 +139,21 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
       drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
     }
+    
+    if !(socket?.isConnected ?? false) {
+      current += 0.01
+      var fakeData : [String: JSON] = [:]
+      fakeData["rpm.RADARALTOCEAN"] = JSON(current*10)
+      fakeData["v.verticalSpeed"]   = JSON(sin(current)*100)
+      fakeData["n.roll"]            = JSON(sin(current)*15)
+      fakeData["n.pitch"]           = JSON(current*2)
+      fakeData["n.heading"]         = JSON(current*5 + 90)
+      fakeData["rpm.available"]     = true
+      display?.update(fakeData)
+    }
   }
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
-
-    // TODO: Replace this with fake server-side data
-//    if let s = socket {
-//      if !s.isConnected {
-//        currentDH += 0.01
-//
-//        latestData = FlightData()
-//        
-//        latestData!.DeltaH = currentDH
-//        latestData!.Pitch = currentDH*2
-//        latestData!.Roll = currentDH*5
-//        latestData!.Heading = currentDH*5
-//        latestData!.AtmHeight = 1000+currentDH*10
-//      }
-//    }
-    
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
     

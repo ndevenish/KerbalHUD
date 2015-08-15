@@ -72,12 +72,16 @@ class RPMPlaneHUD : Instrument
   var screenWidth : Float = 640.0
   var screenHeight : Float = 640.0
   
+  var screenTextSize : (w: GLfloat, h: GLfloat) = (40, 20)
+  
   private var latestData : HUDFlightData?
   private var drawing : DrawingTools
   private var hud : JSIHeadsUpDisplay?
+  private var text : TextRenderer
   
   required init(tools : DrawingTools) {
       drawing = tools
+    text = drawing.textRenderer("Menlo")
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
   }
   
@@ -121,6 +125,79 @@ class RPMPlaneHUD : Instrument
   
   func draw() {
     hud?.RenderHUD()
+    
+    if let data = latestData {
+      let lineHeight = floor(screenHeight / screenTextSize.h)
+      // 16, 48
+      //16, 80
+      
+      // Render the text!
+      text.draw(String(format:"PRS: %7.3fkPa", data.DynPressure/1000), size: lineHeight,
+        position: (16, screenHeight-48))
+      
+      text.draw(String(format:"ASL: %6.0fm", data.AtmHeight), size: lineHeight,
+        position: (screenWidth-16, screenHeight-48), align: .Right)
+      text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
+        position: (screenWidth-16, screenHeight-lineHeight*2.5), align: .Right)
+      
+      text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
+        position: (screenWidth/2, screenHeight-lineHeight*3.5), align: .Center)
+      
+//      drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
+//      drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
+//
+//      drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
+//      drawText("HRZ:", align: .Left, position: (0.025, 0.025+1*0.05), fontSize: 16)
+//      drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
+//
+//      drawText(String(format:), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
+//
+//      drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
+//      drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
+//
+//      drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
+//      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+1*0.05), fontSize: 16)
+//
+//      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet), align: .Left, position: (0.14, 0.025), fontSize: 16)
+
+//      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), align: .Center,
+//        position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
+//
+//      drawText(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)), align: .Right, position: (0.25, 0.75), fontSize: 12)
+//      drawText(String(format:"%6.0fm", data.RadarHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
+//
+//
+//      if data.SAS {
+//        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325)), fontSize: 16)
+//      }
+//      if data.Gear {
+//        drawText("GEAR",  align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
+//      }
+//      if data.Brake {
+//        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
+//      }
+//      if data.Lights {
+//        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
+//      }
+
+      if data.RPMVariablesAvailable {
+        text.draw(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), size: lineHeight, position: (16, screenHeight-80))
+//        drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
+//        drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
+//        drawText(String(format:"[%5.1f%%]", data.ThrottleActual*100.0), align: .Left, position: (0.33, 0.025), fontSize: 16)
+//
+//        if data.HeatAlarm {
+//          drawText("HEAT!", align: .Left, position: (0.83,   1-(0.325)), fontSize: 16)
+//        }
+//        if data.GroundAlarm {
+//          drawText("GEAR!", align: .Left, position: (0.83,   1-(0.325+0.05)), fontSize: 16)
+//          
+//        }
+//        if data.SlopeAlarm {
+//          drawText("SLOPE!", align: .Left, position: (0.83,   1-(0.325+2*0.05)), fontSize: 16)
+//        }
+      }
+    }
   }
 }
 

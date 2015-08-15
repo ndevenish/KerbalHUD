@@ -20,7 +20,7 @@ void main()
 {
   if (useTex) {
     gl_FragColor = texture2D(tex, Texcoord)*vec4(color,1);
-//    gl_FragColor = vec4(Texcoord,0,1);
+//    gl_FragColor = vec4(color,1);
   } else {
     gl_FragColor = vec4(color,1);
   }

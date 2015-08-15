@@ -168,66 +168,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //      drawing!.drawText("TEST", size: 20, position: (160,160), align: .Left, rotation: 3.14/2)
       processGLErrors()
     }
-//    // Fixed text
-//    drawText("PRS:", align: .Left, position: (0.025, 1-0.075), fontSize: 16)
-//
-//    drawText("ASL:", align: .Right, position: (0.75, 1-0.075), fontSize: 16)
-//    drawText("TER:", align: .Right, position: (0.75, 1-(0.075+0.05)), fontSize: 16)
-//
-//    drawText("SPD:", align: .Left, position: (0.025, 0.025+3*0.05), fontSize: 16)
-//    drawText("HRZ:", align: .Left, position: (0.025, 0.025+1*0.05), fontSize: 16)
-//    drawText("THR:", align: .Left, position: (0.025, 0.025), fontSize: 16)
-//    
-//    if let data = latestData {
-//      drawText(String(format:"%7.3fkPa", data.DynPressure/1000), align: .Left, position: (0.14, 1-0.075), fontSize: 16)
-//      
-//      drawText(String(format:"%.0fm", data.AtmHeight), align: .Right, position: (0.925, 1-0.075), fontSize: 16)
-//      drawText(String(format:"%.0fm", data.TerrHeight), align: .Right, position: (0.925, 1-(0.075+0.05)), fontSize: 16)
-//      
-//      drawText(String(format:"%.0fm/s", data.Speed), align: .Right, position: (0.37, 0.025+3*0.05), fontSize: 16)
-//      drawText(String(format:"%.0fm/s", data.HrzSpeed), align: .Right, position: (0.37, 0.025+1*0.05), fontSize: 16)
-//      
-//      drawText(String(format:"%5.1f%%", 100*data.ThrottleSet), align: .Left, position: (0.14, 0.025), fontSize: 16)
-//      drawText(String(format:"%05.1f˚", data.Heading), align: .Center, position: (0.5, 0.75+0.05+0.025), fontSize: 16)
-//      drawText(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), align: .Center,
-//        position: (0.5, 0.25-10.0/pointScale), fontSize: 10)
-//
-//      drawText(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)), align: .Right, position: (0.25, 0.75), fontSize: 12)
-//      drawText(String(format:"%6.0fm", data.RadarHeight), align: .Left, position: (0.75, 0.75), fontSize: 12)
-//      
-//
-//      if data.SAS {
-//        drawText("SAS",   align: .Right, position: (0.15,   1-(0.325)), fontSize: 16)
-//      }
-//      if data.Gear {
-//        drawText("GEAR",  align: .Right, position: (0.15,   1-(0.325+0.05)), fontSize: 16)
-//      }
-//      if data.Brake {
-//        drawText("BRAKE", align: .Right, position: (0.15,   1-(0.325+2*0.05)), fontSize: 16)
-//      }
-//      if data.Lights {
-//        drawText("LIGHT", align: .Right, position: (0.15,   1-(0.325+3*0.05)), fontSize: 16)
-//      }
-//
-//      if data.RPMVariablesAvailable {
-//        drawText(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), align: .Left, position: (0.025, 1-(0.075+0.05)), fontSize: 16)
-//        drawText("EAS:", align: .Left, position: (0.025, 0.025+2*0.05), fontSize: 16)
-//        drawText(String(format:"%.0fm/s", data.EASpeed), align: .Right, position: (0.37, 0.025+2*0.05), fontSize: 16)
-//        drawText(String(format:"[%5.1f%%]", data.ThrottleActual*100.0), align: .Left, position: (0.33, 0.025), fontSize: 16)
-//        
-//        if data.HeatAlarm {
-//          drawText("HEAT!", align: .Left, position: (0.83,   1-(0.325)), fontSize: 16)
-//        }
-//        if data.GroundAlarm {
-//          drawText("GEAR!", align: .Left, position: (0.83,   1-(0.325+0.05)), fontSize: 16)
-//          
-//        }
-//        if data.SlopeAlarm {
-//          drawText("SLOPE!", align: .Left, position: (0.83,   1-(0.325+2*0.05)), fontSize: 16)
-//        }
-//      }
-//
-//    }
   
 //    if let sock = socket {
 //      if !sock.isConnected {

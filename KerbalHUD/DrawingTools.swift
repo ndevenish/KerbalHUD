@@ -438,7 +438,7 @@ class TextRenderer {
     return nil
   }
 
-  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment,
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
     // Calculate a point size for this screen projection size
     let fontSize = Int(ceil(size / tool.pointsToScreenScale))

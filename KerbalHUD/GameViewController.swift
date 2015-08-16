@@ -26,7 +26,14 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     }
   }
   
+  let startTime : Double = CACurrentMediaTime()
+  var lastTime : Double = 0
+  var runTime : Double = 0
+  var frameTime : Double = 0
+  
   var socket : WebSocket? = nil
+  
+  var latestSocketData : String?
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -42,8 +49,11 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 //    view.drawableDepthFormat = .Format24
     view.drawableStencilFormat = .Format8
     
+    lastTime = startTime
     self.setupGL()
     self.setupSocket()
+    
+    
   }
   
   func setupSocket()
@@ -80,12 +90,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   }
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-    print ("Recieved Message: \(text)")
-    let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!)
-    if let inst = display {
-      // Convert the JSON into a dictionary
-      inst.update(json.dictionaryValue)
-    }
+    // Just assign the data now, we don't need to update more than frame rate
+    latestSocketData = text
   }
   
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
@@ -127,6 +133,22 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   // MARK: - GLKView and GLKViewController delegate methods
   
   func update() {
+    // Calculate the frame times
+    let nowTime : Double = CACurrentMediaTime()
+    runTime = nowTime-startTime
+    frameTime = nowTime - lastTime
+    lastTime = nowTime
+    
+    // Parse the latest data
+    if let data = latestSocketData {
+      let json = JSON(data: data.dataUsingEncoding(NSUTF8StringEncoding)!)
+      latestSocketData = nil
+      if let inst = display {
+        // Convert the JSON into a dictionary
+        inst.update(json.dictionaryValue)
+      }
+    }
+    
     let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
     let drawWidth = display?.screenWidth ?? 1.0
     let drawHeight = display?.screenHeight ?? 1.0

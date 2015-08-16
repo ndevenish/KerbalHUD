@@ -115,8 +115,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     program = ShaderProgram()
     drawing = DrawingTools(shaderProgram: program!)
     
-//    display = RPMPlaneHUD(tools: drawing!)
-    display = HSIIndicator(tools: drawing!)
+    display = RPMPlaneHUD(tools: drawing!)
+//    display = HSIIndicator(tools: drawing!)
     //    glEnable(GLenum(GL_DEPTH_TEST))
   }
   

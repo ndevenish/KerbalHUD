@@ -11,18 +11,34 @@ import GLKit
 
 class HSIIndicator : RPMInstrument {
   
+  enum DeviationMode {
+    case Coarse
+    case Fine
+  }
   struct FlightData {
     var Heading : GLfloat = 0
-    var RunwayBearing : GLfloat = 0
     var RunwayHeading : GLfloat = 0
+    var LocationDeviation : GLfloat = 0
+    var BeaconDistance : GLfloat = 0
+    var BeaconBearing : GLfloat = 0
     
+    var TrackingMode : DeviationMode = .Coarse
+    var BackCourse : Bool = false
   }
   
   var overlay : Drawable2D?
   var overlayBackground : Drawable2D?
   var needleNDB : Drawable2D?
+  var courseWhite : Drawable2D?
+  var coursePurpl : Drawable2D?
   
   var data : FlightData = FlightData()
+  
+  struct HSISettings {
+    var enableFineLoc : Bool = true
+  }
+  var hsiSettings = HSISettings()
+  
   
   required init(tools: DrawingTools) {
     let set = RPMPageSettings(textSize: (40,23), screenSize: (640,640),
@@ -57,33 +73,82 @@ class HSIIndicator : RPMInstrument {
       (7.5, -150.5), (-7.5, -150.5), (-4.5, -148.5), (4.5, -148.5), (4.5, 148.5),
       (-4.5, 148.5)])
     
+    
+    var whiteTri : [Triangle] = []
+    whiteTri.append(Triangle((-15, 19), (0, 54), (15, 19)))
+    whiteTri.extend(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)]))
+    whiteTri.extend(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)]))
+    whiteTri.extend(drawing.DecomposePolygon([(46,0), (50, -7.5), (54, 0), (50, 7.5)]))
+    whiteTri.extend(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)]))
+    courseWhite = tools.LoadTriangles(whiteTri)
+    
+    var purpTri : [Triangle] = []
+    purpTri.extend(drawing.DecomposePolygon([
+      (-2.5, 126), (-2.5, 162), (-10.5, 162), (-10.5, 166), (-2.5, 166), (-2.5, 210), (0, 212.5),
+      (2.5, 210), (2.5, 166), (10.5, 166), (10.5, 162), (2.5, 162), (2.5, 126)]))
+    purpTri.extend(drawing.DecomposePolygon([
+      (-2, -127), (-2, -127-48), (2, -127-48), (2, -127)]))
+    coursePurpl = tools.LoadTriangles(purpTri)
+   //-127, 4x48
   }
   
   override func update(variables: [String : JSON]) {
     var newData = FlightData()
     newData.Heading = variables["n.heading"]?.floatValue ?? 0
     data = newData
+    
+    if hsiSettings.enableFineLoc && data.LocationDeviation < 0.75 && data.BeaconDistance < 7500 {
+      data.TrackingMode = .Fine
+    }
+//    var LocationDeviation : GLfloat = 0
+//    var DeviationMode : String
+    
+    if data.LocationDeviation < -90 || data.LocationDeviation > 90 {
+      data.BackCourse = true
+    }
+
   }
   
   override func draw() {
-    drawing.program.setColor(red: 1,green: 1,blue: 1)
-    drawCompass(data.Heading)
+    data.BeaconBearing = 30
+    data.RunwayHeading = data.Heading
 
-    data.RunwayBearing = 30
-
+    drawCompass()
     drawNeedleNDB()
+    drawCourseNeedle()
     
+    // Draw the background overlay
     drawing.program.setModelView(GLKMatrix4Identity)
     drawing.program.setColor(red: 16.0/255,green: 16.0/255,blue: 16.0/255)
     drawing.Draw(overlayBackground!)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawing.Draw(overlay!)
+  }
+  
+  func drawCourseNeedle() {
+    let needleRotation = data.Heading-data.RunwayHeading
+
+    var offset = GLKMatrix4MakeTranslation(320, 320, 0)
+    offset = GLKMatrix4Rotate(offset, needleRotation*π/180, 0, 0, 1)
+    drawing.program.setModelView(offset)
     
+    drawing.Draw(courseWhite!)
+    drawing.program.setColor(red: 1, green: 0, blue: 1)
+    drawing.Draw(coursePurpl!)
+
+    // 247x5 for the course indicator
+    // Deviation mode? In fine mode, each tick (50px) == 0.25˚
+    // In coarse mode, each tick == 1˚
+    let needleOffset : GLfloat = 50 * data.LocationDeviation * (data.TrackingMode == .Coarse ? 1 : 4)
+    if data.TrackingMode == .Fine {
+      drawing.program.setColor(red: 1, green: 1, blue: 0)
+    }
+    drawing.DrawLine((needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
     
   }
   
   func drawNeedleNDB() {
-    let bearingRotation = data.Heading-data.RunwayBearing
+    let bearingRotation = data.Heading-data.BeaconBearing
     
     
     var offset = GLKMatrix4MakeTranslation(320, 320, 0)
@@ -92,12 +157,15 @@ class HSIIndicator : RPMInstrument {
     drawing.Draw(needleNDB!)
   }
   
-  func drawCompass(heading : GLfloat) {
+  func drawCompass() {
+    let heading = data.Heading
     let inner : GLfloat = 356.0/2
     var offset = GLKMatrix4Identity
     offset = GLKMatrix4Translate(offset, 320, 320, 0)
     offset = GLKMatrix4Rotate(offset, heading*π/180, 0, 0, 1)
 
+    drawing.program.setColor(red: 1,green: 1,blue: 1)
+    
     for var angle = 0; angle < 360; angle += 5 {
       let rad = GLfloat(angle) * π/180
       let length : GLfloat = angle % 90 == 0 ? 16 : (angle % 10 == 0 ? 25 : 20)

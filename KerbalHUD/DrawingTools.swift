@@ -95,24 +95,35 @@ func isPointInside(p : Point2D, x : (a: Point2D, b: Point2D, c: Point2D)) -> Boo
   let s = (x.a.y*x.c.x - x.a.x*x.c.y + (x.c.y - x.a.y)*p.x + (x.a.x - x.c.x)*p.y) / (2*area)
   let t = (x.a.x*x.b.y - x.a.y*x.b.x + (x.a.y - x.b.y)*p.x + (x.b.x - x.a.x)*p.y) / (2*area)
   let u = 1-s-t
-  
-  return s>0 && t>0 && u>0
+  // Inside the triangle, OR, on the edge, but not a shared vertex
+  return s>0 && t>0 && u>0 || (s>=0 && t>=0 && u>=0 && s < 1 && t < 1 && u < 1)
 }
 
-private func isPointConvex(let points : [Point2D], index : Int) -> Bool
+enum TriangleClassification {
+  case Closed
+  case Open
+  case Degenerate
+}
+private func isPointConvex(let points : [Point2D], index : Int) -> TriangleClassification
 {
   let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
   let x = (a: points[indices.0], b: points[indices.1], c: points[indices.2])
   let area = 0.5 * (-x.b.y*x.c.x  + x.a.y*(x.c.x-x.b.x) + x.a.x*(x.b.y - x.c.y) + x.b.x*x.c.y)
-  return area < 0
+  return area < 0 ? .Closed : (area > 0 ? .Open : .Degenerate)
 }
 
 private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
   let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
   let triangle = (points[indices.0], points[indices.1], points[indices.2])
   
-  if !isPointConvex(points, index: index) {
+  let classify = isPointConvex(points, index: index)
+  if classify == .Open {
+//    print ("   Is Open - not an ear.")
     return false
+  } else if classify == .Degenerate {
+    // for now, treat them as a valid triangle
+//    print ("   Is Degenerate - counts as an ear.")
+    return true
   }
   
   // This vertex, v, is an ear if v-1, v, v contains no other points
@@ -123,6 +134,7 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
     }
     if isPointInside(points[p], x: triangle) {
       // Not an ear, as another point is inside
+//      print ("   Contains point \(p).")
       return false
     }
   }
@@ -262,6 +274,8 @@ class DrawingTools
   }
   
   // Converts a polygon into triangles
+  var decomposeLog : [Triangle] = []
+  
   func DecomposePolygon(points : [Point2D]) -> [Triangle]
   {
     // Calculate the signed area of this polygon
@@ -285,6 +299,8 @@ class DrawingTools
     
     var lastRemaining = 0
     
+    decomposeLog.removeAll()
+    
     while remaining.count > 3 {
       if lastRemaining == remaining.count {
         print ("Didn't remove any ears!!!! Error!!!!")
@@ -293,12 +309,18 @@ class DrawingTools
       lastRemaining = remaining.count
       // Step over every vertex, and check to see if it is an ear
       for v in 0..<remaining.count {
+        let indices = (mod(v-1, m: remaining.count), v, mod(v+1, m: remaining.count))
+        let triangle = Triangle(remaining[indices.0], remaining[indices.1], remaining[indices.2])
+//        print("Examining \(triangle.0), \(triangle.1), \(triangle.2)")
         if isPolygonEar(remaining, index: v) {
-          let indices = (mod(v-1, m: remaining.count), v, mod(v+1, m: remaining.count))
-          triangles.append(Triangle(remaining[indices.0], remaining[indices.1], remaining[indices.2]))
+//          print("   Is Ear number \(triangles.count+1)!")
+          triangles.append(triangle)
+//          decomposeLog.append(triangle)
           remaining.removeAtIndex(v)
           // Now go back to the beginning
           break
+        } else {
+//          print("   Not Ear.")
         }
       }
     }

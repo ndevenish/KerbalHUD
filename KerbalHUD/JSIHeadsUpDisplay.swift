@@ -64,7 +64,7 @@ struct RPMPageSettings
 
 class RPMInstrument : Instrument
 {
-  private(set) var variables : [String] = []
+  var variables : [String] = []
   var drawing : DrawingTools
   var text : TextRenderer
   

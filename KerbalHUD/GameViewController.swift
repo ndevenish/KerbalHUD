@@ -17,7 +17,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   var display : Instrument?
   
-  var current : GLfloat = 0
   deinit {
     self.tearDownGL()
     
@@ -51,7 +50,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     lastTime = startTime
     self.setupGL()
-    self.setupSocket()
+//    self.setupSocket()
     
     
   }
@@ -164,21 +163,30 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     }
     
     if !(socket?.isConnected ?? false) {
-      current += 0.01
+      let current = runTime
+      let curInt = Int(current)
       var fakeData : [String: JSON] = [:]
       fakeData["rpm.RADARALTOCEAN"] = JSON(current*10)
+      fakeData["v.altitude"]        = JSON(current*10)
+      fakeData["v.terrainHeight"]   = JSON(50 + sin(current)*30)
       fakeData["v.verticalSpeed"]   = JSON(sin(current)*100)
       fakeData["n.roll"]            = JSON(sin(current)*15)
       fakeData["n.pitch"]           = JSON(current*2)
       fakeData["n.heading"]         = JSON(current*5 + 90)
       fakeData["rpm.available"]     = true
-      fakeData["v.sasValue"]        = true
-      fakeData["v.brakeValue"]      = true
-      fakeData["v.lightValue"]      = true
-      fakeData["v.gearValue"]       = true
+      fakeData["v.sasValue"]        = JSON(curInt % 2)
+      fakeData["v.brakeValue"]      = JSON(curInt % 4)
+      fakeData["v.lightValue"]      = JSON(curInt % 3)
+      fakeData["v.gearValue"]       = JSON(curInt % 5)
       fakeData["rpm.ENGINEOVERHEATALARM"] = true
       fakeData["rpm.GROUNDPROXIMITYALARM"] = true
       fakeData["rpm.SLOPEALARM"] = true
+      fakeData["rpm.ATMOSPHEREDEPTH"] = JSON(1.0/current)
+      fakeData["v.dynamicPressure"] = JSON(floatLiteral: abs((fakeData["v.verticalSpeed"]?.doubleValue)!))
+      fakeData["v.surfaceSpeed"] = JSON(sqrt(1 + pow(sin(current)*100, 2) + 100*cos(current)))
+      fakeData["rpm.EASPEED"] = JSON(fakeData["v.surfaceSpeed"]!.floatValue/fakeData["rpm.ATMOSPHEREDEPTH"]!.floatValue)
+      fakeData["f.throttle"] = JSON(abs(cos(current)))
+      fakeData["rpm.EFFECTIVETHROTTLE"] = JSON(fakeData["f.throttle"]!.doubleValue*0.9)
       
       display?.update(fakeData)
     }

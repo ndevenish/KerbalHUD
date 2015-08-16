@@ -13,10 +13,15 @@ class HSIIndicator : RPMInstrument {
   
   struct FlightData {
     var Heading : GLfloat = 0
+    var RunwayBearing : GLfloat = 0
+    var RunwayHeading : GLfloat = 0
+    
   }
   
   var overlay : Drawable2D?
   var overlayBackground : Drawable2D?
+  var needleNDB : Drawable2D?
+  
   var data : FlightData = FlightData()
   
   required init(tools: DrawingTools) {
@@ -44,6 +49,14 @@ class HSIIndicator : RPMInstrument {
       (510, 574), (510, 530), (588, 452), (588, 70), (128,70),
       (0,0), (640,0), (640,640), (0, 640), (0,0) ]
     overlayBackground = tools.Load2DPolygon(overlayBackgroundPts)
+    
+    // NDB Needle
+    needleNDB = tools.Load2DPolygon([
+      // 154 height total
+      (-4.5, -148.5), (-7.5, -150.5), (-7.5, 150.5), (0, 158), (7.5, 150.5),
+      (7.5, -150.5), (-7.5, -150.5), (-4.5, -148.5), (4.5, -148.5), (4.5, 148.5),
+      (-4.5, 148.5)])
+    
   }
   
   override func update(variables: [String : JSON]) {
@@ -55,12 +68,28 @@ class HSIIndicator : RPMInstrument {
   override func draw() {
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawCompass(data.Heading)
+
+    data.RunwayBearing = 30
+
+    drawNeedleNDB()
     
     drawing.program.setModelView(GLKMatrix4Identity)
     drawing.program.setColor(red: 16.0/255,green: 16.0/255,blue: 16.0/255)
     drawing.Draw(overlayBackground!)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawing.Draw(overlay!)
+    
+    
+  }
+  
+  func drawNeedleNDB() {
+    let bearingRotation = data.Heading-data.RunwayBearing
+    
+    
+    var offset = GLKMatrix4MakeTranslation(320, 320, 0)
+    offset = GLKMatrix4Rotate(offset, bearingRotation*π/180, 0, 0, 1)
+    drawing.program.setModelView(offset)
+    drawing.Draw(needleNDB!)
   }
   
   func drawCompass(heading : GLfloat) {

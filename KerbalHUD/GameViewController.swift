@@ -80,7 +80,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   }
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-//    print ("Recieved Message: \(text)")
+    print ("Recieved Message: \(text)")
     let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!)
     if let inst = display {
       // Convert the JSON into a dictionary
@@ -115,7 +115,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     program = ShaderProgram()
     drawing = DrawingTools(shaderProgram: program!)
     
-    display = RPMPlaneHUD(tools: drawing!)
+//    display = RPMPlaneHUD(tools: drawing!)
+    display = HSIIndicator(tools: drawing!)
     //    glEnable(GLenum(GL_DEPTH_TEST))
   }
   

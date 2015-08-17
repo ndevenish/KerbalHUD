@@ -34,6 +34,9 @@ private struct HUDFlightData {
   var Brake : Bool = false
   var RCS : Bool = false
   
+  var AngleOfAttack : GLfloat = 0
+  var SideSlip : GLfloat = 0
+  
   var HeatAlarm : Bool = false
   var GroundAlarm : Bool = false
   var SlopeAlarm : Bool = false
@@ -128,7 +131,7 @@ class RPMPlaneHUD : RPMInstrument
       "rpm.available",
       "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
       "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
-      "rpm.RADARALTOCEAN"
+      "rpm.RADARALTOCEAN", "RPM.ANGLEOFATTACK", "RPM.SIDESLIP"
     ]
 
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
@@ -166,6 +169,8 @@ class RPMPlaneHUD : RPMInstrument
       data.GroundAlarm = vars["rpm.GROUNDPROXIMITYALARM"]?.boolValue ?? false
       data.SlopeAlarm = vars["rpm.SLOPEALARM"]?.boolValue ?? false
       data.RadarHeight = vars["rpm.RADARALTOCEAN"]?.floatValue ?? 0
+      data.AngleOfAttack = vars["rpm.ANGLEOFATTACK"]?.floatValue ?? 0
+      data.SideSlip = vars["rpm.SIDESLIP"]?.floatValue ?? 0
     }
     latestData = data
     
@@ -329,6 +334,8 @@ class JSIHeadsUpDisplay {
     let pitch : GLfloat = latestData?.Pitch ?? 0
     let roll : GLfloat = latestData?.Roll ?? 0
     
+    drawing.program.setColor(foregroundColor)
+    
     // Because of roll corners, effective size is increased according to aspect
     let hScale = horizonScale*sqrt(pow(horizonSize.width/horizonSize.height, 2)+1)
     
@@ -352,7 +359,7 @@ class JSIHeadsUpDisplay {
       // How wide do we draw this bar?
       let width : GLfloat = angle % 20 == 0 ? 128 : (angle % 10 == 0 ? 74 : 23)
       let y = horizonSize.height * GLfloat(angle)/horizonScale
-      drawing.DrawLine((-width/2, y), to: (width/2, y), width: 1, transform: horzFrame)
+      drawing.DrawLine((-width/2, y), to: (width/2, y), width: (angle % 20 == 0 ? 2 : 1), transform: horzFrame)
     }
     // Do the text labels
     for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
@@ -364,6 +371,18 @@ class JSIHeadsUpDisplay {
         position: (-64-8, y), align: .Left, rotation: π, transform: horzFrame)
       text.draw(String(format: "%d", angle), size: (angle == 0 ? 16 : 10),
         position: (64+8, y), align: .Left, rotation: 0, transform: horzFrame)
+    }
+    
+    // Do the prograde marker - position
+//    horzFrame = GLKMatrix4Translate(horzFrame, 0, latestData?.AngleOfAttack ?? 0, 0)
+    if let data = latestData {
+      horzFrame = GLKMatrix4Translate(horzFrame, 0, horizonSize.height*((data.Pitch+data.AngleOfAttack ?? 0) / horizonScale), 0)
+      // And roll backwards...
+      horzFrame = GLKMatrix4Rotate(horzFrame, -roll*π/180, 0, 0, -1)
+
+      drawing.program.setModelView(horzFrame)
+      drawing.program.setColor(progradeColor)
+      drawing.Draw(prograde!)
     }
   }
   
@@ -387,6 +406,19 @@ class JSIHeadsUpDisplay {
       let x = headingBarBounds.left + headingBarBounds.width*((Float(angle)-lowAngle)/headingBarScale)
       
       text.draw(String(format: "%d", angle), size: 15, position: (x, headingBarBounds.bottom+19+9), align: .Center)
+    }
+    
+    // Draw the prograde marker...
+    if let data = latestData {
+      let xProg = headingBarBounds.left + headingBarBounds.width*((Float(heading+data.SideSlip)-lowAngle)/headingBarScale)
+      let yProg = headingBarBounds.bottom + headingBarBounds.height/2
+      
+      // Constrain the sideslip so that it is always visible
+      let consX = xProg < headingBarBounds.left ? headingBarBounds.left : min(xProg, headingBarBounds.right)
+      drawing.UnconstrainDrawing()
+      drawing.program.setModelView(GLKMatrix4MakeTranslation(consX, yProg, 0))
+      drawing.program.setColor(progradeColor)
+      drawing.Draw(prograde!)
     }
   }
 

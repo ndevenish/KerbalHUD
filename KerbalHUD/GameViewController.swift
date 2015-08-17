@@ -50,7 +50,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     lastTime = startTime
     self.setupGL()
-//    self.setupSocket()
+    self.setupSocket()
     
     
   }
@@ -187,7 +187,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["rpm.EASPEED"] = JSON(fakeData["v.surfaceSpeed"]!.floatValue/fakeData["rpm.ATMOSPHEREDEPTH"]!.floatValue)
       fakeData["f.throttle"] = JSON(abs(cos(current)))
       fakeData["rpm.EFFECTIVETHROTTLE"] = JSON(fakeData["f.throttle"]!.doubleValue*0.9)
-      
+      var prev = (current-1)*2 - current*2
+      fakeData["rpm.ANGLEOFATTACK"]     = JSON(prev)
+      prev = ((current-1)*5 + 90) - (current*5+90)
+      fakeData["rpm.SIDESLIP"] = JSON(prev)
       display?.update(fakeData)
     }
 

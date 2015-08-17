@@ -203,7 +203,7 @@ class TextRenderer {
       let range = Range(start: advance(atlasText.startIndex, line*characterCount.x),
                         end: endIndex)
       let renderText = atlasText.substringWithRange(range)
-      print("Rendering \(renderText) to line \(line)")
+//      print("Rendering \(renderText) to line \(line)")
       for (x, char) in renderText.characters.enumerate() {
         charLookup[char] = (x, line)
       }

@@ -123,6 +123,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     display = RPMPlaneHUD(tools: drawing!)
 //    display = HSIIndicator(tools: drawing!)
     //    glEnable(GLenum(GL_DEPTH_TEST))
+    
+    glEnable(GLenum(GL_BLEND));
+    glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
   }
   
   func tearDownGL() {

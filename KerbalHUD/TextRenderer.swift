@@ -80,6 +80,14 @@ class TextRenderer {
   
   func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+      // If we are monospaced, try from atlas
+      if monospaced {
+        if drawFromAtlas(text, size: size, position: position, align: align, rotation: rotation, transform: transform) {
+          return;
+        }
+      }
+      // We are not monospace, or drawing from atlas failed. Fall back on the old system.
+      
       // Calculate a point size for this screen projection size
       let fontSize = Int(ceil(size / tool.pointsToScreenScale))
       let entry = getTextEntry(text, size: fontSize)
@@ -208,6 +216,25 @@ class TextRenderer {
       text: atlasText)
     textAtlasses.append(atlas)
     return atlas
+  }
+  
+  private func drawFromAtlas(
+    text: String, size : GLfloat, position : Point2D,
+    align : NSTextAlignment = .Left,
+    rotation: GLfloat = 0,
+    transform : GLKMatrix4 = GLKMatrix4Identity) -> Bool {
+      // Prevent internal calls if not monospaced
+      if !monospaced {
+        return false
+      }
+      let fontSize = Int(ceil(size / tool.pointsToScreenScale))
+      if let atlas = getAtlas(fontSize) {
+        
+      } else {
+        // Couldn't get an atlas
+        return false
+      }
+      return true
   }
 }
 

@@ -479,7 +479,7 @@ class JSIHeadsUpDisplay {
   
   func GenerateProgradeMarker(size : GLfloat = 64) -> Drawable2D {
     let scale = size / 64.0
-    var tris = GenerateCircleTriangles(12.0 * scale, w: 3.0*scale)
+    var tris = GenerateCircleTriangles(11.0 * scale, w: 4.0*scale)
     tris.extend(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
     tris.extend(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
     tris.extend(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))

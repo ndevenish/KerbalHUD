@@ -438,6 +438,18 @@ class DrawingTools
     glDisable(GLenum(GL_STENCIL_TEST))
   }
   
+  var last_texture : GLKTextureInfo?
+  
+  func BindTexture(texture : GLKTextureInfo) {
+    if let tex = last_texture {
+      if tex == texture {
+        return
+      }
+    }
+    glBindTexture(texture)
+    last_texture = texture
+  }
+  
 }
 
 private let _glErrors = [
@@ -487,4 +499,9 @@ func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: G
     Triangle((left, bottom), (left, top), (right, top)),
     Triangle((right, top), (right, bottom), (left, bottom))
   ]
+}
+
+func glBindTexture(tex : GLKTextureInfo) {
+  let name = tex.name
+  glBindTexture(GLenum(tex.target), name)
 }

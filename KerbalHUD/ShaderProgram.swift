@@ -18,7 +18,7 @@ class ShaderProgram {
   var program : GLuint { return _program }
 
   var attributes : (position : GLuint, texture : GLuint)
-  private var uniforms : (mvp : Int32, color : Int32, useTex : Int32)
+  private var uniforms : (mvp : Int32, color : Int32, useTex : Int32, uvOffset: Int32, uvScale: Int32)
   private var currentUseTex = false
   
   var projection : GLKMatrix4 = GLKMatrix4Identity
@@ -35,7 +35,10 @@ class ShaderProgram {
     let uMVP = glGetUniformLocation(_program, "modelViewProjectionMatrix")
     let uCol = glGetUniformLocation(_program, "color")
     let uTex = glGetUniformLocation(_program, "useTex")
-    uniforms = (uMVP, uCol, uTex)
+    let uOff = glGetUniformLocation(_program, "uvOffset")
+    let uSca = glGetUniformLocation(_program, "uvScale")
+    
+    uniforms = (uMVP, uCol, uTex, uOff, uSca)
     
 //    // Get uniform locations.
 //    uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(program, "modelViewProjectionMatrix")
@@ -55,6 +58,12 @@ class ShaderProgram {
       glUniform1i(uniforms.useTex, use ? 1 : 0)
       currentUseTex = use
     }
+  }
+  
+  func setUVProperties(xOffset xOffset : GLfloat, yOffset : GLfloat, xScale : GLfloat, yScale : GLfloat)
+  {
+    glUniform2f(uniforms.uvOffset, xOffset, yOffset)
+    glUniform2f(uniforms.uvScale, xScale, yScale)
   }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
@@ -78,6 +87,8 @@ class ShaderProgram {
     glUseProgram(_program)
     ShaderProgram.activeProgram = self
     setUseTexture(false)
+    setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+
   }
 }
 

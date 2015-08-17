@@ -38,6 +38,8 @@ class TextRenderer {
     let texelSize : (width: GLfloat, height: GLfloat)
     // The collection of characters in this atlas
     let text : String
+    // Location of characters
+    let coords : [Character : (x: Int, y: Int)]
   }
   private var textAtlasses : [TextAtlas] = []
   
@@ -156,14 +158,14 @@ class TextRenderer {
     
     let atlasText = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~Δ☊¡¢£¤¥¦§¨©ª«¬☋®¯°±²³´µ¶·¸¹º»¼½¾¿˚π"
     let font = UIFont(name: fontName, size: CGFloat(size))
-    let attrs : [String : AnyObject] = [NSFontAttributeName: font!]
+    let attrs : [String : AnyObject] = [NSFontAttributeName: font!, NSForegroundColorAttributeName: UIColor.whiteColor()]
     
     // How large is a single character?
     let singleCharacterSizePts = ("W" as NSString).sizeWithAttributes(attrs)
     
     let singleCharacterSize : (width : Float, height: Float) = (
-      Float(singleCharacterSizePts.width*UIScreen.mainScreen().scale),
-      Float(singleCharacterSizePts.height*UIScreen.mainScreen().scale)
+      Float(singleCharacterSizePts.width),
+      Float(singleCharacterSizePts.height)
     )
     // Work out the size of texture required
     func _required_texture_size(count: Int, size : (width: Float, height: Float)) -> CGSize {
@@ -184,10 +186,11 @@ class TextRenderer {
     }
     let textureSize = _required_texture_size(atlasText.characters.count, size: singleCharacterSize)
     let characterCount = (x: Int(floor(textureSize.width/CGFloat(singleCharacterSize.width))),
-                          y: Int(floor(textureSize.width/CGFloat(singleCharacterSize.width))))
+                          y: Int(floor(textureSize.height/CGFloat(singleCharacterSize.height))))
     // Render the texture
-    UIGraphicsBeginImageContextWithOptions(textureSize, false, 1)
+    UIGraphicsBeginImageContextWithOptions(textureSize, false, UIScreen.mainScreen().scale)
     let context = UIGraphicsGetCurrentContext()
+    var charLookup : [Character: (x: Int, y: Int)] = [:]
     for line in 0...characterCount.y {
       // Don't go it we are over the end of the texture atlas
       if line*characterCount.x > atlasText.characters.count {
@@ -201,6 +204,9 @@ class TextRenderer {
                         end: endIndex)
       let renderText = atlasText.substringWithRange(range)
       print("Rendering \(renderText) to line \(line)")
+      for (x, char) in renderText.characters.enumerate() {
+        charLookup[char] = (x, line)
+      }
       let point = CGPoint(x: 0, y: Int(ceil(singleCharacterSize.height*Float(line))))
       (renderText as NSString).drawAtPoint(point, withAttributes: attrs)
     }
@@ -208,14 +214,25 @@ class TextRenderer {
     // Now, grab this as a texture
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()
-    let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
-    
-    let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
-      uvSize: (GLfloat(0.0),GLfloat(0.0)),
-      texelSize: (GLfloat(ceil(singleCharacterSize.height)), GLfloat(ceil(singleCharacterSize.width))),
-      text: atlasText)
-    textAtlasses.append(atlas)
-    return atlas
+    do {
+      let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
+
+      // Use initial calculated values - texture size could be anything, depending on scale
+      let uvSize = (width: GLfloat(singleCharacterSize.width)/GLfloat(textureSize.width),
+        height: GLfloat(singleCharacterSize.height)/GLfloat(textureSize.height))
+      
+      let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
+        uvSize: uvSize,
+        texelSize: (width: GLfloat(ceil(singleCharacterSize.width)), height: GLfloat(ceil(singleCharacterSize.height))),
+        text: atlasText, coords: charLookup)
+      textAtlasses.append(atlas)
+      return atlas
+
+    } catch let err as NSError {
+      print("ERROR: " + err.localizedDescription)
+      print (err)
+      return nil
+    }
   }
   
   private func drawFromAtlas(
@@ -229,7 +246,47 @@ class TextRenderer {
       }
       let fontSize = Int(ceil(size / tool.pointsToScreenScale))
       if let atlas = getAtlas(fontSize) {
+        tool.program.setUseTexture(true)
+        tool.BindTexture(atlas.texture)
+        tool.bindArray(tool.vertexArrayTextured)
+
+        // Calculate the total end size, for things like alignment
+        let aspect = atlas.texelSize.width / atlas.texelSize.height
+        let squareWidth = size * aspect * GLfloat(text.characters.count)
+        var baseMatrix = transform
+        // Handle left/right alignment
+        switch(align) {
+        case .Left:
+          baseMatrix = GLKMatrix4Translate(baseMatrix, position.x, position.y, 0)
+        case .Right:
+          baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth, position.y, 0)
+        case .Center:
+          baseMatrix = GLKMatrix4Translate(baseMatrix, position.x-squareWidth/2, position.y, 0)
+        default:
+          break
+        }
+        baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, 1)
+        // Scale to match the shape of a single character
+        baseMatrix = GLKMatrix4Scale(baseMatrix, size*aspect, size, 1)
+        // Offset so that the text is center-aligned
+        baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
         
+        // Now, loop over every character individually
+        for (i, char) in text.characters.enumerate() {
+          let charMatrix = GLKMatrix4Translate(baseMatrix, GLfloat(i), 0, 0)
+          tool.program.setModelView(charMatrix)
+          
+          // Find the coordinates for this character
+          let coords = atlas.coords[char]!
+          tool.program.setUVProperties(
+              xOffset: atlas.uvSize.width*GLfloat(coords.x),
+              yOffset: atlas.uvSize.height*GLfloat(coords.y),
+              xScale:  atlas.uvSize.width,
+              yScale:  atlas.uvSize.height)
+          glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+
+        }
+        tool.program.setUseTexture(false)
       } else {
         // Couldn't get an atlas
         return false

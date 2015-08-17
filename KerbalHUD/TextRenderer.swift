@@ -271,20 +271,33 @@ class TextRenderer {
         // Offset so that the text is center-aligned
         baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
         
+        var altTexture : Bool = false
         // Now, loop over every character individually
         for (i, char) in text.characters.enumerate() {
           let charMatrix = GLKMatrix4Translate(baseMatrix, GLfloat(i), 0, 0)
           tool.program.setModelView(charMatrix)
           
           // Find the coordinates for this character
-          let coords = atlas.coords[char]!
-          tool.program.setUVProperties(
-              xOffset: atlas.uvSize.width*GLfloat(coords.x),
-              yOffset: atlas.uvSize.height*GLfloat(coords.y),
-              xScale:  atlas.uvSize.width,
-              yScale:  atlas.uvSize.height)
-          glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
-
+          if let coords = atlas.coords[char] {
+            if altTexture {
+              altTexture = false
+              tool.BindTexture(atlas.texture)
+            }
+            tool.program.setUVProperties(
+                xOffset: atlas.uvSize.width*GLfloat(coords.x),
+                yOffset: atlas.uvSize.height*GLfloat(coords.y),
+                xScale:  atlas.uvSize.width,
+                yScale:  atlas.uvSize.height)
+            glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+          } else {
+            // We don't recognise this character. This is a problem.
+            // Use the old text drawing to render it
+            let entry = getTextEntry(String(char), size: fontSize)
+            tool.BindTexture(entry.texture)
+            altTexture = true
+            tool.program.setUVProperties(xOffset: 0, yOffset: 0, xScale:  1, yScale:  1)
+            glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+          }
         }
         tool.program.setUseTexture(false)
       } else {

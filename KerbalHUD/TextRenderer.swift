@@ -274,6 +274,9 @@ class TextRenderer {
         var altTexture : Bool = false
         // Now, loop over every character individually
         for (i, char) in text.characters.enumerate() {
+          if String(char) == " " {
+            continue
+          }
           let charMatrix = GLKMatrix4Translate(baseMatrix, GLfloat(i), 0, 0)
           tool.program.setModelView(charMatrix)
           

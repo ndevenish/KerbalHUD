@@ -146,7 +146,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     // Parse the latest data
     if let data = latestSocketData {
-      if runTime-lastDataPrint > 2 {
+      if runTime-lastDataPrint > 5 {
         print(String(runTime) + ": " + data)
         lastDataPrint = runTime
       }
@@ -201,7 +201,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["rpm.ANGLEOFATTACK"]     = JSON(prev)
       prev = ((current-1)*5 + 90) - (current*5+90)
       fakeData["rpm.SIDESLIP"] = JSON(prev)
-      fakeData["rpm.PLUGIN_JSIFAR:GetFlapSetting"] = JSON((Int(current) % 5))
+      fakeData["rpm.PLUGIN_JSIFAR:GetFlapSetting"] = JSON((Int(current) % 4))
       display?.update(fakeData)
     }
 

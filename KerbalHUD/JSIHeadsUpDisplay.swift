@@ -209,7 +209,7 @@ class RPMPlaneHUD : RPMInstrument
         drawing.program.setModelView(foilMV)
         if data.Flaps == 0 || data.Flaps == 1 {
           drawing.program.setColor(red: 0, green: 1, blue: 0)
-        } else if data.Flaps == 2 || data.Flaps == 3 {
+        } else if data.Flaps == 2 {
           drawing.program.setColor(red: 1, green: 1, blue: 0)
         } else {
           drawing.program.setColor(red: 1, green: 0, blue: 0)

@@ -227,11 +227,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
             position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)
           drawing?.drawText("(Connecting)", size: display!.screenHeight/15,
             position: ((display!.screenWidth/2),(display!.screenHeight/30)), align: .Center)
-
-          //        drawText("NO DATA", align: .Center, position: (0.5, 0.2), fontSize: 20)
-          //
-          //        drawText("CONNECTING",
-          //          align: .Right, position: (1-0.05, 0.05), fontSize: 20)
         }
       }
     }

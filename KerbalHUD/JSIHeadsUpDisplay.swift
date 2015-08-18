@@ -136,7 +136,7 @@ class RPMPlaneHUD : RPMInstrument
       "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
       "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
       "rpm.RADARALTOCEAN", "rpm.ANGLEOFATTACK", "rpm.SIDESLIP",
-      "rpm.PLUGIN_JSIFAR:GetFlapSetting", "rpm.TERMINALVELOCITY"
+      "rpm.PLUGIN_JSIFAR:GetFlapSetting", "rpm.TERMINALVELOCITY", "rpm.SURFSPEED"
     ]
 
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
@@ -180,6 +180,7 @@ class RPMPlaneHUD : RPMInstrument
 
       data.TerminalVelocity = vars["rpm.TERMINALVELOCITY"]?.floatValue ?? 0
       data.Flaps = vars["rpm.PLUGIN_JSIFAR:GetFlapSetting"]?.intValue ?? -1
+      data.Speed = vars["rpm.SURFSPEED"]?.floatValue ?? data.Speed
       
     }
     latestData = data
@@ -452,7 +453,7 @@ class JSIHeadsUpDisplay {
     // Do the prograde marker - position
 //    horzFrame = GLKMatrix4Translate(horzFrame, 0, latestData?.AngleOfAttack ?? 0, 0)
     if let data = latestData {
-      horzFrame = GLKMatrix4Translate(horzFrame, 0, horizonSize.height*((data.Pitch+data.AngleOfAttack ?? 0) / horizonScale), 0)
+      horzFrame = GLKMatrix4Translate(horzFrame, 0, horizonSize.height*((data.Pitch-data.AngleOfAttack ?? 0) / horizonScale), 0)
       // And roll backwards...
       horzFrame = GLKMatrix4Rotate(horzFrame, -roll*π/180, 0, 0, -1)
 

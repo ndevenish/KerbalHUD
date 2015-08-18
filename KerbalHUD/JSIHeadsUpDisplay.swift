@@ -28,11 +28,14 @@ private struct HUDFlightData {
   var EASpeed : GLfloat = 0
   var HrzSpeed : GLfloat = 0
   var SurfaceVelocity : (x: GLfloat, y: GLfloat, z: GLfloat) = (0,0,0)
+  var TerminalVelocity : GLfloat = 0
+  
   var SAS : Bool = false
   var Gear : Bool = false
   var Lights : Bool = false
   var Brake : Bool = false
   var RCS : Bool = false
+  var Flaps : Int = -1
   
   var AngleOfAttack : GLfloat = 0
   var SideSlip : GLfloat = 0
@@ -131,7 +134,8 @@ class RPMPlaneHUD : RPMInstrument
       "rpm.available",
       "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
       "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
-      "rpm.RADARALTOCEAN", "RPM.ANGLEOFATTACK", "RPM.SIDESLIP"
+      "rpm.RADARALTOCEAN", "rpm.ANGLEOFATTACK", "rpm.SIDESLIP",
+      "rpm.PLUGIN_JSIFAR:GetFlapSetting", "rpm.TERMINALVELOCITY"
     ]
 
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
@@ -171,6 +175,10 @@ class RPMPlaneHUD : RPMInstrument
       data.RadarHeight = vars["rpm.RADARALTOCEAN"]?.floatValue ?? 0
       data.AngleOfAttack = vars["rpm.ANGLEOFATTACK"]?.floatValue ?? 0
       data.SideSlip = vars["rpm.SIDESLIP"]?.floatValue ?? 0
+
+      data.TerminalVelocity = vars["rpm.TERMINALVELOCITY"]?.floatValue ?? 0
+      data.Flaps = vars["rpm.PLUGIN_JSIFAR:GetFlapSetting"]?.intValue ?? -1
+      
     }
     latestData = data
     

@@ -59,6 +59,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   {
     socket = WebSocket(url: NSURL(string: "ws://192.168.1.73:8085/datalink")!)
     if let s = socket {
+      print("Starting connection...")
       s.delegate = self
       s.connect()
     } else {
@@ -134,6 +135,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   // MARK: - GLKView and GLKViewController delegate methods
   
+  var lastDataPrint : Double = 0;
+  
   func update() {
     // Calculate the frame times
     let nowTime : Double = CACurrentMediaTime()
@@ -143,6 +146,10 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     // Parse the latest data
     if let data = latestSocketData {
+      if runTime-lastDataPrint > 2 {
+        print(String(runTime) + ": " + data)
+        lastDataPrint = runTime
+      }
       let json = JSON(data: data.dataUsingEncoding(NSUTF8StringEncoding)!)
       latestSocketData = nil
       if let inst = display {

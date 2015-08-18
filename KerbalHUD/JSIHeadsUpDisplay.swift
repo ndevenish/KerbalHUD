@@ -116,6 +116,7 @@ class RPMPlaneHUD : RPMInstrument
 
   private var latestData : HUDFlightData?
   private var hud : JSIHeadsUpDisplay?
+  private var foil : Drawable2D?
   
   required init(tools : DrawingTools) {
     let set = RPMPageSettings(textSize: (40,20), screenSize: (640,640),
@@ -139,6 +140,7 @@ class RPMPlaneHUD : RPMInstrument
     ]
 
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
+    foil = generateFoil();
   }
   
   override func update(vars : [String: JSON]) {
@@ -189,8 +191,48 @@ class RPMPlaneHUD : RPMInstrument
     hud?.RenderHUD()
     
     if let data = latestData {
-      drawing.program.setColor(settings.fontColor)
       let lineHeight = floor(screenHeight / settings.textSize.height)
+
+      if data.Flaps > -1 {
+        var foilMV = GLKMatrix4MakeTranslation(640*7/8, 640*1/16, 0)
+        foilMV = GLKMatrix4Scale(foilMV, 640*3/16, 640*3/16, 0)
+        foilMV = GLKMatrix4Translate(foilMV, 0.15-0.5 , 0, 0)
+        
+        if data.Flaps > 0 {
+          drawing.program.setModelView(foilMV)
+          drawing.program.setColor(red: 0, green: 0.1, blue: 0)
+          drawing.Draw(foil!)
+        }
+        
+        foilMV = GLKMatrix4Rotate(foilMV, 20*(GLfloat(data.Flaps)/4) * π/180 , 0, 0, -1)
+        drawing.program.setModelView(foilMV)
+        if data.Flaps == 0 || data.Flaps == 1 {
+          drawing.program.setColor(red: 0, green: 1, blue: 0)
+        } else if data.Flaps == 2 || data.Flaps == 3 {
+          drawing.program.setColor(red: 1, green: 1, blue: 0)
+        } else {
+          drawing.program.setColor(red: 1, green: 0, blue: 0)
+        }
+        drawing.Draw(foil!)
+        
+        if data.Flaps == 0 {
+          foilMV = GLKMatrix4Scale(foilMV, 0.90, 0.90, 0)
+          drawing.program.setModelView(foilMV)
+          drawing.program.setColor(red: 0, green: 0, blue: 0)
+          drawing.Draw(foil!)
+        }
+        
+        drawing.program.setColor(settings.fontColor)
+        text.draw("FLP: " + (data.Flaps == 0 ? "-" : String(data.Flaps)),
+          size: lineHeight, position: (640*7/8, 640*1/8), align: .Center)
+      }
+      
+      
+
+      
+      
+      
+      drawing.program.setColor(settings.fontColor)
       // 16, 48
       //16, 80
       let lineY = (0...19).map { (line : Int) -> Float in screenHeight-lineHeight*(Float(line) + 0.5)}
@@ -254,6 +296,32 @@ class RPMPlaneHUD : RPMInstrument
 
       }
     }
+  }
+  
+  func generateFoil() -> Drawable2D {
+    let c : Float = 1
+    let t : Float = 0.15
+    
+    let numSteps = 20
+    var points : [Point2D] = []
+
+    for xStep in 0...numSteps {
+      let x = 1-cos(Float(xStep)/Float(numSteps) * π/2)
+      var y = 0.2969*sqrt(x/c)
+      y += (-0.1260)*(x/c)
+      y += (-0.3516)*pow(x/c, 2)
+      y += 0.2843*pow(x/c, 3)
+      y += (-0.1015)*pow(x/c, 4)
+      y *= 5 * t * c
+      points.append((x-t, xStep == numSteps ? 0 : y))
+    }
+    // go back around
+    points.extend(points.dropLast().dropFirst().reverse().map {Point2D($0.x, $0.y * -1)})
+    // Now, do the inside
+//    print ("xP = [" + ", ".join(points.map{ String($0.x) }) + "]")
+//    print ("yP = [" + ", ".join(points.map{ String($0.y) }) + "]")
+    
+    return drawing.Load2DPolygon(points)!
   }
 }
 

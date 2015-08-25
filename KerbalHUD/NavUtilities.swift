@@ -137,9 +137,9 @@ class HSIIndicator : RPMInstrument {
   
   override func update(variables: [String : JSON]) {
     var newData = FlightData()
-    newData.Heading = variables["n.heading"]?.floatValue ?? 0
+    newData.Heading = cyc_mod(variables["n.heading"]?.floatValue ?? 0, m: 360)
     newData.Glideslope = variables["navutil.glideslope"]?.floatValue ?? 0
-    newData.BeaconBearing = variables["navutil.bearing"]?.floatValue ?? 0
+    newData.BeaconBearing = cyc_mod(variables["navutil.bearing"]?.floatValue ?? 0, m: 360)
     newData.BeaconDistance = variables["navutil.dme"]?.floatValue ?? 0
     newData.LocationDeviation = variables["navutil.locdeviation"]?.floatValue ?? 0
     newData.GlideslopeDeviation = variables["navutil.gsdeviation"]?.floatValue ?? 0
@@ -161,16 +161,19 @@ class HSIIndicator : RPMInstrument {
     
     data = newData
     
-    if hsiSettings.enableFineLoc && data.LocationDeviation < 0.75 && data.BeaconDistance < 7500 {
-      data.TrackingMode = .Fine
+    data.LocFlag = abs(data.LocationDeviation) > 10 && abs(data.LocationDeviation) < 170
+    data.BackCourseFlag = abs(data.LocationDeviation) > 90
+    
+    if (!data.LocFlag) {
+      if hsiSettings.enableFineLoc && (data.BeaconDistance < 7500) && abs(data.LocationDeviation) < 0.75{
+        data.TrackingMode = .Fine
+      }
     }
+    
 //    var LocationDeviation : GLfloat = 0
 //    var DeviationMode : String
     
-    if data.LocationDeviation < -90 || data.LocationDeviation > 90 {
-      data.BackCourseFlag = true
-    }
-
+    
   }
   
   override func draw() {
@@ -187,6 +190,17 @@ class HSIIndicator : RPMInstrument {
     drawing.Draw(overlayBackground!)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawing.Draw(overlay!)
+    
+    if !data.LocFlag {
+      // Draw the tracking text
+      if data.TrackingMode == .Fine {
+        drawing.program.setColor(theColorPurple)
+        text.draw("Loc→Fine Mode", size: 20, position: (380, 80))
+      } else {
+        drawing.program.setColor(red: 1, green: 1, blue: 1)
+        text.draw("Loc→Coarse Mode", size: 20, position: (380,80))
+      }
+    }
     
     // Draw the glideslope indicators
     drawGlideSlopeIndicators()
@@ -231,7 +245,17 @@ class HSIIndicator : RPMInstrument {
     // 247x5 for the course indicator
     // Deviation mode? In fine mode, each tick (50px) == 0.25˚
     // In coarse mode, each tick == 1˚
-    let needleOffset : GLfloat = 50 * data.LocationDeviation * (data.TrackingMode == .Coarse ? 1 : 4)
+    let effectiveLocDev : GLfloat
+    if data.BackCourseFlag {
+      effectiveLocDev = cyc_mod(data.LocationDeviation, m: 360)-180
+    } else {
+      effectiveLocDev = data.LocationDeviation
+    }
+
+    var needleOffset : GLfloat = 50 * effectiveLocDev * (data.TrackingMode == .Coarse ? 1 : 4)
+    // Limit the deflection to +/- 50+50+60
+    needleOffset = max(needleOffset, -160)
+    needleOffset = min(needleOffset, 160)
     if data.TrackingMode == .Fine {
       drawing.program.setColor(red: 1, green: 1, blue: 0)
     }
@@ -241,7 +265,9 @@ class HSIIndicator : RPMInstrument {
 
   func drawNeedleNDB() {
     let bearingRotation = data.Heading-data.BeaconBearing
-    
+    if data.TrackingMode == .Fine {
+      return
+    }
     
     var offset = GLKMatrix4MakeTranslation(320, 320, 0)
     offset = GLKMatrix4Rotate(offset, bearingRotation*π/180, 0, 0, 1)
@@ -334,10 +360,6 @@ class HSIIndicator : RPMInstrument {
   private func drawFlags()
   {
     let topY : GLfloat = 232 - 75 + 21;
-    
-    data.GlideSlopeFlag = true
-    data.LocFlag = true
-    data.BackCourseFlag = true
     
     if data.GlideSlopeFlag {
       drawing.program.setColor(red: 1, green: 0, blue: 0)

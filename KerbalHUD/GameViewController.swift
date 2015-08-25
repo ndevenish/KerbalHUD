@@ -182,7 +182,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["v.verticalSpeed"]   = JSON(sin(current)*100)
       fakeData["n.roll"]            = JSON(sin(current)*15)
       fakeData["n.pitch"]           = JSON(current*2)
-      fakeData["n.heading"]         = JSON(current*5 + 90)
+      fakeData["n.heading"]         = JSON(current*5)
       fakeData["rpm.available"]     = true
       fakeData["v.sasValue"]        = JSON(curInt % 2)
       fakeData["v.brakeValue"]      = JSON(curInt % 4)
@@ -205,15 +205,17 @@ class GameViewController: GLKViewController, WebSocketDelegate {
 
       fakeData["navutil.glideslope"] = JSON(5)
       fakeData["navutil.dme"] = JSON(7500+sin(current*0.5)*2000)
-      fakeData["navutil.locdeviation"] = JSON(cos(current)*4)
+
+      fakeData["n.heading"] = JSON(90 + 5*sin(current))
+      if Int(floor(current/10)) % 2 == 0 {
+        fakeData["navutil.locdeviation"] = JSON(90 - fakeData["n.heading"]!.floatValue)
+      } else {
+        fakeData["navutil.locdeviation"] = JSON(90 + 180 - fakeData["n.heading"]!.floatValue)
+      }
       fakeData["navutil.gsdeviation"] = JSON(sin(current))
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
-      fakeData["navutil.headingtorunway"] = JSON(sin(current)*20+10)
+      fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
-      
-      fakeData["navutil.bearing"] = JSON(117)
-      fakeData["navutil.runwayheading"] = JSON(89)
-      fakeData["n.heading"] = JSON(95);
       
         
       display?.update(fakeData)

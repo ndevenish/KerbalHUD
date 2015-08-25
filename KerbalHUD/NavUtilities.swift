@@ -35,7 +35,10 @@ class HSIIndicator : RPMInstrument {
     
 
     var TrackingMode : DeviationMode = .Coarse
-    var BackCourse : Bool = false
+    
+    var GlideSlopeFlag : Bool = false
+    var BackCourseFlag : Bool = false
+    var LocFlag : Bool = false
     
     var SelectedRunway : Runway? = nil
   }
@@ -162,7 +165,7 @@ class HSIIndicator : RPMInstrument {
 //    var DeviationMode : String
     
     if data.LocationDeviation < -90 || data.LocationDeviation > 90 {
-      data.BackCourse = true
+      data.BackCourseFlag = true
     }
 
   }
@@ -184,7 +187,8 @@ class HSIIndicator : RPMInstrument {
     
     // Draw the glideslope indicators
     drawGlideSlopeIndicators()
-    drawMarkerIndicators();
+    drawMarkerIndicators()
+    drawFlags()
     
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     // Draw the text
@@ -322,5 +326,36 @@ class HSIIndicator : RPMInstrument {
     text.draw("M", size: 34, position: (61+56, 36), align: .Center)
     text.draw("I", size: 34, position: (61+56+56, 36), align: .Center)
 
+  }
+  
+  private func drawFlags()
+  {
+    let topY : GLfloat = 232 - 75 + 21;
+    
+    data.GlideSlopeFlag = true
+    data.LocFlag = true
+    data.BackCourseFlag = true
+    
+    if data.GlideSlopeFlag {
+      drawing.program.setColor(red: 1, green: 0, blue: 0)
+      drawing.DrawSquare(588-65, bottom: topY-20, right: 588, top: topY)
+      drawing.program.setColor(red: 1, green: 1, blue: 1)
+      text.draw("G/S", size: 20, position: (588, topY-10), align: .Right)
+    }
+    if data.LocFlag {
+      drawing.program.setColor(red: 1, green: 0, blue: 0)
+      drawing.DrawSquare(588-65, bottom: topY-42, right: 588, top: topY-22)
+      drawing.program.setColor(red: 1, green: 1, blue: 1)
+      text.draw("LOC", size: 20, position: (588, topY-10-22), align: .Right)
+    }
+    if data.BackCourseFlag {
+      drawing.program.setColor(red: 1, green: 1, blue: 1)
+      drawing.DrawSquare(588-65, bottom: topY-64, right: 588, top: topY-44)
+      drawing.program.setColor(red: 0, green: 0, blue: 0)
+      text.draw("BK CRS", size: 20, position: (588, topY-10-44), align: .Right)
+    }
+    
+//  y - 75 + 64/3
+  
   }
 }

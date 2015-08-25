@@ -60,12 +60,15 @@ class HSIIndicator : RPMInstrument {
   var hsiSettings = HSISettings()
   
   let theColorPurple = Color4(r: 239.0/255.0, g: 94.0/255.0, b:1.0, a:1)
+
+  var boldText : TextRenderer
   
   // 239 94 255
   
   required init(tools: DrawingTools) {
     let set = RPMPageSettings(textSize: (40,23), screenSize: (640,640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
+    boldText = tools.textRenderer("Menlo-Bold")
     super.init(tools: tools, settings: set)
     variables = ["n.heading", "navutil.glideslope", "navutil.bearing", "navutil.dme",
       "navutil.locdeviation", "navutil.gsdeviation", "navutil.runwayheading", "navutil.runway"];
@@ -280,7 +283,7 @@ class HSIIndicator : RPMInstrument {
       }
       let rad = GLfloat(angle)*10*π/180
       let transform = GLKMatrix4Rotate(offset, rad, 0, 0, -1)
-      text.draw(txt, size: 32, position: (0, inner + 25 + 16), align: .Center, rotation: 0, transform: transform)
+      boldText.draw(txt, size: 32, position: (0, inner + 25 + 16), align: .Center, rotation: 0, transform: transform)
     }
   }
   
@@ -322,9 +325,9 @@ class HSIIndicator : RPMInstrument {
     
     // Draw the text
     drawing.program.setColor(red: 0, green: 0, blue: 0)
-    text.draw("O", size: 34, position: (61, 36), align: .Center)
-    text.draw("M", size: 34, position: (61+56, 36), align: .Center)
-    text.draw("I", size: 34, position: (61+56+56, 36), align: .Center)
+    boldText.draw("O", size: 34, position: (61, 36), align: .Center)
+    boldText.draw("M", size: 34, position: (61+56, 36), align: .Center)
+    boldText.draw("I", size: 34, position: (61+56+56, 36), align: .Center)
 
   }
   
@@ -340,19 +343,19 @@ class HSIIndicator : RPMInstrument {
       drawing.program.setColor(red: 1, green: 0, blue: 0)
       drawing.DrawSquare(588-65, bottom: topY-20, right: 588, top: topY)
       drawing.program.setColor(red: 1, green: 1, blue: 1)
-      text.draw("G/S", size: 20, position: (588, topY-10), align: .Right)
+      boldText.draw("G/S", size: 20, position: (588, topY-10), align: .Right)
     }
     if data.LocFlag {
       drawing.program.setColor(red: 1, green: 0, blue: 0)
       drawing.DrawSquare(588-65, bottom: topY-42, right: 588, top: topY-22)
       drawing.program.setColor(red: 1, green: 1, blue: 1)
-      text.draw("LOC", size: 20, position: (588, topY-10-22), align: .Right)
+      boldText.draw("LOC", size: 20, position: (588, topY-10-22), align: .Right)
     }
     if data.BackCourseFlag {
       drawing.program.setColor(red: 1, green: 1, blue: 1)
       drawing.DrawSquare(588-65, bottom: topY-64, right: 588, top: topY-44)
       drawing.program.setColor(red: 0, green: 0, blue: 0)
-      text.draw("BK CRS", size: 20, position: (588, topY-10-44), align: .Right)
+      boldText.draw("BK CRS", size: 20, position: (588, topY-10-44), align: .Right)
     }
     
 //  y - 75 + 64/3

@@ -170,9 +170,7 @@ class HSIIndicator : RPMInstrument {
       }
     }
     
-//    var LocationDeviation : GLfloat = 0
-//    var DeviationMode : String
-    
+    data.GlideSlopeFlag = abs(data.GlideslopeDeviation) > 25
     
   }
   
@@ -320,13 +318,21 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setModelView(GLKMatrix4MakeTranslation(640-24, 232, 0))
     drawing.Draw(gsIndicators!)
     
-    drawing.program.setColor(theColorPurple)
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(0, 232+50*data.GlideslopeDeviation, 0))
-    drawing.Draw(purpleTriangles!)
+    if (!data.GlideSlopeFlag) {
+      var glideOffset = data.GlideslopeDeviation*200
+      glideOffset = max(-140, glideOffset)
+      glideOffset = min(140, glideOffset)
+      
+      drawing.program.setColor(theColorPurple)
+      drawing.program.setModelView(GLKMatrix4MakeTranslation(0, 232+glideOffset, 0))
+      drawing.Draw(purpleTriangles!)
+    }
   }
   
   func drawMarkerIndicators() {
-    
+    if data.BeaconDistance > 200000 {
+      return
+    }
     let markerColours = (
       outer: Color4(r: 0.008, g: 0.125, b: 0.255, a: 1),
       middle: Color4(r: 0.251, g: 0.192, b: 0.016, a: 1),

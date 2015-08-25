@@ -212,7 +212,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       } else {
         fakeData["navutil.locdeviation"] = JSON(90 + 180 - fakeData["n.heading"]!.floatValue)
       }
-      fakeData["navutil.gsdeviation"] = JSON(sin(current))
+      fakeData["navutil.gsdeviation"] = JSON(2*sin(current))
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])

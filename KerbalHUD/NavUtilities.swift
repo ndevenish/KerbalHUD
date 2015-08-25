@@ -46,6 +46,7 @@ class HSIIndicator : RPMInstrument {
   var coursePurpl : Drawable2D?
   var gsIndicators : Drawable2D?
   var purpleTriangles : Drawable2D?
+  var roundBox : Drawable2D?
   
   var data : FlightData = FlightData()
   
@@ -123,6 +124,8 @@ class HSIIndicator : RPMInstrument {
     purpleTriangles = tools.LoadTriangles([
       Triangle((0, 12.5), (28, 0), (0, -12.5)),
       Triangle((640, 12.5), (640, -12.5), (612, 0))])
+    
+    roundBox = tools.Load2DPolygon(GenerateRoundedBoxPoints(-25, bottom: -17, right: 25, top: 17, radius: 4.25))
   }
   
   override func update(variables: [String : JSON]) {
@@ -179,6 +182,7 @@ class HSIIndicator : RPMInstrument {
     
     // Draw the glideslope indicators
     drawGlideSlopeIndicators()
+    drawMarkerIndicators();
     
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     // Draw the text
@@ -284,5 +288,37 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setColor(theColorPurple)
     drawing.program.setModelView(GLKMatrix4MakeTranslation(0, 232+50*data.GlideslopeDeviation, 0))
     drawing.Draw(purpleTriangles!)
+  }
+  
+  func drawMarkerIndicators() {
+    
+    let markerColours = (
+      outer: Color4(r: 0.008, g: 0.125, b: 0.255, a: 1),
+      middle: Color4(r: 0.251, g: 0.192, b: 0.016, a: 1),
+      inner: Color4(r: 0.251, g: 0.251, b: 0.251, a: 1)
+      )
+    // If we wanted bright marker colours (flashing)
+//    markerColours = (
+//      outer: Color4(r: 0.008, g: 0.5, b: 1, a: 1),
+//      middle: Color4(r: 1, g: 0.753, b: 0, a: 1),
+//      inner: Color4(r: 1, g: 1, b: 1, a: 1)
+//    )
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(61, 36, 0))
+    drawing.program.setColor(markerColours.outer)
+    drawing.Draw(roundBox!)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(61+56, 36, 0))
+    drawing.program.setColor(markerColours.middle)
+    drawing.Draw(roundBox!)
+    //0.251, 0.251, 0.251
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(61+56+56, 36, 0))
+    drawing.program.setColor(markerColours.inner)
+    drawing.Draw(roundBox!)
+    
+    // Draw the text
+    drawing.program.setColor(red: 0, green: 0, blue: 0)
+    text.draw("O", size: 34, position: (61, 36), align: .Center)
+    text.draw("M", size: 34, position: (61+56, 36), align: .Center)
+    text.draw("I", size: 34, position: (61+56+56, 36), align: .Center)
+
   }
 }

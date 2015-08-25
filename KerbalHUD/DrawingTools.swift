@@ -518,6 +518,48 @@ func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: G
   ]
 }
 
+func GenerateRoundedBoxPoints(
+  left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat, radius: GLfloat) -> [Point2D]
+{
+  // How many steps to do in a corner
+  let STEPS = 5
+  let STEP_ANGLE = π/2.0/Float(STEPS+2)
+  // Start before the top-left circle
+  var points : [Point2D] = [(left, top-radius)]
+  // Do the inner circle points
+  for step in 1...STEPS {
+    let x = -cos(STEP_ANGLE*Float(step))*radius
+    let y = sin(STEP_ANGLE*Float(step))*radius
+    points.append((left+radius+x, top-radius+y))
+  }
+  points.append((left+radius, top))
+  points.append((right-radius, top))
+  // Do the inner circle points
+  for step in 1...STEPS {
+    let x = sin(STEP_ANGLE*Float(step))*radius
+    let y = cos(STEP_ANGLE*Float(step))*radius
+    points.append((right-radius+x, top-radius+y))
+  }
+  points.append((right, top-radius))
+  points.append((right, bottom+radius))
+  for step in 1...STEPS {
+    let x = cos(STEP_ANGLE*Float(step))*radius
+    let y = -sin(STEP_ANGLE*Float(step))*radius
+    points.append((right-radius+x, bottom+radius+y))
+  }
+  points.append((right-radius, bottom))
+  points.append((left+radius, bottom))
+  for step in 1...STEPS {
+    let x = -sin(STEP_ANGLE*Float(step))*radius
+    let y = -cos(STEP_ANGLE*Float(step))*radius
+    points.append((left+radius+x, bottom+radius+y))
+  }
+  points.append((left, bottom+radius))
+  
+//  return 
+  return points;
+}
+
 func glBindTexture(tex : GLKTextureInfo) {
   let name = tex.name
   glBindTexture(GLenum(tex.target), name)

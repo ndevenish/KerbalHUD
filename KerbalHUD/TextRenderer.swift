@@ -156,6 +156,9 @@ class TextRenderer {
       }
     }
     
+    // Clear any errors before running this process
+    processGLErrors()
+    
     let atlasText = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~Δ☊¡¢£¤¥¦§¨©ª«¬☋®¯°±²³´µ¶·¸¹º»¼½¾¿˚π"
     let font = UIFont(name: fontName, size: CGFloat(size))
     let attrs : [String : AnyObject] = [NSFontAttributeName: font!, NSForegroundColorAttributeName: UIColor.whiteColor()]

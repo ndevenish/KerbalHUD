@@ -68,6 +68,19 @@ typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 //typealias Bounds = (left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
 
+func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {
+  return Point2D(base.x + shift.x, base.y + shift.y)
+}
+func ShiftTriangle(base : Triangle, shift : Point2D) -> Triangle {
+  return Triangle(
+    ShiftPoint2D(base.0, shift: shift),
+    ShiftPoint2D(base.1, shift: shift),
+    ShiftPoint2D(base.2, shift: shift))
+}
+func ShiftTriangles(base : [Triangle], shift : Point2D) -> [Triangle] {
+  return base.map({ ShiftTriangle($0, shift: shift) });
+}
+
 struct Bounds {
   var left : GLfloat
   var bottom : GLfloat

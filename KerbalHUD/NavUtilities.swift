@@ -44,6 +44,7 @@ class HSIIndicator : RPMInstrument {
   var needleNDB : Drawable2D?
   var courseWhite : Drawable2D?
   var coursePurpl : Drawable2D?
+  var gsIndicators : Drawable2D?
   
   var data : FlightData = FlightData()
   
@@ -104,6 +105,16 @@ class HSIIndicator : RPMInstrument {
       (-2, -127), (-2, -127-48), (2, -127-48), (2, -127)]))
     coursePurpl = tools.LoadTriangles(purpTri)
    //-127, 4x48
+    
+    // Generate glideslope indicators
+    var glideSlopes : [Triangle] = []
+    glideSlopes.extend(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
+    let baseCircle = GenerateCircleTriangles(8, w: 4)
+    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))
+    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, -50)))
+    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
+    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
+    gsIndicators = tools.LoadTriangles(glideSlopes);
   }
   
   override func update(variables: [String : JSON]) {
@@ -144,8 +155,8 @@ class HSIIndicator : RPMInstrument {
   }
   
   override func draw() {
-    data.BeaconBearing = 30
-    data.RunwayHeading = data.Heading
+//    data.BeaconBearing = 30
+//    data.RunwayHeading = data.Heading
 
     drawCompass()
     drawNeedleNDB()
@@ -157,6 +168,9 @@ class HSIIndicator : RPMInstrument {
     drawing.Draw(overlayBackground!)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawing.Draw(overlay!)
+    
+    // Draw the glideslope indicators
+    drawGlideSlopeIndicators()
     
     // Draw the text
 //    let lineHeight = floor(screenHeight / settings.textSize.height)
@@ -249,5 +263,13 @@ class HSIIndicator : RPMInstrument {
       let transform = GLKMatrix4Rotate(offset, rad, 0, 0, -1)
       text.draw(txt, size: 32, position: (0, inner + 25 + 16), align: .Center, rotation: 0, transform: transform)
     }
+  }
+  
+  func drawGlideSlopeIndicators() {
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(24, 232, 0))
+    drawing.Draw(gsIndicators!)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(640-24, 232, 0))
+    drawing.Draw(gsIndicators!)
   }
 }

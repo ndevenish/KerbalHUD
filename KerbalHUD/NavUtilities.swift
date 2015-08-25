@@ -8,6 +8,7 @@
 
 import Foundation
 import GLKit
+import AudioToolbox
 
 class HSIIndicator : RPMInstrument {
   
@@ -41,6 +42,8 @@ class HSIIndicator : RPMInstrument {
     var LocFlag : Bool = false
     
     var SelectedRunway : Runway? = nil
+    
+    private var LastBeacon : (marker: BeaconMarker, time: Double, elapsed: Double) = (.None, 0, 0)
   }
   
   var overlay : Drawable2D?
@@ -159,19 +162,79 @@ class HSIIndicator : RPMInstrument {
       newData.SelectedRunway = runway;
     }
     
-    data = newData
+    newData.LocFlag = abs(newData.LocationDeviation) > 10 && abs(newData.LocationDeviation) < 170
+    newData.BackCourseFlag = abs(newData.LocationDeviation) > 90
     
-    data.LocFlag = abs(data.LocationDeviation) > 10 && abs(data.LocationDeviation) < 170
-    data.BackCourseFlag = abs(data.LocationDeviation) > 90
-    
-    if (!data.LocFlag) {
-      if hsiSettings.enableFineLoc && (data.BeaconDistance < 7500) && abs(data.LocationDeviation) < 0.75{
-        data.TrackingMode = .Fine
+    if (!newData.LocFlag) {
+      if hsiSettings.enableFineLoc && (newData.BeaconDistance < 7500) && abs(newData.LocationDeviation) < 0.75{
+        newData.TrackingMode = .Fine
       }
     }
     
-    data.GlideSlopeFlag = abs(data.GlideslopeDeviation) > 25
+    newData.GlideSlopeFlag = abs(newData.GlideslopeDeviation) > 25
     
+    // Handle the beacons
+    let beacon = GetBeaconCode(newData)
+    if beacon != data.LastBeacon.marker {
+      // We have had a beacon change!
+      newData.LastBeacon = (beacon, drawing.time.total, 0)
+      if beacon != .None {
+        PlayBeaconMarkerSound(beacon)
+      }
+    } else {
+      newData.LastBeacon = (beacon, data.LastBeacon.time, drawing.time.total - data.LastBeacon.time)
+    }
+    // Assign the new data structure
+    data = newData
+  }
+  
+  private func PlayBeaconMarkerSound(beacon : BeaconMarker) {
+//    NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"changeTrack" ofType:@"aif"];
+//    SystemSoundID soundID;
+//    AudioServicesCreateSystemSoundID((CFURLRef)[NSURL fileURLWithPath: soundPath], &soundID);
+//    AudioServicesPlaySystemSound (soundID);
+//    [soundPath release];
+    // Load
+    let soundName : String
+    switch (beacon) {
+    case .Inner:
+      soundName = "inner"
+    case .Outer:
+      soundName = "outer"
+    case .Middle:
+      soundName = "middle"
+    case .None:
+      soundName = ""
+    }
+    
+    if soundName.isEmpty { return }
+    
+    if let soundURL = NSBundle.mainBundle().URLForResource("outer", withExtension: "wav") {
+      var mySound: SystemSoundID = 0
+      AudioServicesCreateSystemSoundID(soundURL, &mySound)
+      AudioServicesPlaySystemSound(mySound);
+    }
+  }
+  
+  private enum BeaconMarker {
+    case None
+    case Inner
+    case Middle
+    case Outer
+  }
+  
+  /// Returns the code for the beacon that the craft is currently OVER
+  private func GetBeaconCode(data : FlightData) -> BeaconMarker
+  {
+    if abs(data.LocationDeviation) > 3 { return .None }
+    if let runway = data.SelectedRunway {
+      let distance = data.BeaconDistance
+      
+      if abs(distance - runway.InnerMarker)  < 200 { return .Inner }
+      if abs(distance - runway.MiddleMarker) < 200 { return .Middle }
+      if abs(distance - runway.OuterMarker)  < 200 { return .Outer }
+    }
+    return .None
   }
   
   override func draw() {
@@ -250,7 +313,7 @@ class HSIIndicator : RPMInstrument {
       effectiveLocDev = data.LocationDeviation
     }
 
-    var needleOffset : GLfloat = 50 * effectiveLocDev * (data.TrackingMode == .Coarse ? 1 : 4)
+    var needleOffset : GLfloat = (data.BackCourseFlag ? 1 : -1) * 50 * effectiveLocDev * (data.TrackingMode == .Coarse ? 1 : 4)
     // Limit the deflection to +/- 50+50+60
     needleOffset = max(needleOffset, -160)
     needleOffset = min(needleOffset, 160)
@@ -319,7 +382,7 @@ class HSIIndicator : RPMInstrument {
     drawing.Draw(gsIndicators!)
     
     if (!data.GlideSlopeFlag) {
-      var glideOffset = data.GlideslopeDeviation*200
+      var glideOffset = -data.GlideslopeDeviation*200
       glideOffset = max(-140, glideOffset)
       glideOffset = min(140, glideOffset)
       
@@ -339,20 +402,43 @@ class HSIIndicator : RPMInstrument {
       inner: Color4(r: 0.251, g: 0.251, b: 0.251, a: 1)
       )
     // If we wanted bright marker colours (flashing)
-//    markerColours = (info
-//      outer: Color4(r: 0.008, g: 0.5, b: 1, a: 1),
-//      middle: Color4(r: 1, g: 0.753, b: 0, a: 1),
-//      inner: Color4(r: 1, g: 1, b: 1, a: 1)
-//    )
+    let litMarkerColours = (
+      outer: Color4(r: 0.008, g: 0.5, b: 1, a: 1),
+      middle: Color4(r: 1, g: 0.753, b: 0, a: 1),
+      inner: Color4(r: 1, g: 1, b: 1, a: 1)
+    )
+    
+    let lit : Bool
+    // Work out what position in the looped audio we are
+    switch(data.LastBeacon.marker) {
+    case .Inner:
+      let loopCycle = data.LastBeacon.elapsed % 0.5
+      lit = loopCycle > 0.375
+    case .Middle:
+      let loopCycle = data.LastBeacon.elapsed % 0.75
+      lit = loopCycle > 0.125 && (loopCycle < 0.25 || loopCycle > 0.625)
+    case .Outer:
+      let loopCycle = data.LastBeacon.elapsed % 0.25;
+      lit = loopCycle > 0.125
+    default:
+      lit = false
+    }
+    let cols = (
+      outer:  data.LastBeacon.marker == .Outer && lit ?  litMarkerColours.outer : markerColours.outer,
+      middle: data.LastBeacon.marker == .Middle && lit ? litMarkerColours.middle : markerColours.middle,
+      inner:  data.LastBeacon.marker == .Inner && lit ?  litMarkerColours.inner : markerColours.inner
+    )
+    
+//    var innerColour = (data.LastBeacon.marker == .Inner && data.LastBeacon.elapsed < )
     drawing.program.setModelView(GLKMatrix4MakeTranslation(61, 36, 0))
-    drawing.program.setColor(markerColours.outer)
+    drawing.program.setColor(cols.outer)
     drawing.Draw(roundBox!)
     drawing.program.setModelView(GLKMatrix4MakeTranslation(61+56, 36, 0))
-    drawing.program.setColor(markerColours.middle)
+    drawing.program.setColor(cols.middle)
     drawing.Draw(roundBox!)
     //0.251, 0.251, 0.251
     drawing.program.setModelView(GLKMatrix4MakeTranslation(61+56+56, 36, 0))
-    drawing.program.setColor(markerColours.inner)
+    drawing.program.setColor(cols.inner)
     drawing.Draw(roundBox!)
     
     // Draw the text

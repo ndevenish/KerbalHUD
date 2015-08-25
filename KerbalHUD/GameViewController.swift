@@ -143,6 +143,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     runTime = nowTime-startTime
     frameTime = nowTime - lastTime
     lastTime = nowTime
+    drawing!.time = (runTime, frameTime)
     
     // Parse the latest data
     if let data = latestSocketData {

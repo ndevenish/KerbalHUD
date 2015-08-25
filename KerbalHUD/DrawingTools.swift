@@ -182,6 +182,8 @@ class DrawingTools
   
   private var meshSquare : Mesh?
   
+  var time : (total: Double, frame: Double) = (0,0)
+  
   private struct BufferInfo {
     let array : GLuint
     let name : GLuint

@@ -55,6 +55,16 @@ class HSIIndicator : RPMInstrument {
   var purpleTriangles : Drawable2D?
   var roundBox : Drawable2D?
   
+  override var dataProvider : IKerbalDataStore? {
+    didSet {
+      dataProvider?.subscribe([
+        "n.heading", "navutil.glideslope", "navutil.bearing",
+        "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
+        "navutil.runwayheading", "navutil.runway"])
+      dataProvider?.oneshot("navutil.runways")
+    }
+  }
+  
   var data : FlightData = FlightData()
   
   struct HSISettings {
@@ -73,8 +83,6 @@ class HSIIndicator : RPMInstrument {
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
     super.init(tools: tools, settings: set)
-    variables = ["n.heading", "navutil.glideslope", "navutil.bearing", "navutil.dme",
-      "navutil.locdeviation", "navutil.gsdeviation", "navutil.runwayheading", "navutil.runway"];
     
     let d : GLfloat = 0.8284271247461902
     // Inner loop

@@ -74,9 +74,10 @@ class RPMInstrument : Instrument
   var drawing : DrawingTools
   var text : TextRenderer
   
-  var dataProvider : IKerbalDataStore? = nil
+  var dataProvider : IKerbalDataStore? = nil 
 
   private var _settings : RPMPageSettings
+  
   var settings : RPMPageSettings {
     get { return _settings }
     set {

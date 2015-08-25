@@ -49,7 +49,7 @@ class GameViewController: GLKViewController {
     lastTime = startTime
     self.setupGL()
     telemachus = try! TelemachusInterface(hostname: "192.168.1.73", port: 8085)
-    telemachus?.subscribe(display!.variables)
+    display?.dataProvider = telemachus!
   }
   
   override func didReceiveMemoryWarning() {
@@ -154,7 +154,7 @@ class GameViewController: GLKViewController {
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
-        
+      telemachus?.processJSONMessage(fakeData)
       display?.update()
     }
 

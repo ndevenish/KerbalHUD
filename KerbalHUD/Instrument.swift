@@ -9,8 +9,6 @@
 import Foundation
 
 protocol Instrument {
-  var variables : [String] { get }
-  
   var screenWidth : Float { get }
   var screenHeight : Float { get }
   

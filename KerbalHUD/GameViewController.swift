@@ -204,13 +204,18 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["rpm.PLUGIN_JSIFAR:GetFlapSetting"] = JSON((Int(current) % 4))
 
       fakeData["navutil.glideslope"] = JSON(5)
-      fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.dme"] = JSON(7500+sin(current*0.5)*2000)
       fakeData["navutil.locdeviation"] = JSON(cos(current)*4)
       fakeData["navutil.gsdeviation"] = JSON(sin(current))
+      fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.headingtorunway"] = JSON(sin(current)*20+10)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
       
+      fakeData["navutil.bearing"] = JSON(117)
+      fakeData["navutil.runwayheading"] = JSON(89)
+      fakeData["n.heading"] = JSON(95);
+      
+        
       display?.update(fakeData)
     }
 

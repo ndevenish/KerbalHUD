@@ -16,8 +16,9 @@ class HSIIndicator : RPMInstrument {
     case Fine
   }
   struct Runway {
-    var Identity : String = "";
+    var Identity : String = ""
     var Altitude : GLfloat = 0
+    var Heading : GLfloat = 0
     var OuterMarker : GLfloat = 0
     var MiddleMarker : GLfloat = 0
     var InnerMarker : GLfloat = 0
@@ -64,7 +65,7 @@ class HSIIndicator : RPMInstrument {
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     super.init(tools: tools, settings: set)
     variables = ["n.heading", "navutil.glideslope", "navutil.bearing", "navutil.dme",
-      "navutil.locdeviation", "navutil.gsdeviation", "navutil.headingtorunway", "navutil.runway"];
+      "navutil.locdeviation", "navutil.gsdeviation", "navutil.runwayheading", "navutil.runway"];
     
     let d : GLfloat = 0.8284271247461902
     // Inner loop
@@ -136,12 +137,13 @@ class HSIIndicator : RPMInstrument {
     newData.BeaconDistance = variables["navutil.dme"]?.floatValue ?? 0
     newData.LocationDeviation = variables["navutil.locdeviation"]?.floatValue ?? 0
     newData.GlideslopeDeviation = variables["navutil.gsdeviation"]?.floatValue ?? 0
-    newData.RunwayHeading = variables["navutil.headingtorunway"]?.floatValue ?? 0
+    newData.RunwayHeading = variables["navutil.runwayheading"]?.floatValue ?? 0
     
     if let runwayData = variables["navutil.runway"]?.dictionary {
       var runway = Runway()
       runway.Altitude = runwayData["altitude"]?.floatValue ?? 0
       runway.Identity = runwayData["identity"]?.stringValue ?? "Unknown Runway";
+      runway.Heading = runwayData["heading"]?.floatValue ?? 0;
       let markers = runwayData["markers"]?.arrayValue ?? []
       if markers.count == 3 {
         runway.OuterMarker = markers[0].floatValue
@@ -192,9 +194,9 @@ class HSIIndicator : RPMInstrument {
       text.draw("RUNWAY: " + runway.Identity, size: 25, position: (40, 606+12.5))
       text.draw(String(format: "GLIDESLOPE: %.1f˚", data.Glideslope), size: 25, position: (40, 596.5))
       text.draw(String(format: "ELEVATION: %.0fm", runway.Altitude), size: 25, position: (320, 596.5))
+      text.draw("COURSE", size: 25, position: (60, 555), align: .Center)
+      text.draw(String(format:"%03.0f", data.RunwayHeading), size: 25, position: (60, 536), align: .Center)
     }
-    text.draw("COURSE", size: 25, position: (60, 555), align: .Center)
-    text.draw(String(format:"%.0f", 90.0), size: 25, position: (60, 536), align: .Center)
     
 //    530,556
     text.draw("HDG", size:22, position:(530,555));
@@ -202,7 +204,7 @@ class HSIIndicator : RPMInstrument {
     text.draw(String(format:"   %03.0f", data.Heading), size:25, position:(530,555));
     text.draw(String(format:"   %03.0f", cyc_mod(data.BeaconBearing, m: 360)), size:25, position:(530,526));
     
-    text.draw(String(format:"DME", data.Heading), size:22, position:(50,124));
+    text.draw("DME", size:22, position:(50,124));
     text.draw(String(format:"%.1f", data.BeaconDistance/1000), size:25, position:(45,95));
     
     
@@ -298,7 +300,7 @@ class HSIIndicator : RPMInstrument {
       inner: Color4(r: 0.251, g: 0.251, b: 0.251, a: 1)
       )
     // If we wanted bright marker colours (flashing)
-//    markerColours = (
+//    markerColours = (info
 //      outer: Color4(r: 0.008, g: 0.5, b: 1, a: 1),
 //      middle: Color4(r: 1, g: 0.753, b: 0, a: 1),
 //      inner: Color4(r: 1, g: 1, b: 1, a: 1)

@@ -202,8 +202,9 @@ class TextRenderer {
       // Get the subset of the text texture
       let unboundEndIndex = (line+1)*characterCount.x
       let endIndex = unboundEndIndex > atlasText.characters.count ?
-        atlasText.endIndex : advance(atlasText.startIndex, unboundEndIndex)
-      let range = Range(start: advance(atlasText.startIndex, line*characterCount.x),
+        atlasText.endIndex : atlasText.startIndex.advancedBy(unboundEndIndex)
+//        advance(atlasText.startIndex, )
+      let range = Range(start: atlasText.startIndex.advancedBy(line*characterCount.x),
                         end: endIndex)
       let renderText = atlasText.substringWithRange(range)
 //      print("Rendering \(renderText) to line \(line)")

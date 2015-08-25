@@ -96,29 +96,29 @@ class HSIIndicator : RPMInstrument {
     
     var whiteTri : [Triangle] = []
     whiteTri.append(Triangle((-15, 19), (0, 54), (15, 19)))
-    whiteTri.extend(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)]))
-    whiteTri.extend(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)]))
-    whiteTri.extend(drawing.DecomposePolygon([(46,0), (50, -7.5), (54, 0), (50, 7.5)]))
-    whiteTri.extend(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)]))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)]))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)]))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(46,0), (50, -7.5), (54, 0), (50, 7.5)]))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)]))
     courseWhite = tools.LoadTriangles(whiteTri)
     
     var purpTri : [Triangle] = []
-    purpTri.extend(drawing.DecomposePolygon([
+    purpTri.appendContentsOf(drawing.DecomposePolygon([
       (-2.5, 126), (-2.5, 162), (-10.5, 162), (-10.5, 166), (-2.5, 166), (-2.5, 210), (0, 212.5),
       (2.5, 210), (2.5, 166), (10.5, 166), (10.5, 162), (2.5, 162), (2.5, 126)]))
-    purpTri.extend(drawing.DecomposePolygon([
+    purpTri.appendContentsOf(drawing.DecomposePolygon([
       (-2, -127), (-2, -127-48), (2, -127-48), (2, -127)]))
     coursePurpl = tools.LoadTriangles(purpTri)
    //-127, 4x48
     
     // Generate glideslope indicators
     var glideSlopes : [Triangle] = []
-    glideSlopes.extend(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
+    glideSlopes.appendContentsOf(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
     let baseCircle = GenerateCircleTriangles(8, w: 4)
-    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))
-    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, -50)))
-    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
-    glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
+    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))
+    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -50)))
+    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
+    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
     gsIndicators = tools.LoadTriangles(glideSlopes);
     
     purpleTriangles = tools.LoadTriangles([

@@ -317,7 +317,7 @@ class RPMPlaneHUD : RPMInstrument
       points.append((x-t, xStep == numSteps ? 0 : y))
     }
     // go back around
-    points.extend(points.dropLast().dropFirst().reverse().map {Point2D($0.x, $0.y * -1)})
+    points.appendContentsOf(points.dropLast().dropFirst().reverse().map {Point2D($0.x, $0.y * -1)})
     // Now, do the inside
 //    print ("xP = [" + ", ".join(points.map{ String($0.x) }) + "]")
 //    print ("yP = [" + ", ".join(points.map{ String($0.y) }) + "]")
@@ -537,19 +537,19 @@ class JSIHeadsUpDisplay {
       (-160, -cxW/2), (-160-cxTw, -cxTh/2), (-160-cxTw, cxTh/2), (-160, cxW/2),
       (-W-w, cxW/2), (-W-w, -cxW/2)
     ]
-    triangles.extend(drawing.DecomposePolygon(crossHairPoints))
-    triangles.extend(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x, $0.y) }))
+    triangles.appendContentsOf(drawing.DecomposePolygon(crossHairPoints))
+    triangles.appendContentsOf(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x, $0.y) }))
 
     // Top Triangle
     let topTriangle : [Point2D] = [(0,160), (-cxTh/2, 160+cxTw), (cxTh/2, 160+cxTw)]
-    triangles.extend(drawing.DecomposePolygon(topTriangle))
+    triangles.appendContentsOf(drawing.DecomposePolygon(topTriangle))
     
     // Upper target line
     let upperTarget : [Point2D] = [(-w/2, H), (-w/2, H+J), (w/2, H+J), (w/2, H)]
-    triangles.extend(drawing.DecomposePolygon(upperTarget))
+    triangles.appendContentsOf(drawing.DecomposePolygon(upperTarget))
     
     // Finally, an open circle
-    triangles.extend(GenerateCircleTriangles(5, w: 2.5))
+    triangles.appendContentsOf(GenerateCircleTriangles(5, w: 2.5))
     
     return drawing.LoadTriangles(triangles)!
   }
@@ -557,9 +557,9 @@ class JSIHeadsUpDisplay {
   func GenerateProgradeMarker(size : GLfloat = 64) -> Drawable2D {
     let scale = size / 64.0
     var tris = GenerateCircleTriangles(11.0 * scale, w: 4.0*scale)
-    tris.extend(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
-    tris.extend(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
-    tris.extend(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))
+    tris.appendContentsOf(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
+    tris.appendContentsOf(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
+    tris.appendContentsOf(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))
     
     return drawing.LoadTriangles(tris)!
   }

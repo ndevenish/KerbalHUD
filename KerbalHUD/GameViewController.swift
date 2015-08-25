@@ -72,7 +72,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     print ("Connected to socket!")
 
     if let APIvars = display?.variables {
-      let APIcodeString = ",".join(APIvars.map({ "\"" + $0 + "\"" }))
+      let APIcodeString = APIvars.map({ "\"" + $0 + "\"" }).joinWithSeparator(",")
       socket.writeString("{\"+\":[" + APIcodeString + "],\"rate\": 0}")
     } else {
       print("Connected to server, but no instrument active")

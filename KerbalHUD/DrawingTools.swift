@@ -100,6 +100,10 @@ private func mod(x : Int, m : Int) -> Int {
   let rem = x % m
   return rem < 0 ? rem + m : rem
 }
+public func cyc_mod(x: Float, m : Float) -> Float {
+  let rem = x % m;
+  return rem < 0 ? rem + m : rem
+}
 
 /// Use barycentric coordinates to determine if a point is inside a triangle
 func isPointInside(p : Point2D, x : (a: Point2D, b: Point2D, c: Point2D)) -> Bool {

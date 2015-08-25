@@ -45,6 +45,7 @@ class HSIIndicator : RPMInstrument {
   var courseWhite : Drawable2D?
   var coursePurpl : Drawable2D?
   var gsIndicators : Drawable2D?
+  var purpleTriangles : Drawable2D?
   
   var data : FlightData = FlightData()
   
@@ -53,6 +54,9 @@ class HSIIndicator : RPMInstrument {
   }
   var hsiSettings = HSISettings()
   
+  let theColorPurple = Color4(r: 239.0/255.0, g: 94.0/255.0, b:1.0, a:1)
+  
+  // 239 94 255
   
   required init(tools: DrawingTools) {
     let set = RPMPageSettings(textSize: (40,23), screenSize: (640,640),
@@ -115,6 +119,10 @@ class HSIIndicator : RPMInstrument {
     glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
     glideSlopes.extend(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
     gsIndicators = tools.LoadTriangles(glideSlopes);
+    
+    purpleTriangles = tools.LoadTriangles([
+      Triangle((0, 12.5), (28, 0), (0, -12.5)),
+      Triangle((640, 12.5), (640, -12.5), (612, 0))])
   }
   
   override func update(variables: [String : JSON]) {
@@ -172,6 +180,7 @@ class HSIIndicator : RPMInstrument {
     // Draw the glideslope indicators
     drawGlideSlopeIndicators()
     
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
     // Draw the text
 //    let lineHeight = floor(screenHeight / settings.textSize.height)
 //    let lineY = (0...19).map { (line : Int) -> Float in screenHeight-lineHeight*(Float(line) + 0.5)}
@@ -184,10 +193,10 @@ class HSIIndicator : RPMInstrument {
     text.draw(String(format:"%.0f", 90.0), size: 25, position: (60, 536), align: .Center)
     
 //    530,556
-    text.draw(String(format:"HDG", data.Heading), size:22, position:(530,555));
-    text.draw(String(format:"BRG", data.BeaconBearing), size:22, position:(530,526));
+    text.draw("HDG", size:22, position:(530,555));
+    text.draw("BRG", size:22, position:(530,526));
     text.draw(String(format:"   %03.0f", data.Heading), size:25, position:(530,555));
-    text.draw(String(format:"   %03.0f", data.BeaconBearing), size:25, position:(530,526));
+    text.draw(String(format:"   %03.0f", cyc_mod(data.BeaconBearing, m: 360)), size:25, position:(530,526));
     
     text.draw(String(format:"DME", data.Heading), size:22, position:(50,124));
     text.draw(String(format:"%.1f", data.BeaconDistance/1000), size:25, position:(45,95));
@@ -203,7 +212,7 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setModelView(offset)
     
     drawing.Draw(courseWhite!)
-    drawing.program.setColor(red: 1, green: 0, blue: 1)
+    drawing.program.setColor(theColorPurple)
     drawing.Draw(coursePurpl!)
 
     // 247x5 for the course indicator
@@ -216,7 +225,7 @@ class HSIIndicator : RPMInstrument {
     drawing.DrawLine((needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
     
   }
-  
+
   func drawNeedleNDB() {
     let bearingRotation = data.Heading-data.BeaconBearing
     
@@ -271,5 +280,9 @@ class HSIIndicator : RPMInstrument {
     drawing.Draw(gsIndicators!)
     drawing.program.setModelView(GLKMatrix4MakeTranslation(640-24, 232, 0))
     drawing.Draw(gsIndicators!)
+    
+    drawing.program.setColor(theColorPurple)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(0, 232+50*data.GlideslopeDeviation, 0))
+    drawing.Draw(purpleTriangles!)
   }
 }

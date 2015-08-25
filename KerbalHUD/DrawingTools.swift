@@ -228,7 +228,7 @@ class DrawingTools
     glGenBuffers(1, &buffer)
     glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
     glBufferData(GLenum(GL_ARRAY_BUFFER), size, nil, GLenum(GL_STATIC_DRAW))
-    buffers[buffer] = BufferInfo(array: array, name: buffer, size: sizeof(GLfloat)*Int(size), offset: 0)
+    buffers[buffer] = BufferInfo(array: array, name: buffer, size: Int(size), offset: 0)
 
     // Now create the vertex array settings
     glEnableVertexAttribArray(program.attributes.position)
@@ -248,8 +248,8 @@ class DrawingTools
       }
     }
     print ("Cannot find space, generating new buffer")
-//    return generate_buffer(space)
-    if space > 1024*sizeof(GLfloat) {
+    // If it's greater than 3/4 the size of a full buffer, create one just for it
+    if space > 1024*sizeof(GLfloat)*3/4 {
       return generate_buffer(space)
     } else {
       return generate_buffer()

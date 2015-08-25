@@ -74,6 +74,8 @@ class RPMInstrument : Instrument
   var drawing : DrawingTools
   var text : TextRenderer
   
+  var dataProvider : IKerbalDataStore? = nil
+
   private var _settings : RPMPageSettings
   var settings : RPMPageSettings {
     get { return _settings }
@@ -93,14 +95,14 @@ class RPMInstrument : Instrument
     self.init(tools: tools, settings: RPMPageSettings())
   }
   
-  init(tools : DrawingTools,  settings: RPMPageSettings)
+  init(tools : DrawingTools, settings: RPMPageSettings)
   {
     self.drawing = tools
     self._settings = settings
     self.text = tools.textRenderer(_settings.fontName)
   }
   
-  func update(variables : [String: JSON]) {
+  func update() {
     
   }
   
@@ -143,7 +145,10 @@ class RPMPlaneHUD : RPMInstrument
     foil = generateFoil();
   }
   
-  override func update(vars : [String: JSON]) {
+  override func update() {
+    guard let vars = dataProvider else {
+      return
+    }
     var data = HUDFlightData()
     data.AtmHeight = vars["v.altitude"]?.floatValue ?? 0
     data.TerrHeight = vars["v.terrainHeight"]?.floatValue ?? 0

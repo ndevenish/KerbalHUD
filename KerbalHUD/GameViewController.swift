@@ -9,7 +9,7 @@
 import GLKit
 import OpenGLES
 
-class GameViewController: GLKViewController, WebSocketDelegate {
+class GameViewController: GLKViewController {
   var program : ShaderProgram?
   var drawing : DrawingTools?
   
@@ -30,9 +30,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   var runTime : Double = 0
   var frameTime : Double = 0
   
-  var socket : WebSocket? = nil
-  
-  var latestSocketData : String?
+  var telemachus : TelemachusInterface?
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -50,55 +48,9 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
     lastTime = startTime
     self.setupGL()
-    self.setupSocket()
-    
-    
+    telemachus = try! TelemachusInterface(hostname: "192.168.1.73", port: 8085)
+    telemachus?.subscribe(display!.variables)
   }
-  
-  func setupSocket()
-  {
-    socket = WebSocket(url: NSURL(string: "ws://192.168.1.73:8085/datalink")!)
-    if let s = socket {
-      print("Starting connection...")
-      s.delegate = self
-      s.connect()
-    } else {
-      print("Error opening websocket")
-    }
-  }
-  
-  func websocketDidConnect(socket: WebSocket)
-  {
-    print ("Connected to socket!")
-
-    if let APIvars = display?.variables {
-      let APIcodeString = APIvars.map({ "\"" + $0 + "\"" }).joinWithSeparator(",")
-      socket.writeString("{\"+\":[" + APIcodeString + "],\"rate\": 0}")
-    } else {
-      print("Connected to server, but no instrument active")
-    }
-  }
-  func websocketDidDisconnect(socket: WebSocket, error: NSError?)
-  {
-    if let err = error {
-      print ("Error: \(err). Disconnected.")
-    } else {
-      print ("Disconnected.")
-    }
-    print ("Attempting connection again..")
-    socket.connect()
-  }
-  func websocketDidReceiveMessage(socket: WebSocket, text: String)
-  {
-    // Just assign the data now, we don't need to update more than frame rate
-    latestSocketData = text
-  }
-  
-  func websocketDidReceiveData(socket: WebSocket, data: NSData)
-  {
-       print ("Received \(data.length)b of data")
-  }
-
   
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
@@ -123,6 +75,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     
 //   display = RPMPlaneHUD(tools: drawing!)
     display = HSIIndicator(tools: drawing!)
+    
     //    glEnable(GLenum(GL_DEPTH_TEST))
     
     glEnable(GLenum(GL_BLEND));
@@ -135,8 +88,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
   
   // MARK: - GLKView and GLKViewController delegate methods
   
-  var lastDataPrint : Double = 0;
-  
   func update() {
     // Calculate the frame times
     let nowTime : Double = CACurrentMediaTime()
@@ -144,20 +95,6 @@ class GameViewController: GLKViewController, WebSocketDelegate {
     frameTime = nowTime - lastTime
     lastTime = nowTime
     drawing!.time = (runTime, frameTime)
-    
-    // Parse the latest data
-    if let data = latestSocketData {
-      if runTime-lastDataPrint > 5 {
-        print(String(runTime) + ": " + data)
-        lastDataPrint = runTime
-      }
-      let json = JSON(data: data.dataUsingEncoding(NSUTF8StringEncoding)!)
-      latestSocketData = nil
-      if let inst = display {
-        // Convert the JSON into a dictionary
-        inst.update(json.dictionaryValue)
-      }
-    }
     
     let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
     let drawWidth = display?.screenWidth ?? 1.0
@@ -173,7 +110,7 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
     }
     
-    if !(socket?.isConnected ?? false) {
+    if (telemachus?.isConnected ?? false == false) {
       let current = runTime
       let curInt = Int(current)
       var fakeData : [String: JSON] = [:]
@@ -217,9 +154,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
-      
         
-      display?.update(fakeData)
+      display?.update()
     }
 
     // Just flush unused textures every frame for now
@@ -237,8 +173,8 @@ class GameViewController: GLKViewController, WebSocketDelegate {
       if let instr = display {
         instr.draw()
       }
-      if let sock = socket {
-        if !sock.isConnected {
+      if let tm = telemachus {
+        if !tm.isConnected {
           program.setColor(red: 1, green: 0, blue: 0)
           drawing?.drawText("NO DATA", size: display!.screenHeight/10,
             position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)

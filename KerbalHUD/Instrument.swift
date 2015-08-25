@@ -14,10 +14,12 @@ protocol Instrument {
   var screenWidth : Float { get }
   var screenHeight : Float { get }
   
+  var dataProvider : IKerbalDataStore? { get set }
+  
   init(tools : DrawingTools)
   
-  /// Update this instrument with all variables recieved from the server
-  func update(variables : [String: JSON])
+  /// Update this instrument
+  func update()
   
   func draw()
 }

@@ -138,7 +138,10 @@ class HSIIndicator : RPMInstrument {
     roundBox = tools.Load2DPolygon(GenerateRoundedBoxPoints(-25, bottom: -17, right: 25, top: 17, radius: 4.25))
   }
   
-  override func update(variables: [String : JSON]) {
+  override func update() {
+    guard let variables = dataProvider else {
+      return
+    }
     var newData = FlightData()
     newData.Heading = cyc_mod(variables["n.heading"]?.floatValue ?? 0, m: 360)
     newData.Glideslope = variables["navutil.glideslope"]?.floatValue ?? 0
@@ -303,25 +306,26 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setColor(theColorPurple)
     drawing.Draw(coursePurpl!)
 
-    // 247x5 for the course indicator
-    // Deviation mode? In fine mode, each tick (50px) == 0.25˚
-    // In coarse mode, each tick == 1˚
-    let effectiveLocDev : GLfloat
-    if data.BackCourseFlag {
-      effectiveLocDev = cyc_mod(data.LocationDeviation, m: 360)-180
-    } else {
-      effectiveLocDev = data.LocationDeviation
-    }
+    if !data.LocFlag {
+      // 247x5 for the course indicator
+      // Deviation mode? In fine mode, each tick (50px) == 0.25˚
+      // In coarse mode, each tick == 1˚
+      let effectiveLocDev : GLfloat
+      if data.BackCourseFlag {
+        effectiveLocDev = cyc_mod(data.LocationDeviation, m: 360)-180
+      } else {
+        effectiveLocDev = data.LocationDeviation
+      }
 
-    var needleOffset : GLfloat = (data.BackCourseFlag ? 1 : -1) * 50 * effectiveLocDev * (data.TrackingMode == .Coarse ? 1 : 4)
-    // Limit the deflection to +/- 50+50+60
-    needleOffset = max(needleOffset, -160)
-    needleOffset = min(needleOffset, 160)
-    if data.TrackingMode == .Fine {
-      drawing.program.setColor(red: 1, green: 1, blue: 0)
+      var needleOffset : GLfloat = (data.BackCourseFlag ? 1 : -1) * 50 * effectiveLocDev * (data.TrackingMode == .Coarse ? 1 : 4)
+      // Limit the deflection to +/- 50+50+60
+      needleOffset = max(needleOffset, -160)
+      needleOffset = min(needleOffset, 160)
+      if data.TrackingMode == .Fine {
+        drawing.program.setColor(red: 1, green: 1, blue: 0)
+      }
+      drawing.DrawLine((needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
     }
-    drawing.DrawLine((needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
-    
   }
 
   func drawNeedleNDB() {

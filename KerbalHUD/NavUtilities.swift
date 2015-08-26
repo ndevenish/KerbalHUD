@@ -9,6 +9,7 @@
 import Foundation
 import GLKit
 import AudioToolbox
+import AVFoundation
 
 class HSIIndicator : RPMInstrument {
   
@@ -46,6 +47,8 @@ class HSIIndicator : RPMInstrument {
     private var LastBeacon : (marker: BeaconMarker, time: Double, elapsed: Double) = (.None, 0, 0)
   }
   
+  private var markerIndicator : (marker: BeaconMarker, time: Double, elapsed: Double)? = nil
+  
   var overlay : Drawable2D?
   var overlayBackground : Drawable2D?
   var needleNDB : Drawable2D?
@@ -54,6 +57,12 @@ class HSIIndicator : RPMInstrument {
   var gsIndicators : Drawable2D?
   var purpleTriangles : Drawable2D?
   var roundBox : Drawable2D?
+  
+  var innerMarkerAudio : AVAudioPlayer?
+  var middleMarkerAudio : AVAudioPlayer?
+  var outerMarkerAudio : AVAudioPlayer?
+
+//  AVAudioPlayer
   
   override var dataProvider : IKerbalDataStore? {
     didSet {
@@ -83,6 +92,10 @@ class HSIIndicator : RPMInstrument {
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
     super.init(tools: tools, settings: set)
+    
+    innerMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("inner", withExtension: "wav")!)
+    middleMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("middle", withExtension: "wav")!)
+    outerMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("outer", withExtension: "wav")!)
     
     let d : GLfloat = 0.8284271247461902
     // Inner loop
@@ -189,14 +202,35 @@ class HSIIndicator : RPMInstrument {
     if beacon != data.LastBeacon.marker {
       // We have had a beacon change!
       newData.LastBeacon = (beacon, drawing.time.total, 0)
-      if beacon != .None {
-        PlayBeaconMarkerSound(beacon)
-      }
     } else {
       newData.LastBeacon = (beacon, data.LastBeacon.time, drawing.time.total - data.LastBeacon.time)
     }
+    // Update our 'status of marker' struct if it is set
+    if let mStat = markerIndicator {
+      markerIndicator = (mStat.marker, mStat.time, drawing.time.total-mStat.time)
+    }
     // Assign the new data structure
     data = newData
+  }
+  
+  private func HandleBeaconSounds()
+  {
+    if let indicator = markerIndicator {
+      // Is it time to stop this?
+      if data.LastBeacon.marker != indicator.marker
+        && IsInSound(indicator.marker, time: indicator.elapsed){
+        innerMarkerAudio?.stop()
+        middleMarkerAudio?.stop()
+        outerMarkerAudio?.stop()
+        markerIndicator = nil
+      }
+    } else {
+      // Should we be playing a sound then?
+      if data.LastBeacon.marker != .None {
+        PlayBeaconMarkerSound(data.LastBeacon.marker)
+        markerIndicator = (data.LastBeacon.marker, CACurrentMediaTime(), 0)
+      }
+    }
   }
   
   private func PlayBeaconMarkerSound(beacon : BeaconMarker) {
@@ -206,24 +240,21 @@ class HSIIndicator : RPMInstrument {
 //    AudioServicesPlaySystemSound (soundID);
 //    [soundPath release];
     // Load
-    let soundName : String
+    let soundToPlay : AVAudioPlayer?
     switch (beacon) {
     case .Inner:
-      soundName = "inner"
+      soundToPlay = innerMarkerAudio
     case .Outer:
-      soundName = "outer"
+      soundToPlay = outerMarkerAudio
     case .Middle:
-      soundName = "middle"
+      soundToPlay = middleMarkerAudio
     case .None:
-      soundName = ""
+      soundToPlay = nil
     }
-    
-    if soundName.isEmpty { return }
-    
-    if let soundURL = NSBundle.mainBundle().URLForResource("outer", withExtension: "wav") {
-      var mySound: SystemSoundID = 0
-      AudioServicesCreateSystemSoundID(soundURL, &mySound)
-      AudioServicesPlaySystemSound(mySound);
+    // Play a sound!
+    if let sound = soundToPlay {
+      sound.prepareToPlay()
+      sound.play()
     }
   }
   
@@ -252,6 +283,8 @@ class HSIIndicator : RPMInstrument {
 //    data.BeaconBearing = 30
 //    data.RunwayHeading = data.Heading
 
+    HandleBeaconSounds()
+    
     drawCompass()
     drawNeedleNDB()
     drawCourseNeedle()
@@ -420,21 +453,9 @@ class HSIIndicator : RPMInstrument {
       inner: Color4(r: 1, g: 1, b: 1, a: 1)
     )
     
-    let lit : Bool
-    // Work out what position in the looped audio we are
-    switch(data.LastBeacon.marker) {
-    case .Inner:
-      let loopCycle = data.LastBeacon.elapsed % 0.5
-      lit = loopCycle > 0.375
-    case .Middle:
-      let loopCycle = data.LastBeacon.elapsed % 0.75
-      lit = loopCycle > 0.125 && (loopCycle < 0.25 || loopCycle > 0.625)
-    case .Outer:
-      let loopCycle = data.LastBeacon.elapsed % 0.25;
-      lit = loopCycle > 0.125
-    default:
-      lit = false
-    }
+    let lit = IsInSound(data.LastBeacon.marker, time: data.LastBeacon.elapsed)
+
+    // Work out what position in the looped audio we arr
     let cols = (
       outer:  data.LastBeacon.marker == .Outer && lit ?  litMarkerColours.outer : markerColours.outer,
       middle: data.LastBeacon.marker == .Middle && lit ? litMarkerColours.middle : markerColours.middle,
@@ -486,5 +507,22 @@ class HSIIndicator : RPMInstrument {
     
 //  y - 75 + 64/3
   
+  }
+  
+  private func IsInSound(beacon : BeaconMarker, time : Double) -> Bool
+  {
+    switch(beacon) {
+    case .Outer:
+      let loopCycle = time % 0.5
+      return loopCycle < 0.375
+    case .Middle:
+      let loopCycle = time % 0.75
+      return !((loopCycle > 0.125 && loopCycle < 0.25) || loopCycle > 0.625)
+    case .Inner:
+      let loopCycle = time % 0.25;
+      return loopCycle < 0.125
+    default:
+      return false
+    }
   }
 }

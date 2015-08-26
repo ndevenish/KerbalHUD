@@ -30,7 +30,6 @@ private struct Mesh : Drawable2D {
   var bufferCount  : GLuint = 0
   var vertexType : GLenum = GLenum(GL_INVALID_ENUM)
 }
-
 enum VertexRepresentation : GLenum {
   case Points
   case Line_Strip
@@ -64,6 +63,8 @@ extension VertexRepresentation {
 
 typealias Point2D = (x: Float, y: Float)
 typealias Size2D = (w: Float, h: Float)
+typealias Size2DInt = (w: Int, h: Int)
+
 typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 //typealias Bounds = (left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
@@ -166,25 +167,15 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
 /// Contains tools for drawing simple objects
 class DrawingTools
 {
-  private static var lastArray : GLuint = 0
+  // State storing
+  private var lastArray : GLuint = 0
+  private var lastFramebuffer : GLuint = 0
+  private var lastTexture : GLuint = 0
+
   
   var program : ShaderProgram
 
   var defaultFramebuffer : GLuint = 0
-  private var last_framebuffer : GLuint?
-  func setFramebuffer(framebuffer : GLuint) {
-    if let last = last_framebuffer {
-      if framebuffer == last {
-        return
-      }
-    }
-    
-    if framebuffer == 0 {
-      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
-    } else {
-      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), framebuffer)
-    }
-  }
   
   // For textured squares
   var vertexArrayTextured : GLuint = 0
@@ -277,6 +268,22 @@ class DrawingTools
     glBindVertexArray(0);
     
     return buffers[buffer]!
+  }
+
+  func bind(buffer : Framebuffer) {
+    if lastFramebuffer == buffer.name {
+      return
+    }
+    if buffer.name == 0 {
+      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
+    } else {
+      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), buffer.name)
+    }    
+  }
+  func forceBind(buffer : Framebuffer) {
+    let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
+    lastFramebuffer = name
+    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
   }
   
   private func bufferWithSpace(space : GLsizeiptr) -> BufferInfo
@@ -387,8 +394,6 @@ class DrawingTools
     return LoadVertices(.Triangles, vertices: vertexList)
   }
   
-  private var lastArray : GLuint = 0
-  
   /// Binds a vertex array, with caching
   func bindArray(array : GLuint) {
     if array != lastArray {
@@ -490,24 +495,12 @@ class DrawingTools
     glDisable(GLenum(GL_STENCIL_TEST))
   }
   
-  var last_texture : GLuint?
   
-  func BindTexture(texture : GLKTextureInfo) {
-    if let tex = last_texture {
-      if tex == texture.name {
-        return
-      }
-    }
+  func bind(texture : Texture) {
     let name = texture.name
-    glBindTexture(GLenum(texture.target), name)
-    last_texture = name
-  }
-  func BindTexture(target: GLenum, texture: GLuint) {
-    guard texture != last_texture else {
-      return;
+    if name != lastTexture {
+      glBindTexture(texture.target, name)
     }
-    glBindTexture(target, texture)
-    last_texture = texture
   }
   
 }

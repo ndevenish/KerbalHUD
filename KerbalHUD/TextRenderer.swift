@@ -15,7 +15,7 @@ class TextRenderer {
   private var tool : DrawingTools
   private(set) var fontName : String
   private struct TextEntry {
-    let texture : GLKTextureInfo
+    let texture : Texture
     let uvPosition : Point2D
     let areaSize : Point2D
     let fontSize : Int
@@ -27,7 +27,8 @@ class TextRenderer {
   private var monospaced : Bool = false
   
   private struct TextAtlas {
-    let texture : GLKTextureInfo
+//    let texture : GLKTextureInfo
+    let texture : Texture
     // What font size was this generated at?
     let fontSize : Int
     // How many characters do we hold horizontally
@@ -99,7 +100,7 @@ class TextRenderer {
       glBindTexture(texture.target, texture.name)
       
       // Work out how wide we want to draw
-      let squareWidth = size * GLfloat(texture.width)/GLfloat(texture.height)
+      let squareWidth = size * GLfloat(texture.glk!.width)/GLfloat(texture.glk!.height)
       
       var baseMatrix = transform
       switch(align) {
@@ -142,7 +143,7 @@ class TextRenderer {
     UIGraphicsEndImageContext()
     
     let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
-    let entry = TextEntry(texture: texture, uvPosition: (0,0), areaSize: (1,1), fontSize: size, text: (text as String))
+    let entry = TextEntry(texture: Texture(glk:texture), uvPosition: (0,0), areaSize: (1,1), fontSize: size, text: (text as String))
     foundTextures.insert(textures.count)
     textures.append(entry)
     return entry
@@ -225,7 +226,7 @@ class TextRenderer {
       let uvSize = (width: GLfloat(singleCharacterSize.width)/GLfloat(textureSize.width),
         height: GLfloat(singleCharacterSize.height)/GLfloat(textureSize.height))
       
-      let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
+      let atlas = TextAtlas(texture: Texture(glk:texture), fontSize: size, widthInCharacters: characterCount.x,
         uvSize: uvSize,
         texelSize: (width: GLfloat(ceil(singleCharacterSize.width)), height: GLfloat(ceil(singleCharacterSize.height))),
         text: atlasText, coords: charLookup)
@@ -251,7 +252,7 @@ class TextRenderer {
       let fontSize = Int(ceil(size / tool.pointsToScreenScale))
       if let atlas = getAtlas(fontSize) {
         tool.program.setUseTexture(true)
-        tool.BindTexture(atlas.texture)
+        tool.bind(atlas.texture)
         tool.bindArray(tool.vertexArrayTextured)
 
         // Calculate the total end size, for things like alignment
@@ -288,7 +289,7 @@ class TextRenderer {
           if let coords = atlas.coords[char] {
             if altTexture {
               altTexture = false
-              tool.BindTexture(atlas.texture)
+              tool.bind(atlas.texture)
             }
             tool.program.setUVProperties(
                 xOffset: atlas.uvSize.width*GLfloat(coords.x),
@@ -300,7 +301,7 @@ class TextRenderer {
             // We don't recognise this character. This is a problem.
             // Use the old text drawing to render it
             let entry = getTextEntry(String(char), size: fontSize)
-            tool.BindTexture(entry.texture)
+            tool.bind(entry.texture)
             altTexture = true
             tool.program.setUVProperties(xOffset: 0, yOffset: 0, xScale:  1, yScale:  1)
             glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)

@@ -18,7 +18,6 @@
 		0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A35940E1B7136B80072CC18 /* Assets.xcassets */; };
 		0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */; };
 		0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3640821B81F53F00F4AA0E /* TextRenderer.swift */; };
-		0A3640851B8224DE00F4AA0E /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A3640841B8224DE00F4AA0E /* test_texture.png */; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
 		0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */; };
 		0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A6724491B8CE5B800A38BE5 /* inner.wav */; settings = {ASSET_TAGS = (); }; };
@@ -47,7 +46,6 @@
 		0A3594111B7136B80072CC18 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0A3594131B7136B80072CC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A3640821B81F53F00F4AA0E /* TextRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextRenderer.swift; sourceTree = "<group>"; };
-		0A3640841B8224DE00F4AA0E /* test_texture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_texture.png; sourceTree = "<group>"; };
 		0A41BE091B7F714B0009080F /* ConfigNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigNode.swift; sourceTree = "<group>"; };
 		0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilities.swift; sourceTree = "<group>"; };
 		0A6724491B8CE5B800A38BE5 /* inner.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = inner.wav; sourceTree = "<group>"; };
@@ -92,8 +90,9 @@
 		0A3594021B7136B80072CC18 /* KerbalHUD */ = {
 			isa = PBXGroup;
 			children = (
+				0A6724561B8DFFAB00A38BE5 /* Utils */,
+				0A6724551B8DFF8500A38BE5 /* Instruments */,
 				0A6724481B8CE5AD00A38BE5 /* Audio */,
-				0A3640841B8224DE00F4AA0E /* test_texture.png */,
 				0A3594031B7136B80072CC18 /* AppDelegate.swift */,
 				0A3594051B7136B80072CC18 /* Shader.fsh */,
 				0A3594071B7136B80072CC18 /* Shader.vsh */,
@@ -105,16 +104,7 @@
 				0A05148F1B7682F0000C6DE2 /* Websocket.swift */,
 				0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */,
 				0A1B0A011B76BE1000381CC7 /* Security.swift */,
-				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
-				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
-				0A77F7231B7CCC40002A760F /* DrawingTools.swift */,
-				0A77F7251B7D6282002A760F /* ShaderProgram.swift */,
 				0A41BE091B7F714B0009080F /* ConfigNode.swift */,
-				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
-				0A3640821B81F53F00F4AA0E /* TextRenderer.swift */,
-				0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */,
-				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
-				0A6724531B8DEDCA00A38BE5 /* Timers.swift */,
 			);
 			path = KerbalHUD;
 			sourceTree = "<group>";
@@ -127,6 +117,29 @@
 				0A67244B1B8CE5B800A38BE5 /* outer.wav */,
 			);
 			name = Audio;
+			sourceTree = "<group>";
+		};
+		0A6724551B8DFF8500A38BE5 /* Instruments */ = {
+			isa = PBXGroup;
+			children = (
+				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
+				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
+				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
+				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
+			);
+			name = Instruments;
+			sourceTree = "<group>";
+		};
+		0A6724561B8DFFAB00A38BE5 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				0A6724531B8DEDCA00A38BE5 /* Timers.swift */,
+				0A3640821B81F53F00F4AA0E /* TextRenderer.swift */,
+				0A77F7231B7CCC40002A760F /* DrawingTools.swift */,
+				0A77F7251B7D6282002A760F /* ShaderProgram.swift */,
+				0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */,
+			);
+			name = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -196,7 +209,6 @@
 				0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
 				0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */,
-				0A3640851B8224DE00F4AA0E /* test_texture.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

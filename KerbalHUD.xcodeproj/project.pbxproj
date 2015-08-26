@@ -20,6 +20,7 @@
 		0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3640821B81F53F00F4AA0E /* TextRenderer.swift */; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
 		0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */; };
+		0A602F481B8E5A91000AD177 /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A602F471B8E5A91000AD177 /* test_texture.png */; settings = {ASSET_TAGS = (); }; };
 		0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A6724491B8CE5B800A38BE5 /* inner.wav */; settings = {ASSET_TAGS = (); }; };
 		0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244A1B8CE5B800A38BE5 /* middle.wav */; settings = {ASSET_TAGS = (); }; };
 		0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244B1B8CE5B800A38BE5 /* outer.wav */; settings = {ASSET_TAGS = (); }; };
@@ -48,6 +49,7 @@
 		0A3640821B81F53F00F4AA0E /* TextRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextRenderer.swift; sourceTree = "<group>"; };
 		0A41BE091B7F714B0009080F /* ConfigNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigNode.swift; sourceTree = "<group>"; };
 		0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilities.swift; sourceTree = "<group>"; };
+		0A602F471B8E5A91000AD177 /* test_texture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_texture.png; sourceTree = "<group>"; };
 		0A6724491B8CE5B800A38BE5 /* inner.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = inner.wav; sourceTree = "<group>"; };
 		0A67244A1B8CE5B800A38BE5 /* middle.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = middle.wav; sourceTree = "<group>"; };
 		0A67244B1B8CE5B800A38BE5 /* outer.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = outer.wav; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 		0A3594021B7136B80072CC18 /* KerbalHUD */ = {
 			isa = PBXGroup;
 			children = (
+				0A602F471B8E5A91000AD177 /* test_texture.png */,
 				0A6724561B8DFFAB00A38BE5 /* Utils */,
 				0A6724551B8DFF8500A38BE5 /* Instruments */,
 				0A6724481B8CE5AD00A38BE5 /* Audio */,
@@ -203,6 +206,7 @@
 			files = (
 				0A35940D1B7136B80072CC18 /* Main.storyboard in Resources */,
 				0A3594081B7136B80072CC18 /* Shader.vsh in Resources */,
+				0A602F481B8E5A91000AD177 /* test_texture.png in Resources */,
 				0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */,
 				0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */,
 				0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */,

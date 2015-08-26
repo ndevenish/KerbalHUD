@@ -66,11 +66,18 @@ class GameViewController: GLKViewController {
     program = ShaderProgram()
     drawing = DrawingTools(shaderProgram: program!)
     
+    // Extract the default FBO so we can bind back
+    (self.view as! GLKView).bindDrawable()
+    var defaultFBO : GLint = 0
+    glGetIntegerv(GLenum(GL_FRAMEBUFFER_BINDING), &defaultFBO)
+    drawing?.defaultFramebuffer = GLuint(defaultFBO)
+    
 //   display = RPMPlaneHUD(tools: drawing!)
 //    display = HSIIndicator(tools: drawing!)
     
     panel = InstrumentPanel(tools: drawing!)
-    panel?.AddInstrument(HSIIndicator(tools: drawing!))
+    let hsi = HSIIndicator(tools: drawing!)
+    panel?.AddInstrument(hsi)
     //    glEnable(GLenum(GL_DEPTH_TEST))
     
     glEnable(GLenum(GL_BLEND));

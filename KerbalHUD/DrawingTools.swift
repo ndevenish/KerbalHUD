@@ -169,6 +169,22 @@ class DrawingTools
   private static var lastArray : GLuint = 0
   
   var program : ShaderProgram
+
+  var defaultFramebuffer : GLuint = 0
+  private var last_framebuffer : GLuint?
+  func setFramebuffer(framebuffer : GLuint) {
+    if let last = last_framebuffer {
+      if framebuffer == last {
+        return
+      }
+    }
+    
+    if framebuffer == 0 {
+      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
+    } else {
+      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), framebuffer)
+    }
+  }
   
   // For textured squares
   var vertexArrayTextured : GLuint = 0
@@ -416,6 +432,19 @@ class DrawingTools
     Draw(meshSquare!)
   }
 
+  func DrawTexturedSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  {
+    var baseMatrix = GLKMatrix4Identity
+    baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+    let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
+    program.setModelViewProjection(mvp)
+    bindArray(vertexArrayTextured)
+    program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+  }
+
+  
   func textRenderer(fontName : String) -> TextRenderer {
     if let existing = textRenderers[fontName] {
       return existing
@@ -461,15 +490,23 @@ class DrawingTools
     glDisable(GLenum(GL_STENCIL_TEST))
   }
   
-  var last_texture : GLKTextureInfo?
+  var last_texture : GLuint?
   
   func BindTexture(texture : GLKTextureInfo) {
     if let tex = last_texture {
-      if tex == texture {
+      if tex == texture.name {
         return
       }
     }
-    glBindTexture(texture)
+    let name = texture.name
+    glBindTexture(GLenum(texture.target), name)
+    last_texture = name
+  }
+  func BindTexture(target: GLenum, texture: GLuint) {
+    guard texture != last_texture else {
+      return;
+    }
+    glBindTexture(target, texture)
     last_texture = texture
   }
   
@@ -564,9 +601,4 @@ func GenerateRoundedBoxPoints(
   
 //  return 
   return points;
-}
-
-func glBindTexture(tex : GLKTextureInfo) {
-  let name = tex.name
-  glBindTexture(GLenum(tex.target), name)
 }

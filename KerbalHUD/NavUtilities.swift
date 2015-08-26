@@ -44,10 +44,10 @@ class HSIIndicator : RPMInstrument {
     
     var SelectedRunway : Runway? = nil
     
-    private var LastBeacon : (marker: BeaconMarker, time: Double, elapsed: Double) = (.None, 0, 0)
+    private var LastBeacon : (marker: BeaconMarker, timer: ITimer) = (.None, Clock.createTimer())
   }
   
-  private var markerIndicator : (marker: BeaconMarker, time: Double, elapsed: Double)? = nil
+  private var markerIndicator : (marker: BeaconMarker, timer: ITimer)? = nil
   
   private let _dispatch : dispatch_queue_t
   
@@ -208,13 +208,7 @@ class HSIIndicator : RPMInstrument {
     let beacon = GetBeaconCode(newData)
     if beacon != data.LastBeacon.marker {
       // We have had a beacon change!
-      newData.LastBeacon = (beacon, drawing.time.total, 0)
-    } else {
-      newData.LastBeacon = (beacon, data.LastBeacon.time, drawing.time.total - data.LastBeacon.time)
-    }
-    // Update our 'status of marker' struct if it is set
-    if let mStat = markerIndicator {
-      markerIndicator = (mStat.marker, mStat.time, drawing.time.total-mStat.time)
+      newData.LastBeacon = (beacon, Clock.createTimer())
     }
     // Assign the new data structure
     data = newData
@@ -225,7 +219,7 @@ class HSIIndicator : RPMInstrument {
     if let indicator = markerIndicator {
       // Is it time to stop this?
       if data.LastBeacon.marker != indicator.marker
-        && IsInSound(indicator.marker, time: indicator.elapsed){
+        && IsInSound(indicator.marker, time: indicator.timer.elapsed){
         innerMarkerAudio?.stop()
         middleMarkerAudio?.stop()
         outerMarkerAudio?.stop()
@@ -240,7 +234,7 @@ class HSIIndicator : RPMInstrument {
       // Should we be playing a sound then?
       if data.LastBeacon.marker != .None {
         PlayBeaconMarkerSound(data.LastBeacon.marker)
-        markerIndicator = (data.LastBeacon.marker, CACurrentMediaTime(), 0)
+        markerIndicator = (data.LastBeacon.marker, Clock.createTimer())
       }
     }
   }
@@ -467,7 +461,7 @@ class HSIIndicator : RPMInstrument {
       inner: Color4(r: 1, g: 1, b: 1, a: 1)
     )
     
-    let lit = IsInSound(data.LastBeacon.marker, time: data.LastBeacon.elapsed)
+    let lit = IsInSound(data.LastBeacon.marker, time: data.LastBeacon.timer.elapsed)
 
     // Work out what position in the looped audio we arr
     let cols = (

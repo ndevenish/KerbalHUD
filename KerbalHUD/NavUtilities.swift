@@ -222,7 +222,12 @@ class HSIIndicator : RPMInstrument {
         innerMarkerAudio?.stop()
         middleMarkerAudio?.stop()
         outerMarkerAudio?.stop()
+        innerMarkerAudio?.prepareToPlay()
+        middleMarkerAudio?.prepareToPlay()
+        outerMarkerAudio?.prepareToPlay()
+
         markerIndicator = nil
+          
       }
     } else {
       // Should we be playing a sound then?

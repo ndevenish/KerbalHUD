@@ -15,8 +15,6 @@ class GameViewController: GLKViewController {
   
   var context: EAGLContext? = nil
   
-  var display : Instrument?
-  
   deinit {
     self.tearDownGL()
     
@@ -25,12 +23,8 @@ class GameViewController: GLKViewController {
     }
   }
   
-  let startTime : Double = CACurrentMediaTime()
-  var lastTime : Double = 0
-  var runTime : Double = 0
-  var frameTime : Double = 0
-  
   var telemachus : TelemachusInterface?
+  var panel : InstrumentPanel?
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -46,10 +40,9 @@ class GameViewController: GLKViewController {
 //    view.drawableDepthFormat = .Format24
     view.drawableStencilFormat = .Format8
     
-    lastTime = startTime
     self.setupGL()
     telemachus = try! TelemachusInterface(hostname: "192.168.1.73", port: 8085)
-    display?.dataProvider = telemachus!
+    panel?.connection = telemachus!
   }
   
   override func didReceiveMemoryWarning() {
@@ -74,8 +67,10 @@ class GameViewController: GLKViewController {
     drawing = DrawingTools(shaderProgram: program!)
     
 //   display = RPMPlaneHUD(tools: drawing!)
-    display = HSIIndicator(tools: drawing!)
+//    display = HSIIndicator(tools: drawing!)
     
+    panel = InstrumentPanel(tools: drawing!)
+    panel?.AddInstrument(HSIIndicator(tools: drawing!))
     //    glEnable(GLenum(GL_DEPTH_TEST))
     
     glEnable(GLenum(GL_BLEND));
@@ -90,28 +85,27 @@ class GameViewController: GLKViewController {
   
   func update() {
     // Calculate the frame times
-    let nowTime : Double = CACurrentMediaTime()
-    runTime = nowTime-startTime
-    frameTime = nowTime - lastTime
-    lastTime = nowTime
-    drawing!.time = (runTime, frameTime)
+    Clock.frameUpdate()
     
-    let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
-    let drawWidth = display?.screenWidth ?? 1.0
-    let drawHeight = display?.screenHeight ?? 1.0
-    
-    if aspect > 1 {
-      let edge = (aspect-1)*0.5
-      program!.projection = GLKMatrix4MakeOrtho(-edge*drawWidth, (1+edge)*drawWidth, 0, drawHeight, -10, 10)
-      drawing!.pointsToScreenScale = Float(self.view.bounds.size.height) / drawHeight
-    } else {
-      let edge = (1.0/aspect - 1)*0.5
-      program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
-      drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
-    }
-    
+//    let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
+//    let drawWidth = display?.screenWidth ?? 1.0
+//    let drawHeight = display?.screenHeight ?? 1.0
+//    
+//    if aspect > 1 {
+//      let edge = (aspect-1)*0.5
+//      program!.projection = GLKMatrix4MakeOrtho(-edge*drawWidth, (1+edge)*drawWidth, 0, drawHeight, -10, 10)
+//      drawing!.pointsToScreenScale = Float(self.view.bounds.size.height) / drawHeight
+//    } else {
+//      let edge = (1.0/aspect - 1)*0.5
+//      program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
+//      drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
+//    }
+//    
+    //      let edge = (1.0/aspect - 1)*0.5
+    program!.projection = GLKMatrix4MakeOrtho(0, 600, 0, 600, -10, 10)
+
     if (telemachus?.isConnected ?? false == false) {
-      let current = runTime
+      let current = Clock.frameTime
       let curInt = Int(current)
       var fakeData : [String: JSON] = [:]
       fakeData["rpm.RADARALTOCEAN"] = JSON(current*10)
@@ -157,7 +151,7 @@ class GameViewController: GLKViewController {
       telemachus?.processJSONMessage(fakeData)
     }
 
-     display?.update()
+    panel!.update()
     // Just flush unused textures every frame for now
     drawing?.flush()
   }
@@ -170,18 +164,18 @@ class GameViewController: GLKViewController {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
       program.setModelViewProjection(program.projection)
-      if let instr = display {
+      if let instr = panel {
         instr.draw()
       }
-      if let tm = telemachus {
-        if !tm.isConnected {
-          program.setColor(red: 1, green: 0, blue: 0)
-          drawing?.drawText("NO DATA", size: display!.screenHeight/10,
-            position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)
-          drawing?.drawText("(Connecting)", size: display!.screenHeight/15,
-            position: ((display!.screenWidth/2),(display!.screenHeight/30)), align: .Center)
-        }
-      }
+//      if let tm = telemachus {
+//        if !tm.isConnected {
+//          program.setColor(red: 1, green: 0, blue: 0)
+//          drawing?.drawText("NO DATA", size: display!.screenHeight/10,
+//            position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)
+//          drawing?.drawText("(Connecting)", size: display!.screenHeight/15,
+//            position: ((display!.screenWidth/2),(display!.screenHeight/30)), align: .Center)
+//        }
+//      }
     }
     processGLErrors()
   

@@ -58,7 +58,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _socket!.delegate = self
     _startTime = CACurrentMediaTime()
     print("Starting connection to ", _url)
-    _socket!.connect()
+    //_socket!.connect()
   }
   
   func websocketDidConnect(socket: WebSocket)

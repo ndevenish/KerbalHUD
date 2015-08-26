@@ -49,6 +49,8 @@ class HSIIndicator : RPMInstrument {
   
   private var markerIndicator : (marker: BeaconMarker, time: Double, elapsed: Double)? = nil
   
+  private let _dispatch : dispatch_queue_t
+  
   var overlay : Drawable2D?
   var overlayBackground : Drawable2D?
   var needleNDB : Drawable2D?
@@ -91,7 +93,9 @@ class HSIIndicator : RPMInstrument {
     let set = RPMPageSettings(textSize: (40,23), screenSize: (640,640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
+    _dispatch = dispatch_queue_create("com.kerbalhud.queue", nil)
     super.init(tools: tools, settings: set)
+    
     
     innerMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("inner", withExtension: "wav")!)
     middleMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("middle", withExtension: "wav")!)
@@ -261,8 +265,10 @@ class HSIIndicator : RPMInstrument {
     }
     // Play a sound!
     if let sound = soundToPlay {
-      sound.prepareToPlay()
-      sound.play()
+//      dispatch_async(_dispatch, {
+        sound.prepareToPlay()
+        sound.play()        
+//      })
     }
   }
   

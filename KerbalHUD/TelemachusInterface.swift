@@ -44,8 +44,8 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _pendingSubscriptions : [String] = []
   private var _pendingOneshots : [String] = []
   
-  private var _startTime : Double = 0
-  private var _lastDump : Double = 0
+  private var _connectionTime : ITimer?
+  private var _dumpTimer : ITimer?
   
   init (hostname : String, port : UInt) throws {
     // Parse the URL
@@ -56,14 +56,14 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _url = url
     _socket = WebSocket(url: _url)
     _socket!.delegate = self
-    _startTime = CACurrentMediaTime()
     print("Starting connection to ", _url)
-    //_socket!.connect()
+    _socket!.connect()
   }
   
   func websocketDidConnect(socket: WebSocket)
   {
     print("Connected to socket!")
+    _connectionTime = Clock.createTimer()
     // Form an initial subscription packet
     var apiParts : [String] = ["\"rate\": 0"]
     if _pendingSubscriptions.count > 0 {
@@ -94,10 +94,9 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-    let time = CACurrentMediaTime()
-    if (time - _lastDump > 10) {
-      print(time-_startTime , ":  ", text)
-      _lastDump = time
+    if let timer = _dumpTimer where timer.elapsed > 10 {
+      print(_connectionTime!.elapsed, ":  ", text)
+      _dumpTimer = Clock.createTimer()
     }
     guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
       print("Got message could not decode as JSON: ", text)

@@ -55,6 +55,8 @@ class InstrumentPanel
     for i in instruments {
       // Bind the framebuffer for this instrument
       drawing.bind(i.framebuffer)
+      glViewport(0, 0, GLsizei(i.framebuffer.size.w), GLsizei(i.framebuffer.size.h))
+      
       // Reassign the projection matrix. Upside-down, to match texture
       drawing.program.projection = GLKMatrix4MakeOrtho(0,
         i.instrument.screenWidth, i.instrument.screenHeight, 0, -10, 10)
@@ -69,7 +71,7 @@ class InstrumentPanel
     drawing.program.setUseTexture(true)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    glDisable(GLenum(GL_BLEND));
+//    glDisable(GLenum(GL_BLEND));
     
     for i in instruments {
       // Now, draw the textured square
@@ -81,13 +83,30 @@ class InstrumentPanel
   
   func AddInstrument(item : Instrument)
   {
-    // Work out how big in pixels this needs to be, to fill the screen
-    let pixelSize = Size2DInt(
-      w: Int(item.screenWidth * Float(UIScreen.mainScreen().scale)),
-      h: Int(item.screenHeight * Float(UIScreen.mainScreen().scale)))
+    // Work out how big we can draw this on a full screen, both ways round
+    let drawSize = Size2D(item.screenWidth, item.screenHeight)
+    let screenSize = Size2D(Float(UIScreen.mainScreen().bounds.size.width),
+                            Float(UIScreen.mainScreen().bounds.size.height))
+    var screenAspect = screenSize.w / screenSize.h
+    if screenAspect < 1 {
+      screenAspect = 1.0 / screenAspect
+    }
+    let drawAspect = drawSize.w / drawSize.h
+    let normAspect = drawAspect < 1 ? 1.0 / drawAspect : drawAspect
 
-    let buffer = drawing.createTextureFramebuffer(pixelSize,
-      depth: false, stencil: true)
+    // In landscape, Height is height. Width is height * aspect
+    let landscapeHeight = min(screenSize.w, screenSize.h)
+    let scale = Float(UIScreen.mainScreen().scale)
+    let pixelSize : Size2DInt
+    if drawAspect >= 1 {
+      pixelSize = ( w: Int(landscapeHeight*normAspect*scale),
+                    h: Int(landscapeHeight*scale))
+    } else {
+      pixelSize = ( w: Int(landscapeHeight*scale),
+                    h: Int(landscapeHeight*normAspect*scale))
+    }
+    
+    let buffer = drawing.createTextureFramebuffer(pixelSize, depth: false, stencil: true)
 
     let newInst = PanelEntry(instrument: item, framebuffer: buffer)
     instruments.append(newInst)

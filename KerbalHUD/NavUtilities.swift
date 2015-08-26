@@ -96,6 +96,9 @@ class HSIIndicator : RPMInstrument {
     innerMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("inner", withExtension: "wav")!)
     middleMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("middle", withExtension: "wav")!)
     outerMarkerAudio = try? AVAudioPlayer(contentsOfURL: NSBundle.mainBundle().URLForResource("outer", withExtension: "wav")!)
+    innerMarkerAudio?.prepareToPlay()
+    middleMarkerAudio?.prepareToPlay()
+    outerMarkerAudio?.prepareToPlay()
     
     let d : GLfloat = 0.8284271247461902
     // Inner loop

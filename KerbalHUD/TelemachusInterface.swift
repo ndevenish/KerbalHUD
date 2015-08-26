@@ -44,6 +44,9 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _pendingSubscriptions : [String] = []
   private var _pendingOneshots : [String] = []
   
+  private var _startTime : Double = 0
+  private var _lastDump : Double = 0
+  
   init (hostname : String, port : UInt) throws {
     // Parse the URL
     guard let url = NSURL(scheme: "ws", host: hostname + ":" + String(port), path: "/datalink") else {
@@ -53,6 +56,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _url = url
     _socket = WebSocket(url: _url)
     _socket!.delegate = self
+    _startTime = CACurrentMediaTime()
     print("Starting connection to ", _url)
     _socket!.connect()
   }
@@ -90,7 +94,11 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-    print("Got message ", text)
+    let time = CACurrentMediaTime()
+    if (time - _lastDump > 10) {
+      print(time-_startTime , ":  ", text)
+      _lastDump = time
+    }
     guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
       print("Got message could not decode as JSON: ", text)
       return

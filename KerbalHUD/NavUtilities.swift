@@ -195,7 +195,7 @@ class HSIIndicator : RPMInstrument {
       }
     }
     
-    newData.GlideSlopeFlag = abs(newData.GlideslopeDeviation) > 25
+    newData.GlideSlopeFlag = abs(newData.LocationDeviation) > 25
     
     // Handle the beacons
     let beacon = GetBeaconCode(newData)

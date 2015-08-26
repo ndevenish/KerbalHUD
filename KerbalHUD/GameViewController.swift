@@ -155,9 +155,9 @@ class GameViewController: GLKViewController {
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
       telemachus?.processJSONMessage(fakeData)
-      display?.update()
     }
 
+     display?.update()
     // Just flush unused textures every frame for now
     drawing?.flush()
   }

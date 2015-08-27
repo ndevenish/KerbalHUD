@@ -176,6 +176,7 @@ class DrawingTools
   var program : ShaderProgram
 
   var defaultFramebuffer : GLuint = 0
+  var screenSize : Size2DInt = (0,0)
   
   // For textured squares
   var vertexArrayTextured : GLuint = 0
@@ -217,7 +218,10 @@ class DrawingTools
   
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
-
+    screenSize = (
+      w: Int(UIScreen.mainScreen().bounds.width),
+      h: Int(UIScreen.mainScreen().bounds.height))
+      
     // Create an initial buffer
     generate_buffer()
     
@@ -274,16 +278,17 @@ class DrawingTools
     if lastFramebuffer == buffer.name {
       return
     }
-    if buffer.name == 0 {
-      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
-    } else {
-      glBindFramebuffer(GLenum(GL_FRAMEBUFFER), buffer.name)
-    }    
+    let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
+    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
+    lastFramebuffer = name
+    let size = name == defaultFramebuffer ? screenSize : buffer.size
+    glViewport(0, 0, GLsizei(size.w), GLsizei(size.h))
   }
+  
   func forceBind(buffer : Framebuffer) {
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
-    lastFramebuffer = name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
+    lastFramebuffer = name
   }
   
   private func bufferWithSpace(space : GLsizeiptr) -> BufferInfo

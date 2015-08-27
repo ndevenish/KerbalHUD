@@ -55,7 +55,6 @@ class InstrumentPanel
     for i in instruments {
       // Bind the framebuffer for this instrument
       drawing.bind(i.framebuffer)
-      glViewport(0, 0, GLsizei(i.framebuffer.size.w), GLsizei(i.framebuffer.size.h))
       
       // Reassign the projection matrix. Upside-down, to match texture
       drawing.program.projection = GLKMatrix4MakeOrtho(0,
@@ -76,7 +75,7 @@ class InstrumentPanel
     for i in instruments {
       // Now, draw the textured square
       drawing.bind(i.framebuffer.texture)
-      drawing.DrawTexturedSquare(0.5, bottom: 0, right: 1, top: 0.5)
+      drawing.DrawTexturedSquare(0, bottom: 0, right: 1, top: 0.8)
     }
     processGLErrors()
   }

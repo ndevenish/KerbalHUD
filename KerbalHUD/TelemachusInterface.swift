@@ -44,8 +44,8 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _pendingSubscriptions : [String] = []
   private var _pendingOneshots : [String] = []
   
-  private var _connectionTime : ITimer?
-  private var _dumpTimer : ITimer?
+  private var _connectionTime : Timer?
+  private var _dumpTimer : Timer?
   
   private var _subscriptions : [String : Int ] = [:]
   

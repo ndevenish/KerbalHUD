@@ -44,10 +44,10 @@ class HSIIndicator : RPMInstrument {
     
     var SelectedRunway : Runway? = nil
     
-    private var LastBeacon : (marker: BeaconMarker, timer: ITimer) = (.None, Clock.createTimer())
+    private var LastBeacon : (marker: BeaconMarker, timer: Timer) = (.None, Clock.createTimer())
   }
   
-  private var markerIndicator : (marker: BeaconMarker, timer: ITimer)? = nil
+  private var markerIndicator : (marker: BeaconMarker, timer: Timer)? = nil
   
   private let _dispatch : dispatch_queue_t
   

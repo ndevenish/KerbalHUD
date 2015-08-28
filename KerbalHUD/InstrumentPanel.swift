@@ -15,6 +15,12 @@ private struct PanelEntry {
   var bounds : Bounds
 }
 
+private enum PanelLayout {
+  case None
+  case Horizontal
+  case Vertical
+}
+
 class InstrumentPanel
 {
   var connection : TelemachusInterface? {
@@ -27,6 +33,7 @@ class InstrumentPanel
   
   private let drawing : DrawingTools
   private var instruments : [PanelEntry] = []
+  private var previousArrangement : (layout: PanelLayout, frame: Double) = (.None, -1)
   
   init(tools : DrawingTools)
   {
@@ -51,6 +58,8 @@ class InstrumentPanel
   func draw()
   {
     processGLErrors()
+    layout()
+
     // Generate the textures for every instrument
     for i in instruments {
       // Bind the framebuffer for this instrument
@@ -105,10 +114,11 @@ class InstrumentPanel
     
     // See if we scale better vertically, or horizontally
     let bestVertically = arraySize.scaleForFitInto(screenSize) > arraySize.scaleForFitInto(screenSize.flipped)
+    let layout : PanelLayout = bestVertically ? .Vertical : .Horizontal
     
     let instrumentSize : Size2D<Float>
     var offset : Size2D<Float> = Size2D(w: 0.0, h: 0.0)
-    if bestVertically {
+    if layout == .Vertical {
       // Layout vertically, top-to-bottom
       if arraySize.constrainingSide(screenSize) == .Width {
         offset = Size2D(w: 0, h: (1-(Float(screenSize.w) / arraySize.aspect))/2)
@@ -116,26 +126,42 @@ class InstrumentPanel
       instrumentSize = Size2D(w: screenSize.aspect, h: 1/Float(instruments.count))
     } else {
       // We layout horizontally
-      if arraySize.constrainingSide(screenSize) == .Height {
-        offset = Size2D(w: (1-Float(screenSize.h)*arraySize.aspect)/2, h: 0)
+      let hSize = arraySize.flipped
+      if hSize.constrainingSide(screenSize) == .Height {
+        offset = Size2D(w: (1-Float(screenSize.h)*hSize.aspect)/2, h: 0)
       }
-      instrumentSize = Size2D(w: screenSize.aspect/Float(instruments.count), h: 1/arraySize.aspect)
+      instrumentSize = Size2D(w: screenSize.aspect/Float(instruments.count), h: 1/hSize.aspect)
     }
 
     for (i, instrument) in instruments.enumerate() {
       let scale = instrument.instrument.screenSize.scaleForFitInto(instrumentSize)
       let drawSize = instrument.instrument.screenSize * scale
       
-      if bestVertically {
+      let newBounds : Bounds
+      if layout == .Vertical {
         let y = (1 - instrumentSize.h * Float(i+1)) - offset.h
         // Center horizontally
         let x = (screenSize.aspect-drawSize.w)*0.5
-        instruments[i].bounds = FixedBounds(left: x, bottom: y, right: x+drawSize.w, top: y+drawSize.h)
+        newBounds = FixedBounds(left: x, bottom: y, right: x+drawSize.w, top: y+drawSize.h)
       } else {
         let x = instrumentSize.w * Float(i) + offset.w
         let y = (1-drawSize.h)*0.5
-        instruments[i].bounds = FixedBounds(left: x, bottom: y, right: x+drawSize.w, top: y+drawSize.h)
+        newBounds = FixedBounds(left: x, bottom: y, right: x+drawSize.w, top: y+drawSize.h)
+      }
+      
+      // If we do not match the previous arrangement, jump. Else animate.
+      if previousArrangement.frame == Clock.time
+        || previousArrangement.layout != layout
+        || instrument.bounds is ErrorBounds
+      {
+        // Jump
+        instruments[i].bounds = newBounds
+      } else {
+        // Animate
+        let previous = FixedBounds(bounds: instrument.bounds)
+        instruments[i].bounds = BoundsInterpolator(from: previous, to: newBounds, seconds: 1)
       }
     }
+    previousArrangement = (layout, Clock.time)
   }
 }

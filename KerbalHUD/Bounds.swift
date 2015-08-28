@@ -41,4 +41,29 @@ struct FixedBounds : Bounds {
     self.top = top
   }
   
+  init(bounds : Bounds) {
+    left = bounds.left
+    right = bounds.right
+    top = bounds.top
+    bottom = bounds.bottom
+  }
+}
+
+struct BoundsInterpolator : Bounds {
+  var left : Float { return start.left + (end.left-start.left)*Float(clock.fraction) }
+  var right : Float { return start.right + (end.right-start.right)*Float(clock.fraction) }
+  var top : Float { return start.top + (end.top-start.top)*Float(clock.fraction) }
+  var bottom : Float { return start.bottom + (end.bottom-start.bottom)*Float(clock.fraction) }
+  var width : Float { return abs(right-left) }
+  var height : Float { return abs(top-bottom) }
+  
+  var start : Bounds
+  var end : Bounds
+  var clock : Timer
+  
+  init(from: Bounds, to: Bounds, seconds: Double) {
+    start = from
+    end = to
+    clock = Clock.createTimer(.Animation, duration: seconds)
+  }
 }

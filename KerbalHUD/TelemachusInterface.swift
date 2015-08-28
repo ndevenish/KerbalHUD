@@ -47,6 +47,8 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _connectionTime : ITimer?
   private var _dumpTimer : ITimer?
   
+  private var _subscriptions : [String : Int ] = [:]
+  
   init (hostname : String, port : UInt) throws {
     // Parse the URL
     guard let url = NSURL(scheme: "ws", host: hostname + ":" + String(port), path: "/datalink") else {
@@ -140,13 +142,25 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       print ("No Connection; pending subscriptions")
       return
     }
-    let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
+    for name in apiNames {
+      let count = _subscriptions[name] ?? 0
+      _subscriptions[name] = count + 1
+    }
+    let list = apiNames.map({"\"" + $0 + "\""}).joinWithSeparator(",")
     let api = "\"+\": [\(list)]"
     _socket?.writeString("{\(api)}")
   }
   func unsubscribe(apiNames : [String]) {
     if (!isConnected) { return }
-    let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
+    for name in apiNames {
+      let count = _subscriptions[name] ?? 0
+      if count == 0 {
+        print("Warning: Count mismatch for variable ", name)
+        continue
+      }
+      _subscriptions[name] = count - 1
+    }
+    let list = apiNames.map({"\"" + $0 + "\""}).joinWithSeparator(",")
     let api = "\"-\": [\(list)]"
     _socket?.writeString("{\(api)}")
   }

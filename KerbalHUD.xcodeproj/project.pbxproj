@@ -19,7 +19,6 @@
 		0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */; };
 		0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3640821B81F53F00F4AA0E /* TextRenderer.swift */; };
 		0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9021B8E80ED00E85213 /* Textures.swift */; settings = {ASSET_TAGS = (); }; };
-		0A36D9051B8F93BC00E85213 /* SimpleStructures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9041B8F93BC00E85213 /* SimpleStructures.swift */; settings = {ASSET_TAGS = (); }; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
 		0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */; };
 		0A602F481B8E5A91000AD177 /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A602F471B8E5A91000AD177 /* test_texture.png */; settings = {ASSET_TAGS = (); }; };
@@ -33,6 +32,9 @@
 		0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */; };
 		0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7231B7CCC40002A760F /* DrawingTools.swift */; };
 		0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7251B7D6282002A760F /* ShaderProgram.swift */; };
+		0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */; settings = {ASSET_TAGS = (); }; };
+		0A7C02D91B909AF500790764 /* Bounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02D81B909AF500790764 /* Bounds.swift */; settings = {ASSET_TAGS = (); }; };
+		0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02DA1B909B0700790764 /* Size2D.swift */; settings = {ASSET_TAGS = (); }; };
 		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
@@ -51,7 +53,6 @@
 		0A3594131B7136B80072CC18 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A3640821B81F53F00F4AA0E /* TextRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextRenderer.swift; sourceTree = "<group>"; };
 		0A36D9021B8E80ED00E85213 /* Textures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Textures.swift; sourceTree = "<group>"; };
-		0A36D9041B8F93BC00E85213 /* SimpleStructures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleStructures.swift; sourceTree = "<group>"; };
 		0A41BE091B7F714B0009080F /* ConfigNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigNode.swift; sourceTree = "<group>"; };
 		0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilities.swift; sourceTree = "<group>"; };
 		0A602F471B8E5A91000AD177 /* test_texture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_texture.png; sourceTree = "<group>"; };
@@ -61,10 +62,13 @@
 		0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemachusInterface.swift; sourceTree = "<group>"; };
 		0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InstrumentPanel.swift; sourceTree = "<group>"; };
 		0A6724531B8DEDCA00A38BE5 /* Timers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
+		0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RPMInstrument.swift; sourceTree = "<group>"; };
 		0A77F71F1B7CBFF9002A760F /* Instrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Instrument.swift; sourceTree = "<group>"; };
 		0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSIHeadsUpDisplay.swift; sourceTree = "<group>"; };
 		0A77F7231B7CCC40002A760F /* DrawingTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawingTools.swift; sourceTree = "<group>"; };
 		0A77F7251B7D6282002A760F /* ShaderProgram.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderProgram.swift; sourceTree = "<group>"; };
+		0A7C02D81B909AF500790764 /* Bounds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bounds.swift; sourceTree = "<group>"; };
+		0A7C02DA1B909B0700790764 /* Size2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Size2D.swift; sourceTree = "<group>"; };
 		0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -134,6 +138,7 @@
 			children = (
 				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
 				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
+				0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */,
 				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
 				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
 			);
@@ -151,13 +156,22 @@
 			name = Utils;
 			sourceTree = "<group>";
 		};
+		0A7C02D71B909AE500790764 /* SimpleStructures */ = {
+			isa = PBXGroup;
+			children = (
+				0A7C02D81B909AF500790764 /* Bounds.swift */,
+				0A7C02DA1B909B0700790764 /* Size2D.swift */,
+			);
+			name = SimpleStructures;
+			sourceTree = "<group>";
+		};
 		0AF05C381B8E76C500908F37 /* Drawing */ = {
 			isa = PBXGroup;
 			children = (
+				0A7C02D71B909AE500790764 /* SimpleStructures */,
 				0A77F7231B7CCC40002A760F /* DrawingTools.swift */,
 				0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */,
 				0A36D9021B8E80ED00E85213 /* Textures.swift */,
-				0A36D9041B8F93BC00E85213 /* SimpleStructures.swift */,
 			);
 			name = Drawing;
 			sourceTree = "<group>";
@@ -240,12 +254,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */,
 				0A35940A1B7136B80072CC18 /* GameViewController.swift in Sources */,
 				0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */,
 				0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */,
-				0A36D9051B8F93BC00E85213 /* SimpleStructures.swift in Sources */,
 				0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */,
 				0A6724541B8DEDCA00A38BE5 /* Timers.swift in Sources */,
+				0A7C02D91B909AF500790764 /* Bounds.swift in Sources */,
 				0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */,
 				0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */,
 				0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */,
@@ -253,6 +268,7 @@
 				0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */,
 				0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */,
 				0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */,
+				0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */,
 				0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */,
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
 				0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */,

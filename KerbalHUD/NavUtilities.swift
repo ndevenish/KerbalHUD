@@ -51,6 +51,8 @@ class HSIIndicator : RPMInstrument {
   
   private let _dispatch : dispatch_queue_t
   
+  private var data : FlightData = FlightData()
+  
   var overlay : Drawable2D?
   var overlayBackground : Drawable2D?
   var needleNDB : Drawable2D?
@@ -66,17 +68,30 @@ class HSIIndicator : RPMInstrument {
 
 //  AVAudioPlayer
   
-  override var dataProvider : IKerbalDataStore? {
-    didSet {
-      dataProvider?.subscribe([
-        "n.heading", "navutil.glideslope", "navutil.bearing",
-        "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
-        "navutil.runwayheading", "navutil.runway"])
-      dataProvider?.oneshot("navutil.runways")
-    }
+//  var dataProvider : IKerbalDataStore? {
+//    didSet {
+//      dataProvider?.subscribe([
+//        "n.heading", "navutil.glideslope", "navutil.bearing",
+//        "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
+//        "navutil.runwayheading", "navutil.runway"])
+//      dataProvider?.oneshot("navutil.runways")
+//    }
+//  }
+//  
+  override func connect(to : IKerbalDataStore) {
+    super.connect(to)
+    to.subscribe([
+              "n.heading", "navutil.glideslope", "navutil.bearing",
+              "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
+              "navutil.runwayheading", "navutil.runway"])
+    to.oneshot("navutil.runways")
   }
   
-  var data : FlightData = FlightData()
+  override func disconnect(from: IKerbalDataStore) {
+    from.unsubscribe(["n.heading", "navutil.glideslope", "navutil.bearing",
+      "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
+      "navutil.runwayheading", "navutil.runway"])
+  }
   
   struct HSISettings {
     var enableFineLoc : Bool = true

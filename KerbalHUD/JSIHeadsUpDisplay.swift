@@ -68,50 +68,6 @@ struct RPMPageSettings
   var fontColor : Color4 = (1,1,1,1)
 }
 
-class RPMInstrument : Instrument
-{
-  var variables : [String] = []
-  var drawing : DrawingTools
-  var text : TextRenderer
-  
-  var dataProvider : IKerbalDataStore? = nil 
-
-  private var _settings : RPMPageSettings
-  
-  var settings : RPMPageSettings {
-    get { return _settings }
-    set {
-      _settings = newValue
-      // If the font changed, reload the font object
-      if _settings.fontName != text.fontName {
-        text = drawing.textRenderer(_settings.fontName)
-      }
-    }
-  }
-  
-  var screenSize : Size2D<Float> { return settings.screenSize }
-  
-  required convenience init(tools: DrawingTools) {
-    self.init(tools: tools, settings: RPMPageSettings())
-  }
-  
-  init(tools : DrawingTools, settings: RPMPageSettings)
-  {
-    self.drawing = tools
-    self._settings = settings
-    self.text = tools.textRenderer(_settings.fontName)
-  }
-  
-  func update() {
-    
-  }
-  
-  func draw() {
-    
-  }
-}
-
-
 class RPMPlaneHUD : RPMInstrument
 {
 //  private var drawing : DrawingTools
@@ -120,29 +76,39 @@ class RPMPlaneHUD : RPMInstrument
   private var hud : JSIHeadsUpDisplay?
   private var foil : Drawable2D?
   
+  private let variables = [
+        "v.atmosphericDensity", "v.dynamicPressure",
+        "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
+        "n.pitch", "n.heading", "n.roll",
+        "f.throttle",
+        "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
+        "v.surfaceSpeed", "v.verticalSpeed",
+        "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
+        // RPM Variables
+        "rpm.available",
+        "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
+        "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
+        "rpm.RADARALTOCEAN", "rpm.ANGLEOFATTACK", "rpm.SIDESLIP",
+        "rpm.PLUGIN_JSIFAR:GetFlapSetting", "rpm.TERMINALVELOCITY", "rpm.SURFSPEED"
+      ]
+
   required init(tools : DrawingTools) {
     let set = RPMPageSettings(textSize: (40,20), screenSize: Size2D(w: 640, h: 640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(0,1,0,1))
     super.init(tools: tools, settings: set)
     
-    variables = [
-      "v.atmosphericDensity", "v.dynamicPressure",
-      "v.altitude", "v.heightFromTerrain", "v.terrainHeight",
-      "n.pitch", "n.heading", "n.roll",
-      "f.throttle",
-      "v.sasValue", "v.lightValue", "v.brakeValue", "v.gearValue",
-      "v.surfaceSpeed", "v.verticalSpeed",
-      "v.surfaceVelocityx", "v.surfaceVelocityy", "v.surfaceVelocityz",
-      // RPM Variables
-      "rpm.available",
-      "rpm.ATMOSPHEREDEPTH","rpm.EASPEED","rpm.EFFECTIVETHROTTLE",
-      "rpm.ENGINEOVERHEATALARM", "rpm.GROUNDPROXIMITYALARM", "rpm.SLOPEALARM",
-      "rpm.RADARALTOCEAN", "rpm.ANGLEOFATTACK", "rpm.SIDESLIP",
-      "rpm.PLUGIN_JSIFAR:GetFlapSetting", "rpm.TERMINALVELOCITY", "rpm.SURFSPEED"
-    ]
-
     hud = JSIHeadsUpDisplay(tools: tools, page: self)
     foil = generateFoil();
+  }
+  
+  override func connect(to : IKerbalDataStore) {
+    super.connect(to)
+    to.subscribe(variables)
+  }
+  
+  override func disconnect(from: IKerbalDataStore) {
+    super.disconnect(from)
+    from.unsubscribe(variables)
   }
   
   override func update() {
@@ -338,7 +304,7 @@ class JSIHeadsUpDisplay {
   /// Is the heading bar displayed?
   var headingBar : Bool = true
   /// The position of the heading bar
-  var headingBarBounds : Bounds = Bounds(left: 160, bottom: 640-122-38, right: 160+320,top: 640-122)
+  var headingBarBounds : Bounds = FixedBounds(left: 160, bottom: 640-122-38, right: 160+320,top: 640-122)
   /// The visible width of the heading bar, in degrees
   var headingBarScale : GLfloat = 58.0
   
@@ -605,9 +571,9 @@ class JSIHudVerticalBar {
       self.useLog = useLog
       self.direction = direction
       if self.direction == .Left {
-        self.bounds = Bounds(left: position.x-position.width, bottom: position.y, right: position.x, top: position.y+position.height)
+        self.bounds = FixedBounds(left: position.x-position.width, bottom: position.y, right: position.x, top: position.y+position.height)
       } else {
-        self.bounds = Bounds(left: position.x, bottom: position.y, right: position.x+position.width, top: position.y+position.height)
+        self.bounds = FixedBounds(left: position.x, bottom: position.y, right: position.x+position.width, top: position.y+position.height)
       }
       self.limits = limits
       self.verticalScale = verticalScale

@@ -9,12 +9,19 @@
 import Foundation
 
 protocol Instrument {
+  /// The INTERNAL screen size e.g. the coordinate system this expects to draw on
   var screenSize : Size2D<Float> { get }
   
-  var dataProvider : IKerbalDataStore? { get set }
+  var drawing : DrawingTools { get }
   
+  /// Initialise with a toolset to draw with
   init(tools : DrawingTools)
   
+  /// Start communicating with the kerbal data store
+  func connect(to : IKerbalDataStore)
+  /// Stop communicating with the kerbal data store
+  func disconnect(from : IKerbalDataStore)
+
   /// Update this instrument
   func update()
   

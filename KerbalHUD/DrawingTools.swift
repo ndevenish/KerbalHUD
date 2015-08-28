@@ -65,7 +65,7 @@ typealias Point2D = (x: Float, y: Float)
 
 typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
-//typealias Bounds = (left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+
 
 func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {
   return Point2D(base.x + shift.x, base.y + shift.y)
@@ -78,20 +78,6 @@ func ShiftTriangle(base : Triangle, shift : Point2D) -> Triangle {
 }
 func ShiftTriangles(base : [Triangle], shift : Point2D) -> [Triangle] {
   return base.map({ ShiftTriangle($0, shift: shift) });
-}
-
-struct Bounds {
-  var left : GLfloat
-  var bottom : GLfloat
-  var right : GLfloat
-  var top : GLfloat
-  
-  var height : GLfloat {
-    return top-bottom
-  }
-  var width : GLfloat {
-    return right-left
-  }
 }
 
 /// A real, cyclic mod
@@ -445,6 +431,9 @@ class DrawingTools
     Draw(meshSquare!)
   }
 
+  func DrawTexturedSquare(bounds : Bounds) {
+    DrawTexturedSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
+  }
   func DrawTexturedSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
   {
     var baseMatrix = GLKMatrix4Identity

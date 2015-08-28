@@ -61,7 +61,7 @@ private struct HUDFlightData {
 struct RPMPageSettings
 {
   var textSize : (width: GLfloat, height: GLfloat) = (32, 8)
-  var screenSize : (width: GLfloat, height: GLfloat) = (512, 256)
+  var screenSize = Size2D<Float>(w: 512, h: 256)
   
   var backgroundColor : Color4 = (0,0,0,1)
   var fontName : String = "Menlo"
@@ -89,8 +89,7 @@ class RPMInstrument : Instrument
     }
   }
   
-  var screenWidth : GLfloat { return settings.screenSize.width }
-  var screenHeight : GLfloat { return settings.screenSize.height }
+  var screenSize : Size2D<Float> { return settings.screenSize }
   
   required convenience init(tools: DrawingTools) {
     self.init(tools: tools, settings: RPMPageSettings())
@@ -122,7 +121,7 @@ class RPMPlaneHUD : RPMInstrument
   private var foil : Drawable2D?
   
   required init(tools : DrawingTools) {
-    let set = RPMPageSettings(textSize: (40,20), screenSize: (640,640),
+    let set = RPMPageSettings(textSize: (40,20), screenSize: Size2D(w: 640, h: 640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(0,1,0,1))
     super.init(tools: tools, settings: set)
     
@@ -197,8 +196,11 @@ class RPMPlaneHUD : RPMInstrument
   override func draw() {
     hud?.RenderHUD()
     
+    let screenSize : Size2D<Float> = Size2D(w: Float(self.screenSize.w),
+                                            h: Float(self.screenSize.h))
+    
     if let data = latestData {
-      let lineHeight = floor(screenHeight / settings.textSize.height)
+      let lineHeight = floor(Float(screenSize.h) / settings.textSize.height)
 
       if data.Flaps > -1 {
         var foilMV = GLKMatrix4MakeTranslation(640*7/8, 640*1/16, 0)
@@ -242,31 +244,31 @@ class RPMPlaneHUD : RPMInstrument
       drawing.program.setColor(settings.fontColor)
       // 16, 48
       //16, 80
-      let lineY = (0...19).map { (line : Int) -> Float in screenHeight-lineHeight*(Float(line) + 0.5)}
+      let lineY = (0...19).map { (line : Int) -> Float in screenSize.h-lineHeight*(Float(line) + 0.5)}
       
       // Render the text!
       text.draw(String(format:"PRS: %7.3fkPa", data.DynPressure/1000),
         size: lineHeight, position: (16, lineY[1]))
       
       text.draw(String(format:"ASL: %6.0fm", data.AtmHeight),
-        size: lineHeight, position: (screenWidth-16, lineY[1]), align: .Right)
+        size: lineHeight, position: (screenSize.w-16, lineY[1]), align: .Right)
       text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
-        position: (screenWidth-16, lineY[2]), align: .Right)
+        position: (screenSize.w-16, lineY[2]), align: .Right)
       
       // Heading note
       text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
-        position: (screenWidth/2, lineY[3]), align: .Center)
+        position: (screenSize.w/2, lineY[3]), align: .Center)
 
       text.draw(String(format:"SPD: %6.0fm/s", data.Speed), size: lineHeight, position: (16, lineY[16]))
       text.draw(String(format:"HRZ: %6.0fm/s", data.HrzSpeed), size: lineHeight, position: (16, lineY[18]))
       
       text.draw(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), size: 16,
-        position:(screenWidth/2, screenHeight*0.25-8), align: .Center)
+        position:(screenSize.w/2, screenSize.h*0.25-8), align: .Center)
 
       text.draw(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)),
-        size: 18, position: (screenWidth*0.25, screenHeight*0.75+8), align: .Right)
+        size: 18, position: (screenSize.w*0.25, screenSize.h*0.75+8), align: .Right)
       text.draw(String(format:"%6.0fm", data.RadarHeight),
-        size: 18, position: (screenWidth*0.75, screenHeight*0.75+8), align: .Left)
+        size: 18, position: (screenSize.w*0.75, screenSize.h*0.75+8), align: .Left)
   
       if data.SAS {
         text.draw(" SAS", size: lineHeight, position: (8, lineY[5]))
@@ -289,13 +291,13 @@ class RPMPlaneHUD : RPMInstrument
           size: lineHeight, position: (16, lineY[19]))
 
         if data.HeatAlarm {
-          text.draw("HEAT! ", size: lineHeight, position: (screenWidth-8, lineY[5]), align: .Right)
+          text.draw("HEAT! ", size: lineHeight, position: (screenSize.w-8, lineY[5]), align: .Right)
         }
         if data.GroundAlarm {
-          text.draw("GEAR! ", size: lineHeight, position: (screenWidth-8, lineY[6]), align: .Right)
+          text.draw("GEAR! ", size: lineHeight, position: (screenSize.w-8, lineY[6]), align: .Right)
         }
         if data.SlopeAlarm {
-          text.draw("SLOPE!", size: lineHeight, position: (screenWidth-8, lineY[7]), align: .Right)
+          text.draw("SLOPE!", size: lineHeight, position: (screenSize.w-8, lineY[7]), align: .Right)
         }
       } else {
         // Only display partial throttle without RPM
@@ -395,10 +397,10 @@ class JSIHeadsUpDisplay {
     
   
     // Draw the main pitch view
-    drawing.ConstrainDrawing(page.screenWidth/2-horizonSize.width/2,
-                              bottom: page.screenHeight/2-horizonSize.height/2,
-                              right: page.screenWidth/2+horizonSize.width/2,
-                              top: page.screenHeight/2+horizonSize.height/2)
+    drawing.ConstrainDrawing(page.screenSize.w/2-horizonSize.width/2,
+                              bottom: page.screenSize.h/2-horizonSize.height/2,
+                              right: page.screenSize.w/2+horizonSize.width/2,
+                              top: page.screenSize.h/2+horizonSize.height/2)
     drawHorizonView()
     drawing.UnconstrainDrawing()
     
@@ -408,7 +410,7 @@ class JSIHeadsUpDisplay {
 //    drawing.Draw(prograde!)
     
     // Draw the overlay, centered
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(page.screenWidth/2, page.screenHeight/2, 0))
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(page.screenSize.w/2, page.screenSize.h/2, 0))
     drawing.program.setColor(foregroundColor)
     drawing.Draw(overlay!)
   }
@@ -431,7 +433,7 @@ class JSIHeadsUpDisplay {
     // Build a transform to apply to all drawing to put us in horizon frame
     var horzFrame = GLKMatrix4Identity
     // Put us in the center of the screen
-    horzFrame = GLKMatrix4Translate(horzFrame, page.screenWidth/2, page.screenHeight/2, 0)
+    horzFrame = GLKMatrix4Translate(horzFrame, page.screenSize.w/2, page.screenSize.h/2, 0)
     // Rotate according to the roll
     horzFrame = GLKMatrix4Rotate(horzFrame, roll*π/180, 0, 0, -1)
     // And translate for pitch in the center

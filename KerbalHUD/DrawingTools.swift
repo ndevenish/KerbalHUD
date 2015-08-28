@@ -62,8 +62,6 @@ extension VertexRepresentation {
 }
 
 typealias Point2D = (x: Float, y: Float)
-typealias Size2D = (w: Float, h: Float)
-typealias Size2DInt = (w: Int, h: Int)
 
 typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
@@ -176,7 +174,8 @@ class DrawingTools
   var program : ShaderProgram
 
   var defaultFramebuffer : GLuint = 0
-  var screenSize : Size2DInt = (0,0)
+  var screenAspect : Float { return Float(screenSize.w) / Float(screenSize.h) }
+  var screenSize : Size2D = Size2D(w: 0,h: 0)
   
   // For textured squares
   var vertexArrayTextured : GLuint = 0
@@ -218,10 +217,11 @@ class DrawingTools
   
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
-    screenSize = (
+
+    screenSize = Size2D(
       w: Int(UIScreen.mainScreen().bounds.width),
       h: Int(UIScreen.mainScreen().bounds.height))
-      
+    
     // Create an initial buffer
     generate_buffer()
     

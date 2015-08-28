@@ -13,18 +13,18 @@ struct Framebuffer {
   let name : GLuint
   let texture : Texture
   let stencil : GLuint
-  let size : Size2DInt
+  let size : Size2D<Int>
 }
 
 extension Framebuffer {
   static var Default : Framebuffer {
-    return Framebuffer(name: 0, texture: Texture.None, stencil: 0, size: (0,0))
+    return Framebuffer(name: 0, texture: Texture.None, stencil: 0, size: Size2D(w: 0,h: 0))
   }
 }
 
 extension DrawingTools {
   func createTextureFramebuffer(
-    size : Size2DInt, depth: Bool, stencil : Bool) -> Framebuffer
+    size : Size2D<Int>, depth: Bool, stencil : Bool) -> Framebuffer
   {
     // Generate a framebuffer
     var fb : GLuint = 0

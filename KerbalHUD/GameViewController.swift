@@ -93,9 +93,9 @@ class GameViewController: GLKViewController {
   func update() {
     // Calculate the frame times
     Clock.frameUpdate()
-    drawing!.screenSize = Size2DInt(
-      Int(self.view.bounds.size.width * UIScreen.mainScreen().scale),
-      Int(self.view.bounds.size.height * UIScreen.mainScreen().scale))
+    drawing!.screenSize = Size2D(
+      w: Int(self.view.bounds.size.width * UIScreen.mainScreen().scale),
+      h: Int(self.view.bounds.size.height * UIScreen.mainScreen().scale))
     
 //    let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
 //    let drawWidth = display?.screenWidth ?? 1.0

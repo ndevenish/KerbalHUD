@@ -90,7 +90,7 @@ class HSIIndicator : RPMInstrument {
   // 239 94 255
   
   required init(tools: DrawingTools) {
-    let set = RPMPageSettings(textSize: (40,23), screenSize: (640,640),
+    let set = RPMPageSettings(textSize: (40,23), screenSize: Size2D(w: 640,h: 640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
     _dispatch = dispatch_queue_create("com.kerbalhud.queue", nil)

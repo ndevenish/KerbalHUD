@@ -9,8 +9,7 @@
 import Foundation
 
 protocol Instrument {
-  var screenWidth : Float { get }
-  var screenHeight : Float { get }
+  var screenSize : Size2D<Float> { get }
   
   var dataProvider : IKerbalDataStore? { get set }
   

@@ -91,6 +91,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       print ("Disconnected.")
     }
     print ("Attempting connection again..")
+    _pendingSubscriptions.appendContentsOf(_subscriptions.keys)
     socket.connect()
   }
   
@@ -98,6 +99,8 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   {
     if let timer = _dumpTimer where timer.elapsed > 10 {
       print(_connectionTime!.elapsed, ":  ", text)
+      _dumpTimer = Clock.createTimer()
+    } else {
       _dumpTimer = Clock.createTimer()
     }
     guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {

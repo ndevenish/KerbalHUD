@@ -23,11 +23,15 @@ extension Float : FloatConvertible {
   var asFloat : Float { return self }
 }
 
-struct Size2D<T where T : FloatConvertible> {
+struct Size2D<T where T : FloatConvertible, T: Equatable> {
   var w : T
   var h : T
 }
 
+func ==<T>(first: Size2D<T>, second: Size2D<T>) -> Bool {
+  return first.w == second.w && first.h == second.h
+}
+  
 enum SizeDimension {
   case Width
   case Height

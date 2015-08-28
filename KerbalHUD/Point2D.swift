@@ -7,3 +7,24 @@
 //
 
 import Foundation
+import CoreGraphics
+
+struct Point2D {
+  var x : Float
+  var y : Float
+  
+  init(fromCGPoint: CGPoint) {
+    x = Float(fromCGPoint.x)
+    y = Float(fromCGPoint.y)
+  }
+
+  init(_ x: Float, _ y: Float) {
+    self.x = x
+    self.y = y
+  }
+
+  init(x: Float, y: Float) {
+    self.x = x
+    self.y = y
+  }
+}

@@ -9,12 +9,16 @@
 import Foundation
 import GLKit
 
-struct Texture {
+struct Texture : Equatable {
   let glk : GLKTextureInfo?
   let name : GLuint
   let target : GLenum
 }
 
+func ==(first: Texture, second: Texture) -> Bool {
+  return first.name == second.name
+}
+  
 extension Texture {
   static var None : Texture { return Texture(glk: nil, name: 0, target: GLenum(GL_TEXTURE_2D)) }
   

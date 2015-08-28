@@ -55,9 +55,11 @@ class GameViewController: GLKViewController {
   }
   
   func registerTap() {
-    print(tapRec.locationInView(self.view))
     let loc = tapRec.locationInView(self.view)
-    panel?.registerTap(Point2D(fromCGPoint: loc))
+    // Convert this to a fractional point
+    let conv = Point2D(x: Float(loc.x/self.view.bounds.width),
+                       y: Float(loc.y/self.view.bounds.height))
+    panel?.registerTap(conv)
   }
   
   override func didReceiveMemoryWarning() {

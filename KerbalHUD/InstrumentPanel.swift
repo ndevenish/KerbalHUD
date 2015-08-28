@@ -9,10 +9,17 @@
 import Foundation
 import GLKit
 
-private struct PanelEntry {
+private class PanelEntry {
   var instrument  : Instrument
   let framebuffer : Framebuffer
   var bounds : Bounds
+  
+  init(instrument: Instrument, buffer: Framebuffer, bounds: Bounds)
+  {
+    self.instrument = instrument
+    self.framebuffer = buffer
+    self.bounds = bounds
+  }
 }
 
 private enum PanelLayout {
@@ -34,6 +41,8 @@ class InstrumentPanel
   private let drawing : DrawingTools
   private var instruments : [PanelEntry] = []
   private var previousArrangement : (layout: PanelLayout, frame: Double) = (.None, -1)
+  private var focus : PanelEntry? = nil
+  private var drawOrder : [Int] = []
   
   init(tools : DrawingTools)
   {
@@ -58,7 +67,7 @@ class InstrumentPanel
   func draw()
   {
     processGLErrors()
-    layout()
+    if focus == nil { layout() }
 
     // Generate the textures for every instrument
     for i in instruments {
@@ -79,7 +88,7 @@ class InstrumentPanel
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     
-    for instrument in instruments {
+    for instrument in drawOrder.map({instruments[$0]}) {
       // Now, draw the textured square
       drawing.bind(instrument.framebuffer.texture)
       drawing.DrawTexturedSquare(instrument.bounds)
@@ -98,7 +107,8 @@ class InstrumentPanel
     let pixelSize = (drawSize * maxScale).map { Int($0) }
     let buffer = drawing.createTextureFramebuffer(pixelSize, depth: false, stencil: true)
     // Create the instrument entry
-    let newInst = PanelEntry(instrument: item, framebuffer: buffer, bounds: ErrorBounds())
+    let newInst = PanelEntry(instrument: item, buffer: buffer, bounds: ErrorBounds())
+    drawOrder.append(instruments.count)
     instruments.append(newInst)
     
     // Recalculate the layouts
@@ -155,17 +165,69 @@ class InstrumentPanel
         || instrument.bounds is ErrorBounds
       {
         // Jump
-        instruments[i].bounds = newBounds
+        instrument.bounds = newBounds
+//        instruments[i].bounds = newBounds
       } else {
         // Animate
-        let previous = FixedBounds(bounds: instrument.bounds)
-        instruments[i].bounds = BoundsInterpolator(from: previous, to: newBounds, seconds: 1)
+        if let exB = instrument.bounds as? BoundsInterpolator {
+          if FixedBounds(bounds: exB.end) != FixedBounds(bounds: newBounds) {
+            instrument.bounds = BoundsInterpolator(from: exB, to: newBounds, seconds: 1)
+          }
+        } else {
+          let previous = FixedBounds(bounds: instrument.bounds)
+          instrument.bounds = BoundsInterpolator(from: previous, to: newBounds, seconds: 1)
+        }
       }
     }
     previousArrangement = (layout, Clock.time)
   }
   
   func registerTap(loc: Point2D) {
-    
+    let myLoc = Point2D(x: loc.x, y: 1-loc.y)
+    print (myLoc)
+    // Find which instrument this corresponds to
+    if focus != nil {
+      setFocus(nil)
+    } else {
+      if let target = drawOrder.reverse().map({instruments[$0]}).filter({$0.bounds.contains(myLoc)}).first {
+        setFocus(target)
+      }
+//      if let target = instruments.filter({$0.bounds.contains(myLoc)}).first {
+//        setFocus(target)
+//      }
+      
+    }
+  }
+  
+  private func setFocus(pe : PanelEntry?) {
+    if let panel = pe {
+      let fullScreenPanel = FixedBounds(left: 0, bottom: 0, right: drawing.screenAspect, top: 1)
+      let scale = panel.bounds.size.scaleForFitInto(fullScreenPanel.size)
+      let size = panel.bounds.size * scale
+      let newBound = FixedBounds(left: (drawing.screenAspect-size.w)/2,
+                               bottom: (1-size.h)/2,
+                                right: (drawing.screenAspect-size.w)/2 + size.w,
+                                  top: (1-size.h)/2 + size.h)
+//      let index = instruments.indexOf({$0.framebuffer == panel.framebuffer})!
+//      instruments[index].bounds =
+      let oldSize = panel.bounds.size
+      panel.bounds = BoundsInterpolator(from: panel.bounds, to: newBound, seconds: 1)
+      // Reorder
+      let index = instruments.indexOf({$0 === panel})!
+      drawOrder.removeAtIndex(drawOrder.indexOf({$0 == index})!)
+      drawOrder.append(index)
+      focus = panel
+      
+      // Move all the others to the middle
+      let middlePos = FixedBounds(left: (drawing.screenAspect-oldSize.w)/2,
+                                bottom: (1-oldSize.h)/2,
+                                 width: oldSize.w,
+                                height: oldSize.h)
+      for other in instruments.filter({$0 !== panel}) {
+        other.bounds = BoundsInterpolator(from: other.bounds, to: middlePos, seconds: 1)
+      }
+    } else {
+      focus = nil
+    }
   }
 }

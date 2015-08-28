@@ -9,11 +9,19 @@
 import Foundation
 import GLKit
 
-struct Framebuffer {
+struct Framebuffer : Equatable {
   let name : GLuint
   let texture : Texture
   let stencil : GLuint
   let size : Size2D<Int>
+}
+
+
+func ==(first: Framebuffer, second: Framebuffer) -> Bool {
+  return first.name == second.name
+    && first.texture == second.texture
+    && first.stencil == second.stencil
+    && first.size == second.size
 }
 
 extension Framebuffer {

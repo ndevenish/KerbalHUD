@@ -81,6 +81,11 @@ class TextRenderer {
     return nil
   }
   
+  
+  func draw(text: String, size : GLfloat, position : (x: Float, y: Float), align : NSTextAlignment = .Left,
+    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+      draw(text, size: size, position: Point2D(x: position.x, y: position.y), align: align, rotation: rotation, transform: transform)
+  }
   func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
       // If we are monospaced, try from atlas
@@ -143,7 +148,8 @@ class TextRenderer {
     UIGraphicsEndImageContext()
     
     let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
-    let entry = TextEntry(texture: Texture(glk:texture), uvPosition: (0,0), areaSize: (1,1), fontSize: size, text: (text as String))
+    let entry = TextEntry(texture: Texture(glk:texture),
+      uvPosition: Point2D(x: 0, y: 0), areaSize: Point2D(x: 1,y: 1), fontSize: size, text: (text as String))
     foundTextures.insert(textures.count)
     textures.append(entry)
     return entry

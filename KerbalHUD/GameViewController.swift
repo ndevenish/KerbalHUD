@@ -8,6 +8,7 @@
 
 import GLKit
 import OpenGLES
+import UIKit
 
 class GameViewController: GLKViewController {
   var program : ShaderProgram?
@@ -26,6 +27,10 @@ class GameViewController: GLKViewController {
   var telemachus : TelemachusInterface?
   var panel : InstrumentPanel?
   
+  let tapRec = UITapGestureRecognizer()
+  
+  
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     
@@ -43,6 +48,16 @@ class GameViewController: GLKViewController {
     self.setupGL()
     telemachus = try! TelemachusInterface(hostname: "192.168.1.73", port: 8085)
     panel?.connection = telemachus!
+    
+    tapRec.addTarget(self, action: "registerTap")
+    self.view.addGestureRecognizer(tapRec)
+    
+  }
+  
+  func registerTap() {
+    print(tapRec.locationInView(self.view))
+    let loc = tapRec.locationInView(self.view)
+    panel?.registerTap(Point2D(fromCGPoint: loc))
   }
   
   override func didReceiveMemoryWarning() {
@@ -84,11 +99,13 @@ class GameViewController: GLKViewController {
     
     glEnable(GLenum(GL_BLEND));
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
+    
   }
   
   func tearDownGL() {
     EAGLContext.setCurrentContext(self.context)
   }
+  
   
   // MARK: - GLKView and GLKViewController delegate methods
   

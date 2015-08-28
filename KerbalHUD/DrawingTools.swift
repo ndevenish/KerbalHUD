@@ -61,14 +61,14 @@ extension VertexRepresentation {
   }
 }
 
-typealias Point2D = (x: Float, y: Float)
+//typealias Point2D = (x: Float, y: Float)
 
 typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 
 
 func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {
-  return Point2D(base.x + shift.x, base.y + shift.y)
+  return Point2D(x: base.x + shift.x, y: base.y + shift.y)
 }
 func ShiftTriangle(base : Triangle, shift : Point2D) -> Triangle {
   return Triangle(
@@ -214,7 +214,7 @@ class DrawingTools
     // Load a basic set of square vertices
     let sqVpoints : [Point2D] = [
       (0,0),(0,1),(1,0),(1,1)
-    ]
+    ].map { Point2D(x: $0.0, y: $0.1) }
     meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as? Mesh
 
     // Load the vertex information for a textured square
@@ -531,14 +531,14 @@ func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
     let theta = Float(2*M_PI*(Double(step)/Double(Csteps)))
     let nextTheta = Float(2*M_PI*(Double(step+1)/Double(Csteps)))
     tris.append((
-      Point2D(innerR*sin(theta), innerR*cos(theta)),
-      Point2D(outerR*sin(theta), outerR*cos(theta)),
-      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta))
+      Point2D(x: innerR*sin(theta), y: innerR*cos(theta)),
+      Point2D(x: outerR*sin(theta), y: outerR*cos(theta)),
+      Point2D(x: innerR*sin(nextTheta), y: innerR*cos(nextTheta))
     ))
     tris.append((
-      Point2D(innerR*sin(nextTheta), innerR*cos(nextTheta)),
-      Point2D(outerR*sin(theta), outerR*cos(theta)),
-      Point2D(outerR*sin(nextTheta), outerR*cos(nextTheta))
+      Point2D(x: innerR*sin(nextTheta), y: innerR*cos(nextTheta)),
+      Point2D(x: outerR*sin(theta), y: outerR*cos(theta)),
+      Point2D(x: outerR*sin(nextTheta), y: outerR*cos(nextTheta))
     ))
   }
   return tris
@@ -546,8 +546,8 @@ func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
 
 func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [Triangle] {
   return [
-    Triangle((left, bottom), (left, top), (right, top)),
-    Triangle((right, top), (right, bottom), (left, bottom))
+    Triangle(Point2D(x: left, y: bottom), Point2D(x: left, y: top), Point2D(x: right, y: top)),
+    Triangle(Point2D(x: right, y: top), Point2D(x: right, y: bottom), Point2D(x: left, y: bottom))
   ]
 }
 
@@ -558,7 +558,7 @@ func GenerateRoundedBoxPoints(
   let STEPS = 5
   let STEP_ANGLE = π/2.0/Float(STEPS+2)
   // Start before the top-left circle
-  var points : [Point2D] = [(left, top-radius)]
+  var points : [(Float, Float)] = [(left, top-radius)]
   // Do the inner circle points
   for step in 1...STEPS {
     let x = -cos(STEP_ANGLE*Float(step))*radius
@@ -590,5 +590,5 @@ func GenerateRoundedBoxPoints(
   points.append((left, bottom+radius))
   
 //  return 
-  return points;
+  return points.map({Point2D(x: $0.0, y: $0.1)})
 }

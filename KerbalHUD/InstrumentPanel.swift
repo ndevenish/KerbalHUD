@@ -164,4 +164,8 @@ class InstrumentPanel
     }
     previousArrangement = (layout, Clock.time)
   }
+  
+  func registerTap(loc: Point2D) {
+    
+  }
 }

@@ -129,14 +129,14 @@ class HSIIndicator : RPMInstrument {
       (128,68), (640, 68), (640, 70), (590, 70), (590, 452+d),
       (512, 530+d), (512, 574), (640, 574), (640, 576), (0, 576), (0, 574),
       (126, 574), (126, 530+d), (48, 452+d), (48, 191-d), (126, 113-d), (126, 70),
-      (0, 70), (0, 68), (128, 68)]
+      (0, 70), (0, 68), (128, 68)].map{Point2D(x: $0.0, y: $0.1)}
     overlay = tools.Load2DPolygon(overlayBase)
 
     // Do the overlay background separately
     let overlayBackgroundPts : [Point2D] = [
       (128,70), (128,113), (50, 191), (50, 452), (128, 530), (128, 574),
       (510, 574), (510, 530), (588, 452), (588, 70), (128,70),
-      (0,0), (640,0), (640,640), (0, 640), (0,0) ]
+      (0,0), (640,0), (640,640), (0, 640), (0,0) ].map{Point2D(x: $0.0, y: $0.1)}
     overlayBackground = tools.Load2DPolygon(overlayBackgroundPts)
     
     // NDB Needle
@@ -144,23 +144,23 @@ class HSIIndicator : RPMInstrument {
       // 154 height total
       (-4.5, -148.5), (-7.5, -150.5), (-7.5, 150.5), (0, 158), (7.5, 150.5),
       (7.5, -150.5), (-7.5, -150.5), (-4.5, -148.5), (4.5, -148.5), (4.5, 148.5),
-      (-4.5, 148.5)])
+      (-4.5, 148.5)].map{Point2D(x: $0.0, y: $0.1)})
     
     
     var whiteTri : [Triangle] = []
-    whiteTri.append(Triangle((-15, 19), (0, 54), (15, 19)))
-    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)]))
-    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)]))
-    whiteTri.appendContentsOf(drawing.DecomposePolygon([(46,0), (50, -7.5), (54, 0), (50, 7.5)]))
-    whiteTri.appendContentsOf(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)]))
+    whiteTri.append(Triangle(Point2D(-15, 19), Point2D(0, 54), Point2D(15, 19)))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)].map{Point2D($0.0,$0.1)}))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)].map{Point2D($0.0,$0.1)}))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(46,0), (50, -7.5), (54, 0), (50, 7.5)].map{Point2D($0.0,$0.1)}))
+    whiteTri.appendContentsOf(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)].map{Point2D($0.0,$0.1)}))
     courseWhite = tools.LoadTriangles(whiteTri)
     
     var purpTri : [Triangle] = []
     purpTri.appendContentsOf(drawing.DecomposePolygon([
       (-2.5, 126), (-2.5, 162), (-10.5, 162), (-10.5, 166), (-2.5, 166), (-2.5, 210), (0, 212.5),
-      (2.5, 210), (2.5, 166), (10.5, 166), (10.5, 162), (2.5, 162), (2.5, 126)]))
+      (2.5, 210), (2.5, 166), (10.5, 166), (10.5, 162), (2.5, 162), (2.5, 126)].map{Point2D($0.0,$0.1)}))
     purpTri.appendContentsOf(drawing.DecomposePolygon([
-      (-2, -127), (-2, -127-48), (2, -127-48), (2, -127)]))
+      (-2, -127), (-2, -127-48), (2, -127-48), (2, -127)].map{Point2D($0.0,$0.1)}))
     coursePurpl = tools.LoadTriangles(purpTri)
    //-127, 4x48
     
@@ -175,8 +175,8 @@ class HSIIndicator : RPMInstrument {
     gsIndicators = tools.LoadTriangles(glideSlopes);
     
     purpleTriangles = tools.LoadTriangles([
-      Triangle((0, 12.5), (28, 0), (0, -12.5)),
-      Triangle((640, 12.5), (640, -12.5), (612, 0))])
+      Triangle(Point2D(0, 12.5), Point2D(28, 0), Point2D(0, -12.5)),
+      Triangle(Point2D(640, 12.5), Point2D(640, -12.5), Point2D(612, 0))])
     
     roundBox = tools.Load2DPolygon(GenerateRoundedBoxPoints(-25, bottom: -17, right: 25, top: 17, radius: 4.25))
   }

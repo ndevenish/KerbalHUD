@@ -199,7 +199,7 @@ class RPMPlaneHUD : RPMInstrument
         
         drawing.program.setColor(settings.fontColor)
         text.draw("FLP: " + (data.Flaps == 0 ? "-" : String(data.Flaps)),
-          size: lineHeight, position: (640*7/8, 640*1/8), align: .Center)
+          size: lineHeight, position: Point2D(x: 640*7/8, y: 640*1/8), align: .Center)
       }
       
       
@@ -214,16 +214,16 @@ class RPMPlaneHUD : RPMInstrument
       
       // Render the text!
       text.draw(String(format:"PRS: %7.3fkPa", data.DynPressure/1000),
-        size: lineHeight, position: (16, lineY[1]))
+        size: lineHeight, position: Point2D(x: 16, y: lineY[1]))
       
       text.draw(String(format:"ASL: %6.0fm", data.AtmHeight),
-        size: lineHeight, position: (screenSize.w-16, lineY[1]), align: .Right)
+        size: lineHeight, position: Point2D(x: screenSize.w-16, y: lineY[1]), align: .Right)
       text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
-        position: (screenSize.w-16, lineY[2]), align: .Right)
+        position: Point2D(x: screenSize.w-16, y: lineY[2]), align: .Right)
       
       // Heading note
       text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
-        position: (screenSize.w/2, lineY[3]), align: .Center)
+        position: Point2D(x: screenSize.w/2, y: lineY[3]), align: .Center)
 
       text.draw(String(format:"SPD: %6.0fm/s", data.Speed), size: lineHeight, position: (16, lineY[16]))
       text.draw(String(format:"HRZ: %6.0fm/s", data.HrzSpeed), size: lineHeight, position: (16, lineY[18]))
@@ -288,10 +288,10 @@ class RPMPlaneHUD : RPMInstrument
       y += 0.2843*pow(x/c, 3)
       y += (-0.1015)*pow(x/c, 4)
       y *= 5 * t * c
-      points.append((x-t, xStep == numSteps ? 0 : y))
+      points.append(Point2D(x: x-t, y: xStep == numSteps ? 0 : y))
     }
     // go back around
-    points.appendContentsOf(points.dropLast().dropFirst().reverse().map {Point2D($0.x, $0.y * -1)})
+    points.appendContentsOf(points.dropLast().dropFirst().reverse().map {Point2D(x: $0.x, y: $0.y * -1)})
     // Now, do the inside
 //    print ("xP = [" + ", ".join(points.map{ String($0.x) }) + "]")
 //    print ("yP = [" + ", ".join(points.map{ String($0.y) }) + "]")
@@ -499,7 +499,7 @@ class JSIHeadsUpDisplay {
       (W, Bh/2), (W+B, Bh/2), (W+B, -Bh/2), (W, -Bh/2), (W, -w/2),
       // Right under spur
       (m*(H+w/cos(theta)-w/2),-w/2), (w/2,m*w/2 - H - w/cos(theta)),
-    ]
+    ].map { Point2D(x: $0.0, y: $0.1) }
     
     var triangles = drawing.DecomposePolygon(points)
     
@@ -510,16 +510,16 @@ class JSIHeadsUpDisplay {
     let crossHairPoints : [Point2D] = [
       (-160, -cxW/2), (-160-cxTw, -cxTh/2), (-160-cxTw, cxTh/2), (-160, cxW/2),
       (-W-w, cxW/2), (-W-w, -cxW/2)
-    ]
+    ].map { Point2D(x: $0.0, y: $0.1) }
     triangles.appendContentsOf(drawing.DecomposePolygon(crossHairPoints))
-    triangles.appendContentsOf(drawing.DecomposePolygon(crossHairPoints.map { Point2D(-$0.x, $0.y) }))
+    triangles.appendContentsOf(drawing.DecomposePolygon(crossHairPoints.map { Point2D(x: -$0.x, y: $0.y) }))
 
     // Top Triangle
-    let topTriangle : [Point2D] = [(0,160), (-cxTh/2, 160+cxTw), (cxTh/2, 160+cxTw)]
+    let topTriangle : [Point2D] = [(0,160), (-cxTh/2, 160+cxTw), (cxTh/2, 160+cxTw)].map{Point2D(x: $0.0, y: $0.1)}
     triangles.appendContentsOf(drawing.DecomposePolygon(topTriangle))
     
     // Upper target line
-    let upperTarget : [Point2D] = [(-w/2, H), (-w/2, H+J), (w/2, H+J), (w/2, H)]
+    let upperTarget : [Point2D] = [(-w/2, H), (-w/2, H+J), (w/2, H+J), (w/2, H)].map{Point2D(x: $0.0, y: $0.1)}
     triangles.appendContentsOf(drawing.DecomposePolygon(upperTarget))
     
     // Finally, an open circle

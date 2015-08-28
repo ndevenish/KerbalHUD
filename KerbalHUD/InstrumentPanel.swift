@@ -130,7 +130,7 @@ class InstrumentPanel
       if hSize.constrainingSide(screenSize) == .Height {
         offset = Size2D(w: (1-Float(screenSize.h)*hSize.aspect)/2, h: 0)
       }
-      instrumentSize = Size2D(w: screenSize.aspect/Float(instruments.count), h: 1/hSize.aspect)
+      instrumentSize = Size2D(w: screenSize.aspect/Float(instruments.count), h: 1)
     }
 
     for (i, instrument) in instruments.enumerate() {

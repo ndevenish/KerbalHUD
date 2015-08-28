@@ -78,6 +78,8 @@ class GameViewController: GLKViewController {
     panel = InstrumentPanel(tools: drawing!)
     let hsi = HSIIndicator(tools: drawing!)
     panel?.AddInstrument(hsi)
+    let hud = RPMPlaneHUD(tools: drawing!)
+    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
     
     glEnable(GLenum(GL_BLEND));

@@ -70,13 +70,11 @@ class InstrumentPanel
     drawing.program.setUseTexture(true)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-//    glDisable(GLenum(GL_BLEND));
     
     // Work out the best way to pack all the instruments...
     let _aspect = drawing.screenAspect
 
-//    let drawAreaSize = Size2D(w: totalAspect, h: 1)
-    
+    // The maximum size for a single instrument
     let maxSize : Size2D<Float>
     var drawOffset : Size2D<Float> = Size2D(w: 0.0, h: 0.0)
     
@@ -113,8 +111,14 @@ class InstrumentPanel
     for (i, instrument) in instruments.enumerate() {
       // Work out the aspect ratio of this...
       let scale = instrument.framebuffer.size.scaleForFitInto(maxSize)
-      let drawSize = Size2D(w: scale * Float(instrument.framebuffer.size.w) / maxSize.w,
-                            h: scale * Float(instrument.framebuffer.size.h) / maxSize.h)
+      let drawSize : Size2D<Float>
+      if (_aspect < 1) {
+        drawSize = Size2D(w: scale * Float(instrument.framebuffer.size.w),
+                          h: scale * Float(instrument.framebuffer.size.h) / (1/_aspect))
+      } else {
+        drawSize = Size2D(w: scale * Float(instrument.framebuffer.size.w) / _aspect,
+                          h: scale * Float(instrument.framebuffer.size.h))
+      }
       let drawPos : Point2D
       if _aspect < 1 {
         // Center horizontally

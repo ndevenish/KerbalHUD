@@ -41,12 +41,10 @@ public protocol ITimer {
 public let Clock : ITimerClock = TimerClock()
 
 private class TimerClock : ITimerClock {
-  var realTime : Double { return timeBases[.Real]! }
+  var time : Double { return timeBases[.Real]! }
   var frameTime : Double = 0
-  var started : Bool = false
   
-  private var time : Double { return timeBases[.Real]! }
-
+  private var startTime : Double
   
   var timeBases : [TimerCategory: Double] = [
     .Real: 0,
@@ -55,15 +53,19 @@ private class TimerClock : ITimerClock {
     .Physics: 0
   ]
   
+  init() {
+    startTime = CACurrentMediaTime()
+  }
   func createTimer(category : TimerCategory, duration : Double, scale : Double) -> ITimer {
     return Timer(clock: self, baseTime: timeBases[category]!,
       duration: duration, scale: scale, category: category)
   }
   
   func frameUpdate() {
-    let now : Double = started ? CACurrentMediaTime() : 0
-    frameTime = now-realTime
-    timeBases[.Real] = realTime
+    let time = CACurrentMediaTime()
+    frameTime = time - timeBases[.Real]!
+    timeBases[.Real] = CACurrentMediaTime()-startTime
+
     timeBases[.Animation] = timeBases[.Animation]! + frameTime
     timeBases[.Physics] = timeBases[.Physics]! + frameTime
     timeBases[.Frame] = timeBases[.Frame]! + 1

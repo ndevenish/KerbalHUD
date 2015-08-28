@@ -283,6 +283,9 @@ class DrawingTools
     lastFramebuffer = name
     let size = name == defaultFramebuffer ? screenSize : buffer.size
     glViewport(0, 0, GLsizei(size.w), GLsizei(size.h))
+//    glClearColor(0,0,0,1)
+    glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_STENCIL_BUFFER_BIT))
+
   }
   
   func forceBind(buffer : Framebuffer) {

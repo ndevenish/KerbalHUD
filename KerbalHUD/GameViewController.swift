@@ -117,7 +117,7 @@ class GameViewController: GLKViewController {
     program!.projection = GLKMatrix4MakeOrtho(0, 600, 0, 600, -10, 10)
 
     if (telemachus?.isConnected ?? false == false) {
-      let current = Clock.frameTime
+      let current = Clock.time
       let curInt = Int(current)
       var fakeData : [String: JSON] = [:]
       fakeData["rpm.RADARALTOCEAN"] = JSON(current*10)

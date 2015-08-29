@@ -22,7 +22,8 @@ varying vec2 Texcoord;
 void main()
 {
   if (useTex) {
-    gl_FragColor = texture2D(tex, (Texcoord*uvScale)+uvOffset)*vec4(color,1);
+//    gl_FragColor = texture2D(tex, (Texcoord*uvScale)+uvOffset)*vec4(color,1);
+    gl_FragColor = texture2D(tex, Texcoord)*vec4(color,1);
 //    gl_FragColor = vec4(1,1,1,1);
   } else {
 //    float4 finalCol = vec4(color,1);

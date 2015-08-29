@@ -78,13 +78,15 @@ extension DrawingTools {
       size: size)
   }
   
-  func deleteFramebuffer(buffer : Framebuffer) {
+  func deleteFramebuffer(buffer : Framebuffer, texture : Bool = true) {
     var val : GLuint = 0
     if buffer.stencil != 0 {
       val = buffer.stencil
       glDeleteFramebuffers(1, &val)
     }
-    deleteTexture(buffer.texture)
+    if texture {
+      deleteTexture(buffer.texture)
+    }
     if buffer.name != 0 {
       val = buffer.name
       glDeleteFramebuffers(1, &val)

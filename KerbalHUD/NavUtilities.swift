@@ -102,6 +102,7 @@ class HSIIndicator : RPMInstrument {
 
   var boldText : TextRenderer
   
+  var compassTexture : Texture? = nil
   // 239 94 255
   
   required init(tools: DrawingTools) {
@@ -179,8 +180,37 @@ class HSIIndicator : RPMInstrument {
       Triangle(Point2D(640, 12.5), Point2D(640, -12.5), Point2D(612, 0))])
     
     roundBox = tools.Load2DPolygon(GenerateRoundedBoxPoints(-25, bottom: -17, right: 25, top: 17, radius: 4.25))
+    
+    // Huh. Render a compass all from scratch!
+    compassTexture = preRenderCompass()
   }
   
+  func preRenderCompass() -> Texture {
+    let maxSide = Int(0.75*Double(min(drawing.screenSize.w, drawing.screenSize.h)))
+    
+    let cfb = drawing.createTextureFramebuffer(
+      Size2D(w: maxSide, h: maxSide),
+      depth: false, stencil: false)
+    drawing.bind(cfb)
+    
+    // Set up the projection.
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    drawing.program.projection = GLKMatrix4MakeOrtho(
+      320-235, 320+235,
+      320+235, 320-235,
+      -10, 10)
+    drawCompass()
+    
+    let texture = cfb.texture
+    drawing.deleteFramebuffer(cfb, texture: false)
+    return texture
+    //    let cfb = tools.createTextureFramebuffer(size: Size2D()
+  }
+  
+//  extension DrawingTools {
+//    func createTextureFramebuffer(
+//      size : Size2D<Int>, depth: Bool, stencil : Bool) -> Framebuffer
+//    
   override func update() {
     guard let variables = dataProvider else {
       return
@@ -308,7 +338,7 @@ class HSIIndicator : RPMInstrument {
 
     HandleBeaconSounds()
     
-    drawCompass()
+    drawCompassTexture()
     drawNeedleNDB()
     drawCourseNeedle()
     
@@ -402,6 +432,15 @@ class HSIIndicator : RPMInstrument {
     offset = GLKMatrix4Rotate(offset, bearingRotation*π/180, 0, 0, 1)
     drawing.program.setModelView(offset)
     drawing.Draw(needleNDB!)
+  }
+  
+  func drawCompassTexture() {
+    drawing.bind(compassTexture!)
+    drawing.program.setUseTexture(true)
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+    drawing.DrawTexturedSquare(320-235, bottom: 320-235, right: 320+235, top: 320+235)
+    drawing.program.setUseTexture(false)
   }
   
   func drawCompass() {

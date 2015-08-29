@@ -161,6 +161,7 @@ class DrawingTools
 
   var defaultFramebuffer : GLuint = 0
   var screenAspect : Float { return Float(screenSize.w) / Float(screenSize.h) }
+  /// The size, in pixels, of the entire screen.
   var screenSize : Size2D = Size2D(w: 0,h: 0)
   
   // For textured squares

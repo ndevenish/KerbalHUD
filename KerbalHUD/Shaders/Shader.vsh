@@ -17,6 +17,9 @@ uniform mat4 modelViewProjectionMatrix;
 
 varying vec2 Texcoord;
 
+uniform lowp vec2 uvOffset;
+uniform lowp vec2 uvScale;
+
 void main()
 {
 //    vec3 eyeNormal = normalize(normalMatrix * normal);
@@ -28,5 +31,5 @@ void main()
 //    colorVarying = diffuseColor * nDotVP;
   
     gl_Position = modelViewProjectionMatrix * position;
-    Texcoord = texcoord;
+    Texcoord = texcoord*uvScale + uvOffset;
 }

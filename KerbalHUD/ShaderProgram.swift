@@ -60,10 +60,19 @@ class ShaderProgram {
     }
   }
   
+  var lastOffset : (GLfloat, GLfloat) = (0,0)
+  var lastScale : (GLfloat, GLfloat) = (0,0)
+  
   func setUVProperties(xOffset xOffset : GLfloat, yOffset : GLfloat, xScale : GLfloat, yScale : GLfloat)
   {
-    glUniform2f(uniforms.uvOffset, xOffset, yOffset)
-    glUniform2f(uniforms.uvScale, xScale, yScale)
+    if xOffset != lastOffset.0 || yOffset != lastOffset.1 {
+      glUniform2f(uniforms.uvOffset, xOffset, yOffset)
+      lastOffset = (xOffset, yOffset)
+    }
+    if xScale != lastScale.0 || yScale != lastScale.1 {
+      glUniform2f(uniforms.uvScale, xScale, yScale)
+      lastScale = (xScale, yScale)
+    }
   }
   
   func setModelViewProjection(matrix : GLKMatrix4) {

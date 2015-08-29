@@ -82,6 +82,7 @@ class GameViewController: GLKViewController {
     
     program = ShaderProgram()
     drawing = DrawingTools(shaderProgram: program!)
+    program!.use()
     
     // Extract the default FBO so we can bind back
     (self.view as! GLKView).bindDrawable()

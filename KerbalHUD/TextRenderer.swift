@@ -80,8 +80,7 @@ class TextRenderer {
     }
     return nil
   }
-  
-  
+
   func draw(text: String, size : GLfloat, position : (x: Float, y: Float), align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
       draw(text, size: size, position: Point2D(x: position.x, y: position.y), align: align, rotation: rotation, transform: transform)
@@ -127,13 +126,8 @@ class TextRenderer {
       tool.program.setUseTexture(false)
   }
   
-  private func getTextEntry(text: String, size : Int) -> TextEntry {
-    // First see if we already built this texture
-    if let existing = find_existing(text, size: size) {
-      // We found that we drew this before!
-      return existing
-    }
-    
+  
+  func drawToTexture(text: String, size: Int) -> Texture {
     // Let's work out the font size we want, approximately
     let font = UIFont(name: fontName, size: CGFloat(size))!
     let attrs = [NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor()]
@@ -148,7 +142,19 @@ class TextRenderer {
     UIGraphicsEndImageContext()
     
     let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
-    let entry = TextEntry(texture: Texture(glk:texture),
+    let entry = Texture(glk:texture)
+    return entry
+  }
+  
+  private func getTextEntry(text: String, size : Int) -> TextEntry {
+    // First see if we already built this texture
+    if let existing = find_existing(text, size: size) {
+      // We found that we drew this before!
+      return existing
+    }
+    
+    let txt = drawToTexture(text, size: size)
+    let entry = TextEntry(texture: txt,
       uvPosition: Point2D(x: 0, y: 0), areaSize: Point2D(x: 1,y: 1), fontSize: size, text: (text as String))
     foundTextures.insert(textures.count)
     textures.append(entry)

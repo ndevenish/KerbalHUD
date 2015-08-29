@@ -9,11 +9,11 @@
 import Foundation
 import CoreGraphics
 
-struct Point2D {
+public struct Point2D : NilLiteralConvertible {
   var x : Float
   var y : Float
   
-  init(fromCGPoint: CGPoint) {
+  public init(fromCGPoint: CGPoint) {
     x = Float(fromCGPoint.x)
     y = Float(fromCGPoint.y)
   }
@@ -23,8 +23,13 @@ struct Point2D {
     self.y = y
   }
 
-  init(x: Float, y: Float) {
+  public init(x: Float, y: Float) {
     self.x = x
     self.y = y
+  }
+  
+  public init(nilLiteral: ()) {
+    x = 0
+    y = 0
   }
 }

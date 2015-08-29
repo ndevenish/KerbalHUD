@@ -9,7 +9,7 @@
 import Foundation
 import GLKit
 
-let π : GLfloat = GLfloat(M_PI)
+public let π : GLfloat = GLfloat(M_PI)
 
 protocol Drawable2D {
   
@@ -435,11 +435,16 @@ class DrawingTools
   func DrawTexturedSquare(bounds : Bounds) {
     DrawTexturedSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
   }
-  func DrawTexturedSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
+  func DrawTexturedSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat, rotation: GLfloat = 0)
   {
     var baseMatrix = GLKMatrix4Identity
     baseMatrix = GLKMatrix4Translate(baseMatrix, left, bottom, 0.1)
     baseMatrix = GLKMatrix4Scale(baseMatrix, right-left, top-bottom, 1)
+    if rotation != 0 {
+      baseMatrix = GLKMatrix4Translate(baseMatrix, 0.5, 0.5, 0.1)
+      baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, 1)
+      baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, -0.5, 0.1)
+    }
     let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
     program.setModelViewProjection(mvp)
     bindArray(vertexArrayTextured)

@@ -439,7 +439,7 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setUseTexture(true)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
-    drawing.DrawTexturedSquare(320-235, bottom: 320-235, right: 320+235, top: 320+235)
+    drawing.DrawTexturedSquare(320-235, bottom: 320-235, right: 320+235, top: 320+235, rotation: data.Heading*π/180)
     drawing.program.setUseTexture(false)
   }
   

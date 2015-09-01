@@ -119,19 +119,19 @@ class NavBallTextureRendering {
     drawing.program.setModelView(GLKMatrix4Identity)
     
 
-//    let thetaSet = [-180, -90, 0, 90, 180]
+    let thetaSet = [-180, -90, 0, 90, 180]
     
     // Draw the vertical bands of text
     // Angles to draw:
-//    drawing.program.setColor(red: 33.0/255, green: 48.0/255, blue: 82.0/255)
-//    for longitude in thetaSet {
-//      drawTextStrip(Float(longitude), upper: true)
-//    }
-//
-//    drawing.program.setColor(red: 1, green: 1, blue: 1)
-//    for longitude in thetaSet {
-//      drawTextStrip(Float(longitude), upper: false)
-//    }
+    drawing.program.setColor(red: 33.0/255, green: 48.0/255, blue: 82.0/255)
+    for longitude in thetaSet {
+      drawTextStrip(Float(longitude), upper: true)
+    }
+
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    for longitude in thetaSet {
+      drawTextStrip(Float(longitude), upper: false)
+    }
 
     drawing.program.setModelView(GLKMatrix4Identity)
     

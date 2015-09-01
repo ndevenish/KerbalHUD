@@ -74,10 +74,9 @@ class NavBallTextureRendering {
     }
   }
   
-  func drawTextStrip(thetaDegrees: Float, upper : Bool) {
+  func drawTextStrip(longitude: Float, upper : Bool) {
     drawing.program.setUseTexture(true)
     
-    let theta = GLfloat(thetaDegrees)*π/180
     let range : (Int, Int) = upper ? (10, 80) : (-80, -10)
     for var angle = range.0; angle <= range.1; angle += 10 {
       // Don't render the central signs
@@ -86,106 +85,93 @@ class NavBallTextureRendering {
       }
       
       // Bind the texture and calculate the size
-      let phi = (90+GLfloat(angle)) * π/180
       let tex = textures[angle]!
       let textHeight : Float = 4
+      let textOffset : Float = 5
       let size = Size2D(w: tex.size!.aspect*textHeight, h: textHeight)
       drawing.bind(tex)
       
-      // Generate the texture buffer for this and draw it
-      let buffer = generateGeometryFor(size,
-        spherePoint: SphericalPoint(theta: theta, phi: phi, r: 0),
-        offset: Point2D(x: 5, y: 0), alignment: .Left)
-      drawing.bind(buffer)
-      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 116)
+      drawing.drawProjectedGridOntoSphere(
+        position: SphericalPoint(lat: Float(angle), long: longitude, r: 0),
+        left: textOffset, bottom: -size.h/2,
+        right: textOffset+size.w, top: size.h/2,
+        xSteps: 10, ySteps: 5, slicePoint: 0)
       
-      // Draw the left text
-      let bufferR = generateGeometryFor(size,
-        spherePoint: SphericalPoint(theta: theta, phi: phi, r: 2),
-        offset: Point2D(x: -5, y: 0), alignment: .Right)
-      drawing.bind(bufferR)
-      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 116)
-      
-      // Delete these buffers
-      drawing.deleteVertexArray(buffer)
-      drawing.deleteVertexArray(bufferR)
-      
+      drawing.drawProjectedGridOntoSphere(
+        position: SphericalPoint(lat: Float(angle), long: longitude, r: 0),
+        left: -textOffset-size.w, bottom: -size.h/2, right: -textOffset, top: size.h/2,
+        xSteps: 10, ySteps: 5, slicePoint: 0)
     }
     drawing.program.setUseTexture(false)
   }
   
   /// Generate a geometry grid, with UV indices, for a specified size projected
-  private enum BulkSpherePosition {
-    case Left
-    case Right
-    case Middle
-  }
-  
-  func generateGeometryFor(size: Size2D<Float>, spherePoint: SphericalPoint, offset: Point2D, alignment: NSTextAlignment = .Center) -> VertexArray {
-    let sphPoint = SphericalPoint(lat: spherePoint.lat, long: spherePoint.long, r: 60)
-    let xSteps = 10
-    let ySteps = 5
-    
-    let sphereDomain : BulkSpherePosition
-    if sphPoint.theta < -120*π/180 {
-      sphereDomain = .Left
-    } else if sphPoint.theta > 120*π/180 {
-      sphereDomain = .Right
-    } else {
-      sphereDomain = .Middle
-    }
-    
-    var data : [(pos: Point2D, uv: Point2D)] = []
-    
-    for iY in 0..<ySteps {
-      for iX in 0...xSteps {
-        // The offset points of this index specifically
-        let xAlign = alignment == .Right ? size.w : (alignment == .Left ? 0 : size.w/2)
-        let xOffset = size.w/Float(xSteps) * Float(iX) - xAlign
-        let yOffset = size.h/Float(ySteps) * Float(iY) - size.h/2
-        // If we have data already, double-up the first vertex as we will
-        // need to do so for a triangle strip
-        let uv = Point2D(x: Float(iX)/Float(xSteps),
-          y: 1 - Float(iY)/Float(ySteps))
-        if iX == 0 && data.count > 0 {
-          data.append((pos: Point2D(x: xOffset, y: yOffset), uv: uv))
-        }
-        data.append((Point2D(x: xOffset, y: yOffset), uv))
-        // Calculate the y of the next one up
-        let yOffset2 = size.h/Float(ySteps) * Float(iY+1) - size.h/2
-        let uvUp = Point2D(x: Float(iX)/Float(xSteps),
-          y: 1 - Float(iY+1)/Float(ySteps))
-        data.append((Point2D(x: xOffset, y: yOffset2), uvUp))
-      }
-      // Finish the triangle strip line
-      data.append(data.last!)
-    }
-    // Remove the last item as it will double up otherwise (empty triangle)
-    data.removeLast()
-    
-    // Now, transform all of these points
-    var geometry = data.flatMap { (point : Point2D, uV: Point2D) -> [GLfloat] in
-      //      let uV = (x:(point.x + size.w/2)/size.w, y: (point.y+size.h/2)/size.h)
-      var sphePos = pointOffsetRayIntercept(sphericalPoint: sphPoint, offset: point+offset, radius: 59)!
-      // Rotate round if we went over a texture edge
-      if sphereDomain == .Left && sphePos.theta > 120*π/180 {
-        sphePos.theta = sphePos.theta - 2*π
-      } else if sphereDomain == .Right && sphePos.theta < -120*π/180 {
-        sphePos.theta = sphePos.theta + 2*π
-      }
-      let dat : [GLfloat] = [sphePos.long*180/π, -(π/2-sphePos.lat)*180/π, uV.x, uV.y]
-      return dat
-    }
-    
-    // Load into a buffer object!
-    let array = drawing.createVertexArray(positions: 2, textures: 2)
-    glBufferData(GLenum(GL_ARRAY_BUFFER),
-      sizeof(GLfloat)*geometry.count,
-      &geometry, GLenum(GL_DYNAMIC_DRAW))
-    drawing.bind(VertexArray.Empty)
-    
-    return array
-  }
+
+//  
+//  func generateGeometryFor(size: Size2D<Float>, spherePoint: SphericalPoint, offset: Point2D, alignment: NSTextAlignment = .Center) -> VertexArray {
+//    let sphPoint = SphericalPoint(lat: spherePoint.lat, long: spherePoint.long, r: 60)
+//    let xSteps = 10
+//    let ySteps = 5
+//    
+////    let sphereDomain : BulkSpherePosition
+////    if sphPoint.theta < -120*π/180 {
+////      sphereDomain = .Left
+////    } else if sphPoint.theta > 120*π/180 {
+////      sphereDomain = .Right
+////    } else {
+////      sphereDomain = .Middle
+////    }
+//    
+//    var data : [(pos: Point2D, uv: Point2D)] = []
+//    for iY in 0..<ySteps {
+//      for iX in 0...xSteps {
+//        // The offset points of this index specifically
+//        let xAlign = alignment == .Right ? size.w : (alignment == .Left ? 0 : size.w/2)
+//        let xOffset = size.w/Float(xSteps) * Float(iX) - xAlign
+//        let yOffset = size.h/Float(ySteps) * Float(iY) - size.h/2
+//        // If we have data already, double-up the first vertex as we will
+//        // need to do so for a triangle strip
+//        let uv = Point2D(x: Float(iX)/Float(xSteps),
+//          y: 1 - Float(iY)/Float(ySteps))
+//        if iX == 0 && data.count > 0 {
+//          data.append((pos: Point2D(x: xOffset, y: yOffset), uv: uv))
+//        }
+//        data.append((Point2D(x: xOffset, y: yOffset), uv))
+//        // Calculate the y of the next one up
+//        let yOffset2 = size.h/Float(ySteps) * Float(iY+1) - size.h/2
+//        let uvUp = Point2D(x: Float(iX)/Float(xSteps),
+//          y: 1 - Float(iY+1)/Float(ySteps))
+//        data.append((Point2D(x: xOffset, y: yOffset2), uvUp))
+//      }
+//      // Finish the triangle strip line
+//      data.append(data.last!)
+//    }
+//    // Remove the last item as it will double up otherwise (empty triangle)
+//    data.removeLast()
+//    
+//    // Now, transform all of these points
+//    var geometry = data.flatMap { (point : Point2D, uV: Point2D) -> [GLfloat] in
+//      //      let uV = (x:(point.x + size.w/2)/size.w, y: (point.y+size.h/2)/size.h)
+//      var sphePos = pointOffsetRayIntercept(sphericalPoint: sphPoint, offset: point+offset, radius: 59)!
+//      // Rotate round if we went over a texture edge
+//      if sphereDomain == .Left && sphePos.theta > 120*π/180 {
+//        sphePos.theta = sphePos.theta - 2*π
+//      } else if sphereDomain == .Right && sphePos.theta < -120*π/180 {
+//        sphePos.theta = sphePos.theta + 2*π
+//      }
+//      let dat : [GLfloat] = [sphePos.long*180/π, -(π/2-sphePos.lat)*180/π, uV.x, uV.y]
+//      return dat
+//    }
+//    
+//    // Load into a buffer object!
+//    let array = drawing.createVertexArray(positions: 2, textures: 2)
+//    glBufferData(GLenum(GL_ARRAY_BUFFER),
+//      sizeof(GLfloat)*geometry.count,
+//      &geometry, GLenum(GL_DYNAMIC_DRAW))
+//    drawing.bind(VertexArray.Empty)
+//    
+//    return array
+//  }
 
   func generate() {
     //    let texture = drawing.createTextureFramebuffer(Size2D(w: 4096, h: 2048), depth: false, stencil: false)
@@ -206,16 +192,17 @@ class NavBallTextureRendering {
     // Draw the vertical bands of text
     // Angles to draw:
     drawing.program.setColor(red: 33.0/255, green: 48.0/255, blue: 82.0/255)
-    for theta in thetaSet {
-      drawTextStrip(Float(theta), upper: true)
+    for longitude in thetaSet {
+      drawTextStrip(Float(longitude), upper: true)
     }
+    return
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    for theta in thetaSet {
-      drawTextStrip(Float(theta), upper: false)
+    for longitude in thetaSet {
+      drawTextStrip(Float(longitude), upper: false)
     }
-    
-    // Other uppers
     drawing.program.setModelView(GLKMatrix4Identity)
+    
+    // Blue uppers
     drawing.program.setColor(red: 4.0/255, green: 80.0/255, blue: 117.0/255)
     drawVerticalBand(90, width: 1.5, upper: true)
     drawVerticalBand(-90, width: 1.5, upper: true)
@@ -236,6 +223,11 @@ class NavBallTextureRendering {
     drawing.DrawSquare(-180, bottom: -1, right: 180, top: 1)
   }
   
+  private enum BulkSpherePosition {
+    case Left
+    case Right
+    case Middle
+  }
   func drawVerticalBand(thetaDeg: Float, width : Float, upper: Bool = true) {
     let theta : GLfloat = thetaDeg * π/180
     let w : GLfloat = sin(width * π/180)
@@ -294,4 +286,14 @@ class NavBallTextureRendering {
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, GLsizei(band.count-2))
     drawing.deleteVertexArray(bandBuffer)
   }
+  
+  
+//  func drawVerticalBandMarkers(thetaDeg : Float) {
+//    
+//    let points = [Point2D]
+//    
+//    for var phi = 5; phi <= 80; phi += 5 {
+//      
+//    }
+//  }
 }

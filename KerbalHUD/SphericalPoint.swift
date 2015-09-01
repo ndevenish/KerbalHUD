@@ -17,8 +17,8 @@ public struct SphericalPoint : Equatable {
   public var phi : GLfloat
   public var r : GLfloat
   
-  var lat : GLfloat { return phi }
-  var long : GLfloat { return theta }
+  var lat : GLfloat { return (π/2 - phi) * 180/π }
+  var long : GLfloat { return theta * 180/π }
   
   public init(fromCartesian from: GLKVector3) {
     theta = atan2(from.y, from.x)
@@ -31,9 +31,10 @@ public struct SphericalPoint : Equatable {
     self.phi = phi
     self.r = r
   }
+  
   public init(lat: GLfloat, long: GLfloat, r: GLfloat) {
-    self.theta = long
-    self.phi = lat
+    self.theta = long * π/180
+    self.phi = π/2 - (lat * π/180)
     self.r = r
   }
 }
@@ -101,4 +102,114 @@ public func pointOffsetRayIntercept(sphericalPoint point: SphericalPoint, offset
   // Calculate the point on the sphere of this point
   let intersect = SphericalPoint(fromCartesian: o + d*l)
   return SphericalPoint(theta: intersect.theta, phi: intersect.phi, r: r)
+}
+
+private enum BulkSpherePosition {
+  case Left
+  case Right
+  case Middle
+}
+
+extension DrawingTools {
+  func drawProjectedGridOntoSphere(
+    position position : SphericalPoint,
+    left: Float, bottom: Float, right: Float, top: Float,
+    xSteps : Int, ySteps : Int, slicePoint : Float)
+  {
+    // Work out if we are near the slice point
+    let shiftedPosition = cyc_mod(position.theta - slicePoint + π, m: 2*π) - π
+    let sphereDomain : BulkSpherePosition
+    if shiftedPosition < -120 * π/180 {
+      sphereDomain = .Left
+    } else if shiftedPosition > 120*π/180 {
+      sphereDomain = .Right
+    } else {
+      sphereDomain = .Middle
+    }
+    // Generate the grid projected onto the sphere
+    let geometry = projectGridOntoSphere(position: position, left: left, bottom: bottom, right: right, top: top, xSteps: xSteps, ySteps: ySteps)
+
+    // Flatten this into a data array, handling the slice shift
+    var data = geometry.flatMap { (pos: Point2D, uv: Point2D) -> [GLfloat] in
+      let theta : GLfloat
+      let shiftedTheta = cyc_mod(pos.x - slicePoint, m: 360)-180
+      if sphereDomain == .Left && shiftedTheta > 120 {
+        theta = pos.x - 360
+      } else if sphereDomain == .Right && shiftedTheta < -120 {
+        theta = pos.x + 360
+      } else {
+        theta = pos.x
+      }
+      return [theta, pos.y, uv.x, uv.y]
+    }
+    
+    // Load into a buffer object!
+    let array = createVertexArray(positions: 2, textures: 2)
+    glBufferData(
+      GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count,
+      &data, GLenum(GL_DYNAMIC_DRAW))
+    // Draw!
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, GLsizei(geometry.count-2))
+    // Delete the array and buffer
+    bind(VertexArray.Empty)
+    deleteVertexArray(array)
+  }
+}
+
+func projectGridOntoSphere(position basePosition : SphericalPoint,
+  left: Float, bottom: Float, right: Float, top: Float,
+  xSteps : Int, ySteps : Int) -> [(pos: Point2D, uv: Point2D)]
+{
+  let position = SphericalPoint(theta: basePosition.theta, phi: basePosition.phi, r: 60)
+  let bounds = FixedBounds(left: left, bottom: bottom, right: right, top: top)
+  let data = generateTriangleStripGrid(bounds, xSteps: 10, ySteps: 5)
+  
+  let geometry = data.map { (pos : Point2D, uv: Point2D) -> (pos : Point2D, uv: Point2D) in
+    
+    let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
+      offset: pos, radius: 59)!
+    
+    return (Point2D(sphePos.long, sphePos.lat), uv)
+  }
+
+  return geometry
+}
+
+func generateTriangleStripGrid(bounds : Bounds, xSteps : UInt, ySteps : UInt)
+  -> [(pos: Point2D, uv: Point2D)]
+{
+  var data : [(pos: Point2D, uv: Point2D)] = []
+
+  // Generate all the points on a grid for this
+  for iY in 0..<ySteps {
+    for iX in 0...xSteps {
+      let xFrac = Float(iX)/Float(xSteps)
+      let yFrac = Float(iY)/Float(ySteps)
+      
+      // The offset points of this index specifically
+      let xOffset = bounds.size.w * xFrac + bounds.left
+      let yOffset = bounds.size.h * yFrac + bounds.bottom
+      
+      let uv = Point2D(x: xFrac, y: yFrac)
+      
+      // If we have data already, double-up the first vertex as we will
+      // need to do so for a triangle strip
+      if iX == 0 && data.count > 0 {
+        data.append((pos: Point2D(x: xOffset, y: yOffset), uv: uv))
+      }
+      data.append((Point2D(x: xOffset, y: yOffset), uv))
+      
+      // Calculate the y of the next one up
+      let nextYFrac = Float(iY+1)/Float(ySteps)
+      let yOffset2 = bounds.size.h * nextYFrac + bounds.bottom
+      let uvUp = Point2D(x: xFrac, y: nextYFrac)
+      data.append((Point2D(x: xOffset, y: yOffset2), uvUp))
+    }
+    // Finish the triangle strip line
+    data.append(data.last!)
+  }
+  // Remove the last item as it will double up otherwise (empty triangle)
+  data.removeLast()
+
+  return data
 }

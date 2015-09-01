@@ -94,12 +94,12 @@ class GameViewController: GLKViewController {
 //    display = HSIIndicator(tools: drawing!)
     
     panel = InstrumentPanel(tools: drawing!)
-    let hsi = HSIIndicator(tools: drawing!)
-    panel?.AddInstrument(hsi)
-    let hud = RPMPlaneHUD(tools: drawing!)
-    panel?.AddInstrument(hud)
+//    let hsi = HSIIndicator(tools: drawing!)
+//    panel?.AddInstrument(hsi)
+//    let hud = RPMPlaneHUD(tools: drawing!)
+//    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
-    
+    panel?.AddInstrument(NavBall(tools: drawing!))
     glEnable(GLenum(GL_BLEND));
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
@@ -189,6 +189,8 @@ class GameViewController: GLKViewController {
     drawing?.flush()
   }
   
+  var nb : NavBall? = nil
+  
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
@@ -197,12 +199,14 @@ class GameViewController: GLKViewController {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
       program.setModelViewProjection(program.projection)
-//      if let instr = panel {
-//        instr.draw()
+      if let instr = panel {
+        instr.draw()
+      }
+//
+//      if nb == nil {
+//        nb = NavBall(tools: drawing!)
 //      }
-//      
-      let nb = NavBall(tools: drawing!)
-      nb.draw()
+//      nb!.draw()
       return
       
       

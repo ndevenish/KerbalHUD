@@ -15,12 +15,12 @@ class NavBall : Instrument {
   var screenSize : Size2D<Float>
   
   var drawing : DrawingTools
-  var navBall : NavBallTextureRendering
+  var navBall : Texture
   
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
-    navBall = NavBallTextureRendering(tools: drawing)
+    navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 1, h: 1)
   }
   
@@ -39,11 +39,9 @@ class NavBall : Instrument {
   }
   
   func draw() {
-    let tex = navBall.generate()
-    drawing.bind(tex)
+    drawing.bind(navBall)
     drawing.program.setUseTexture(true)
-    drawing.DrawTexturedSquare(FixedBounds(left: -90, bottom: -45, width: 180, height: 90))
-    drawing.deleteTexture(tex)
+    drawing.DrawTexturedSquare(FixedBounds(left: 0.1, bottom: 0.1, width: 0.8, height: 0.8))
   }
   
 }

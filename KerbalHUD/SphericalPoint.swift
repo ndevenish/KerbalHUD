@@ -114,7 +114,7 @@ extension DrawingTools {
   func drawProjectedGridOntoSphere(
     position position : SphericalPoint,
     left: Float, bottom: Float, right: Float, top: Float,
-    xSteps : Int, ySteps : Int, slicePoint : Float)
+    xSteps : UInt, ySteps : UInt, slicePoint : Float)
   {
     // Work out if we are near the slice point
     let shiftedPosition = cyc_mod(position.theta - slicePoint + π, m: 2*π) - π
@@ -149,7 +149,7 @@ extension DrawingTools {
       GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count,
       &data, GLenum(GL_DYNAMIC_DRAW))
     // Draw!
-    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, GLsizei(geometry.count-2))
+    glDrawArrays(GLenum(GL_LINE_STRIP), 0, GLsizei(geometry.count-2))
     // Delete the array and buffer
     bind(VertexArray.Empty)
     deleteVertexArray(array)
@@ -158,11 +158,11 @@ extension DrawingTools {
 
 func projectGridOntoSphere(position basePosition : SphericalPoint,
   left: Float, bottom: Float, right: Float, top: Float,
-  xSteps : Int, ySteps : Int) -> [(pos: Point2D, uv: Point2D)]
+  xSteps : UInt, ySteps : UInt) -> [(pos: Point2D, uv: Point2D)]
 {
   let position = SphericalPoint(theta: basePosition.theta, phi: basePosition.phi, r: 60)
   let bounds = FixedBounds(left: left, bottom: bottom, right: right, top: top)
-  let data = generateTriangleStripGrid(bounds, xSteps: 10, ySteps: 5)
+  let data = generateTriangleStripGrid(bounds, xSteps: xSteps, ySteps: ySteps)
   
   let geometry = data.map { (pos : Point2D, uv: Point2D) -> (pos : Point2D, uv: Point2D) in
     

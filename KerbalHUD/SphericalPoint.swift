@@ -86,7 +86,7 @@ public func pointOffsetRayIntercept(sphericalPoint point: SphericalPoint, offset
   let l = -point.unitVectorR
   let o = GLKVector3Make(fromSpherical: point)
     + offset.x*point.unitVectorTheta
-    + offset.y*point.unitVectorPhi
+    - offset.y*point.unitVectorPhi
   let c = GLKVector3Make(0, 0, 0)
   let r : GLfloat = radius
   
@@ -117,7 +117,7 @@ extension DrawingTools {
     xSteps : UInt, ySteps : UInt, slicePoint : Float)
   {
     // Work out if we are near the slice point
-    let shiftedPosition = cyc_mod(position.theta - slicePoint + π, m: 2*π) - π
+    let shiftedPosition = position.theta == π ? π : cyc_mod(position.theta - slicePoint + π, m: 2*π) - π
     let sphereDomain : BulkSpherePosition
     if shiftedPosition < -120 * π/180 {
       sphereDomain = .Left
@@ -132,7 +132,7 @@ extension DrawingTools {
     // Flatten this into a data array, handling the slice shift
     var data = geometry.flatMap { (pos: Point2D, uv: Point2D) -> [GLfloat] in
       let theta : GLfloat
-      let shiftedTheta = cyc_mod(pos.x - slicePoint, m: 360)-180
+      let shiftedTheta = cyc_mod(pos.x - slicePoint + 180, m: 360)-180
       if sphereDomain == .Left && shiftedTheta > 120 {
         theta = pos.x - 360
       } else if sphereDomain == .Right && shiftedTheta < -120 {
@@ -149,7 +149,7 @@ extension DrawingTools {
       GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count,
       &data, GLenum(GL_DYNAMIC_DRAW))
     // Draw!
-    glDrawArrays(GLenum(GL_LINE_STRIP), 0, GLsizei(geometry.count-2))
+    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, GLsizei(geometry.count))
     // Delete the array and buffer
     bind(VertexArray.Empty)
     deleteVertexArray(array)
@@ -179,7 +179,7 @@ func generateTriangleStripGrid(bounds : Bounds, xSteps : UInt, ySteps : UInt)
   -> [(pos: Point2D, uv: Point2D)]
 {
   var data : [(pos: Point2D, uv: Point2D)] = []
-
+  
   // Generate all the points on a grid for this
   for iY in 0..<ySteps {
     for iX in 0...xSteps {

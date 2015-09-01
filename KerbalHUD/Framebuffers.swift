@@ -68,12 +68,12 @@ extension DrawingTools {
     if !(glCheckFramebufferStatus(GLenum(GL_FRAMEBUFFER)) == GLenum(GL_FRAMEBUFFER_COMPLETE)) {
       fatalError("Framebuffer generation failed");
     }
-
+    
     // Unbind the new framebuffer
     forceBind(Framebuffer.Default)
     
     return Framebuffer(name: fb,
-      texture: Texture(glk: nil, name: texColorBuffer, target: GLenum(GL_TEXTURE_2D)),
+      texture: Texture(glk: nil, name: texColorBuffer, target: GLenum(GL_TEXTURE_2D), size: size),
       stencil: stencilBuffer,
       size: size)
   }

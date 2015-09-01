@@ -46,5 +46,14 @@ class SphericalCoordTests : XCTestCase {
     let llEdge = pointOffsetRayIntercept(sphericalPoint: oneR, offset: Point2D(x: 0, y: 1))
     XCTAssertEqual(llEdge, SphericalPoint(theta: 0, phi: π/2, r: 1))
     
+    let llMid = pointOffsetRayIntercept(sphericalPoint: SphericalPoint(theta: 0, phi: 0, r: 2), offset: nil)
+    XCTAssertEqual(llEdge, SphericalPoint(theta: 0, phi: 0, r: 1))
+  }
+  
+  func testPointConversion() {
+    let nullPoint = SphericalPoint(theta: 0, phi: 0, r: 1)
+    let cart = GLKVector3Make(fromSpherical: nullPoint)
+    let redo = SphericalPoint(fromCartesian: cart)
+    XCTAssertEqual(nullPoint, redo)
   }
 }

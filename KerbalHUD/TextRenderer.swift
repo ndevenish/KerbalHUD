@@ -141,6 +141,7 @@ class TextRenderer {
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()
     
+    processGLErrors()
     let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
     let entry = Texture(glk:texture)
     return entry

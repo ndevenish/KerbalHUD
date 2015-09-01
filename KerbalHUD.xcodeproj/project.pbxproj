@@ -26,6 +26,7 @@
 		0A5DB9BF1B92136C000174C7 /* GLKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9C71B9214F2000174C7 /* KerbalHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9C61B9214F2000174C7 /* KerbalHUDTests.swift */; };
 		0A5DB9CF1B921531000174C7 /* SphericalCoordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9CE1B921531000174C7 /* SphericalCoordTests.swift */; settings = {ASSET_TAGS = (); }; };
+		0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */; settings = {ASSET_TAGS = (); }; };
 		0A602F481B8E5A91000AD177 /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A602F471B8E5A91000AD177 /* test_texture.png */; settings = {ASSET_TAGS = (); }; };
 		0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A6724491B8CE5B800A38BE5 /* inner.wav */; settings = {ASSET_TAGS = (); }; };
 		0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244A1B8CE5B800A38BE5 /* middle.wav */; settings = {ASSET_TAGS = (); }; };
@@ -78,6 +79,7 @@
 		0A5DB9C61B9214F2000174C7 /* KerbalHUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KerbalHUDTests.swift; sourceTree = "<group>"; };
 		0A5DB9C81B9214F2000174C7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0A5DB9CE1B921531000174C7 /* SphericalCoordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SphericalCoordTests.swift; sourceTree = "<group>"; };
+		0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VertexArrays.swift; sourceTree = "<group>"; };
 		0A602F471B8E5A91000AD177 /* test_texture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_texture.png; sourceTree = "<group>"; };
 		0A6724491B8CE5B800A38BE5 /* inner.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = inner.wav; sourceTree = "<group>"; };
 		0A67244A1B8CE5B800A38BE5 /* middle.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = middle.wav; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 				0A7C02DA1B909B0700790764 /* Size2D.swift */,
 				0AAE62E71B90E3A9001060F0 /* Point2D.swift */,
 				0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */,
+				0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */,
 			);
 			name = SimpleStructures;
 			sourceTree = "<group>";
@@ -354,6 +357,7 @@
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
 				0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */,
 				0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */,
+				0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */,
 				0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -37,3 +37,9 @@ func •(left: GLKVector3, right: GLKVector3) -> GLfloat {
 func ±(left: GLfloat, right: GLfloat) -> (GLfloat, GLfloat) {
   return (left + right, left - right)
 }
+
+extension GLKVector3 : CustomStringConvertible {
+  public var description : String {
+    return NSStringFromGLKVector3(self)
+  }
+}

@@ -13,6 +13,7 @@ struct Texture : Equatable {
   let glk : GLKTextureInfo?
   let name : GLuint
   let target : GLenum
+  let size : Size2D<Int>?
 }
 
 func ==(first: Texture, second: Texture) -> Bool {
@@ -20,12 +21,13 @@ func ==(first: Texture, second: Texture) -> Bool {
 }
   
 extension Texture {
-  static var None : Texture { return Texture(glk: nil, name: 0, target: GLenum(GL_TEXTURE_2D)) }
+  static var None : Texture { return Texture(glk: nil, name: 0, target: GLenum(GL_TEXTURE_2D), size: nil) }
   
   init (glk: GLKTextureInfo) {
     self.glk = glk
     self.name = glk.name
     self.target = glk.target
+    self.size = Size2D(w: Int(glk.width), h: Int(glk.height))
   }
 }
 

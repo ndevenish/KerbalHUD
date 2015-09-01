@@ -41,6 +41,7 @@ public struct SphericalPoint : Equatable {
 public func ==(left: SphericalPoint, right: SphericalPoint) -> Bool {
   return left.theta == right.theta && left.phi == right.phi && left.r == right.r
 }
+
 public func GLKVector3Make(fromSpherical from: SphericalPoint) -> GLKVector3 {
   return GLKVector3Make(
     from.r*cos(from.theta)*sin(from.phi),
@@ -66,17 +67,6 @@ public extension SphericalPoint {
   }
 }
 
-public func pointAndOffsetToLatandLong(sphericalPoint point: SphericalPoint, offset: Point2D)
-  -> SphericalPoint
-{
-  // Calculate the x, y, z from this spherical point, and the unit vectors
-  let p = GLKVector3Make(fromSpherical: point)
-  let Q = p + offset.x*point.unitVectorTheta + offset.y*point.unitVectorPhi
-  
-  // Now! Convert this back into sphericals...
-  return SphericalPoint(fromCartesian: Q)
-}
-
 func modSq(of: GLKVector3) -> GLfloat
 {
   return GLKVector3DotProduct(of, of)
@@ -85,7 +75,7 @@ func modSq(of: GLKVector3) -> GLfloat
 /// Casts an orthographic ray along the -r axis of the spherical point + 2D offset, and 
 /// returns the closest point of intersection (if there is one). Assumes a sphere 
 /// of radius 1 at the origin.
-public func pointOffsetRayIntercept(sphericalPoint point: SphericalPoint, offset: Point2D)
+public func pointOffsetRayIntercept(sphericalPoint point: SphericalPoint, offset: Point2D, radius : Float = 1.0)
   -> SphericalPoint?
 {
   // l = line direction
@@ -97,7 +87,7 @@ public func pointOffsetRayIntercept(sphericalPoint point: SphericalPoint, offset
     + offset.x*point.unitVectorTheta
     + offset.y*point.unitVectorPhi
   let c = GLKVector3Make(0, 0, 0)
-  let r : GLfloat = 1.0
+  let r : GLfloat = radius
   
   let sqrtPart = pow(l•(o-c), 2) - modSq(o-c) + r*r
   

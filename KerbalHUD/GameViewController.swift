@@ -113,6 +113,7 @@ class GameViewController: GLKViewController {
   // MARK: - GLKView and GLKViewController delegate methods
   
   func update() {
+    
     // Calculate the frame times
     Clock.frameUpdate()
     drawing!.screenSize = Size2D(
@@ -196,9 +197,15 @@ class GameViewController: GLKViewController {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
       program.setModelViewProjection(program.projection)
-      if let instr = panel {
-        instr.draw()
-      }
+//      if let instr = panel {
+//        instr.draw()
+//      }
+//      
+      let nb = NavBall(tools: drawing!)
+      nb.draw()
+      return
+      
+      
 //      if let tm = telemachus {
 //        if !tm.isConnected {
 //          program.setColor(red: 1, green: 0, blue: 0)

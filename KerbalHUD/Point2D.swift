@@ -33,3 +33,7 @@ public struct Point2D : NilLiteralConvertible {
     y = 0
   }
 }
+
+public func +(left: Point2D, right: Point2D) -> Point2D {
+  return Point2D(x: left.x+right.x, y: left.y+right.y)
+}

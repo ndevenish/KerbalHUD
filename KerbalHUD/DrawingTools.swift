@@ -155,7 +155,7 @@ class DrawingTools
   private var lastArray : GLuint = 0
   private var lastFramebuffer : GLuint = 0
   private var lastTexture : GLuint = 0
-
+  private var lastVertexBuffer : GLuint = 0
   
   var program : ShaderProgram
 
@@ -261,6 +261,22 @@ class DrawingTools
     return buffers[buffer]!
   }
 
+  func bind(array : VertexArray) {
+    if lastArray == array.name {
+      return
+    }
+    glBindVertexArray(array.name)
+    lastArray = array.name
+  }
+  func bindArray(array : GLuint) {
+    if lastArray == array {
+      return
+    }
+    glBindVertexArray(array)
+    lastArray = array
+  }
+  
+  
   func bind(buffer : Framebuffer) {
     if lastFramebuffer == buffer.name {
       return
@@ -387,14 +403,6 @@ class DrawingTools
       vertexList.append(tri.2)
     }
     return LoadVertices(.Triangles, vertices: vertexList)
-  }
-  
-  /// Binds a vertex array, with caching
-  func bindArray(array : GLuint) {
-    if array != lastArray {
-      glBindVertexArray(array)
-      lastArray = array
-    }
   }
   
   func Draw(item : Drawable2D) {

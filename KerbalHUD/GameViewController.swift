@@ -102,7 +102,9 @@ class GameViewController: GLKViewController {
 //    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
     panel?.AddInstrument(NavBall(tools: drawing!))
-    
+    glEnable(GLenum(GL_CULL_FACE))
+    glCullFace(GLenum(GL_BACK))
+    glFrontFace(GLenum(GL_CW))
   }
   
   func tearDownGL() {
@@ -207,7 +209,7 @@ class GameViewController: GLKViewController {
 //        nb = NavBall(tools: drawing!)
 //      }
 //      nb!.draw()
-      return
+//      return
       
       
 //      if let tm = telemachus {

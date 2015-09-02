@@ -21,7 +21,7 @@ class NavBall : Instrument {
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
-    sphere = drawing.LoadTriangles(generateSphereTriangles(0.5, latSteps: 50, longSteps: 100))
+    sphere = drawing.LoadTriangles(generateSphereTriangles(0.333, latSteps: 50, longSteps: 100))
     
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 1, h: 1)
@@ -40,12 +40,26 @@ class NavBall : Instrument {
   func update() {
     
   }
+  let timer = Clock.createTimer()
   
   func draw() {
     drawing.bind(navBall)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     drawing.program.setUseTexture(true)
     drawing.DrawTexturedSquare(FixedBounds(left: 0.1, bottom: 0.1, width: 0.8, height: 0.8))
+//    drawing.program.setUseTexture(false)
+//    let ms = Size2D(w: Float(UIScreen.mainScreen().bounds.width),
+//                    h: Float(UIScreen.mainScreen().bounds.height))
+//    drawing.program.projection = GLKMatrix4MakePerspective(π/2, drawing.screenAspect, 0.1, 100)
+    var sphMat = GLKMatrix4Identity
+    sphMat = GLKMatrix4Translate(sphMat, 0.5, 0.5, 0)
+    // Pitch
+    sphMat = GLKMatrix4Rotate(sphMat, sin(Float(timer.elapsed)/10), 0, -1, 0)
+    // Heading
+    sphMat = GLKMatrix4Rotate(sphMat, Float(timer.elapsed/10), 0, 0, -1)
+    // Proper orientation
+    sphMat = GLKMatrix4Rotate(sphMat, π, 0, 0, 1)
+    drawing.program.setModelView(sphMat)
     drawing.Draw(sphere)
   }
   

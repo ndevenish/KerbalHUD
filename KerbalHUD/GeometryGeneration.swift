@@ -21,9 +21,9 @@ func generateSphereTriangles(r : GLfloat, latSteps : UInt, longSteps : UInt) -> 
       // B-----D
       // |     |
       // A-----C
-      let u = Float(iLong)/Float(longSteps)
+      let u = 1 - Float(iLong)/Float(longSteps)
       let v = Float(iLat)/Float(latSteps)
-      let uPlus = Float(iLong+1)/Float(longSteps)
+      let uPlus = 1 - Float(iLong+1)/Float(longSteps)
       let vPlus = Float(iLat+1)/Float(latSteps)
       let positionA = TexturedPoint3D(
         SphericalPoint(

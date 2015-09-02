@@ -175,8 +175,9 @@ class DrawingTools
   var screenSize : Size2D = Size2D(w: 0,h: 0)
   
   // For textured squares
-  var vertexArrayTextured : GLuint = 0
-  var vertexBufferTextured : GLuint = 0
+//  var vertexArrayTextured : GLuint = 0
+//  var vertexBufferTextured : GLuint = 0
+  var texturedArray : VertexArray? = nil
 
   private var buffers : [GLuint : BufferInfo] = [:]
   private var textRenderers : [String : TextRenderer] = [:]
@@ -227,17 +228,9 @@ class DrawingTools
       (0,0),(0,1),(1,0),(1,1)
     ].map { Point2D(x: $0.0, y: $0.1) }
     meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as! SimpleMesh
-
-    // Load the vertex information for a textured square
-    glGenVertexArrays(1, &vertexArrayTextured)
-    glBindVertexArray(vertexArrayTextured)
-    glGenBuffers(1, &vertexBufferTextured)
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBufferTextured)
-    // Set up the vertex array information
-    glEnableVertexAttribArray(program.attributes.position)
-    glEnableVertexAttribArray(program.attributes.texture)
-    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(0))
-    glVertexAttribPointer(program.attributes.texture, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(8))
+    
+    
+    texturedArray = createVertexArray(positions: 2, textures: 2)
     // Now copy the data into the buffer
     var texturedSquare : [GLfloat] = [
       0,0,0,1,
@@ -245,6 +238,7 @@ class DrawingTools
       1,0,1,1,
       1,1,1,0
     ]
+    print("Textured square data loaded into \(texturedArray!.name)")
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
     glBindVertexArray(0)
     
@@ -481,11 +475,12 @@ class DrawingTools
     if rotation != 0 {
       baseMatrix = GLKMatrix4Translate(baseMatrix, 0.5, 0.5, 0.1)
       baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, 1)
-      baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, -0.5, 0.1)
+      baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, -0.5, 0)
     }
     let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
     program.setModelViewProjection(mvp)
-    bindArray(vertexArrayTextured)
+//    bindArray(vertexArrayTextured)
+    bind(texturedArray!)
     program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
   }

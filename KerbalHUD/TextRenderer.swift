@@ -100,7 +100,8 @@ class TextRenderer {
       let entry = getTextEntry(text, size: fontSize)
       
       let texture = entry.texture
-      tool.bindArray(tool.vertexArrayTextured)
+      tool.bind(tool.texturedArray!)
+//      tool.bindArray(tool.vertexArrayTextured)
       glBindTexture(texture.target, texture.name)
       
       // Work out how wide we want to draw
@@ -266,7 +267,7 @@ class TextRenderer {
       if let atlas = getAtlas(fontSize) {
         tool.program.setUseTexture(true)
         tool.bind(atlas.texture)
-        tool.bindArray(tool.vertexArrayTextured)
+        tool.bind(tool.texturedArray!)
 
         // Calculate the total end size, for things like alignment
         let aspect = atlas.texelSize.width / atlas.texelSize.height

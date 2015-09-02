@@ -16,10 +16,13 @@ class NavBall : Instrument {
   
   var drawing : DrawingTools
   var navBall : Texture
+  var sphere : Drawable
   
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
+    sphere = drawing.LoadTriangles(generateSphereTriangles(0.5, latSteps: 50, longSteps: 100))
+    
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 1, h: 1)
   }
@@ -40,8 +43,10 @@ class NavBall : Instrument {
   
   func draw() {
     drawing.bind(navBall)
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
     drawing.program.setUseTexture(true)
     drawing.DrawTexturedSquare(FixedBounds(left: 0.1, bottom: 0.1, width: 0.8, height: 0.8))
+    drawing.Draw(sphere)
   }
   
 }
@@ -133,12 +138,13 @@ class NavBallTextureRendering {
     
     // Draw the vertical bands of text
     // Angles to draw:
-    drawing.program.setColor(red: 33.0/255, green: 48.0/255, blue: 82.0/255)
+//    drawing.program.setColor(red: 33.0/255, green: 48.0/255, blue: 82.0/255)
+    drawing.program.setColor(upperBlue)
     for longitude in thetaSet {
       drawTextStrip(Float(longitude), upper: true)
     }
 
-    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    drawing.program.setColor(white)
     for longitude in thetaSet {
       drawTextStrip(Float(longitude), upper: false)
     }

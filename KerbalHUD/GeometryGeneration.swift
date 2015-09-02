@@ -9,6 +9,53 @@
 import Foundation
 import GLKit
 
+func generateSphereTriangles(r : GLfloat, latSteps : UInt, longSteps : UInt) -> [Triangle<TexturedPoint3D>]
+{
+//  let t = (1 + sqrt(5.0)) / 2
+  
+  var tris : [Triangle<TexturedPoint3D>] = []
+  
+  // Main body
+  for iLong in 0..<longSteps {
+    for iLat in 0..<latSteps {
+      // B-----D
+      // |     |
+      // A-----C
+      let u = Float(iLong)/Float(longSteps)
+      let v = Float(iLat)/Float(latSteps)
+      let uPlus = Float(iLong+1)/Float(longSteps)
+      let vPlus = Float(iLat+1)/Float(latSteps)
+      let positionA = TexturedPoint3D(
+        SphericalPoint(
+          theta: 2*π * Float(iLong)/Float(longSteps),
+          phi: π * (1-Float(iLat)/Float(latSteps)),
+          r: r),
+        u: u, v: v)
+      let positionB = TexturedPoint3D(
+        SphericalPoint(
+          theta: 2*π * Float(iLong)/Float(longSteps),
+          phi: π * (1-Float(iLat+1)/Float(latSteps)),
+          r: r),
+        u: u, v: vPlus)
+      let positionC = TexturedPoint3D(
+        SphericalPoint(
+          theta: 2*π * Float(iLong+1)/Float(longSteps),
+          phi: π * (1-Float(iLat)/Float(latSteps)),
+          r: r),
+        u: uPlus, v: v)
+      let positionD = TexturedPoint3D(
+        SphericalPoint(
+          theta: 2*π * Float(iLong+1)/Float(longSteps),
+          phi: π * (1-Float(iLat+1)/Float(latSteps)),
+          r: r),
+        u: uPlus, v: vPlus)
+      tris.append(Triangle(positionC, positionA, positionB))
+      tris.append(Triangle(positionB, positionD, positionC))
+      
+    }
+  }
+  return tris
+}
 
 /// Generates a series of triangles for an open circle
 func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle<Point2D>]

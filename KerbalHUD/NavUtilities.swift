@@ -53,14 +53,14 @@ class HSIIndicator : RPMInstrument {
   
   private var data : FlightData = FlightData()
   
-  var overlay : Drawable2D?
-  var overlayBackground : Drawable2D?
-  var needleNDB : Drawable2D?
-  var courseWhite : Drawable2D?
-  var coursePurpl : Drawable2D?
-  var gsIndicators : Drawable2D?
-  var purpleTriangles : Drawable2D?
-  var roundBox : Drawable2D?
+  var overlay : Drawable?
+  var overlayBackground : Drawable?
+  var needleNDB : Drawable?
+  var courseWhite : Drawable?
+  var coursePurpl : Drawable?
+  var gsIndicators : Drawable?
+  var purpleTriangles : Drawable?
+  var roundBox : Drawable?
   
   var innerMarkerAudio : AVAudioPlayer?
   var middleMarkerAudio : AVAudioPlayer?

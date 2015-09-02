@@ -11,7 +11,7 @@ import GLKit
 
 public let π : GLfloat = GLfloat(M_PI)
 
-protocol Drawable2D {
+protocol Drawable {
   
 }
 
@@ -20,16 +20,29 @@ func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
   return p.advancedBy(i)
 }
 
-private struct Mesh : Drawable2D {
-  // Need array here? Probably not, as anything in the same buffer
-  // should match formats
-  //  var vertexArray  : GLuint = 0
-//  var vertexArray : GLuint = 0
-  var vertexBuffer : GLuint = 0
-  var bufferOffset : GLuint = 0
-  var bufferCount  : GLuint = 0
-  var vertexType : GLenum = GLenum(GL_INVALID_ENUM)
+//private struct Mesh : Drawable {
+//  // Need array here? Probably not, as anything in the same buffer
+//  // should match formats
+//  //  var vertexArray  : GLuint = 0
+////  var vertexArray : GLuint = 0
+//  var vertexBuffer : GLuint = 0
+//  var bufferOffset : GLuint = 0
+//  var bufferCount  : GLuint = 0
+//  var vertexType : GLenum = GLenum(GL_INVALID_ENUM)
+//}
+
+protocol Mesh : Drawable {
+  
 }
+
+private struct SimpleMesh : Mesh {
+  var array : VertexArray
+  var texture : Texture?
+  var vertexType : VertexRepresentation
+  var bufferOffset : GLuint
+  var bufferCount : GLuint
+}
+
 enum VertexRepresentation : GLenum {
   case Points
   case Line_Strip
@@ -213,7 +226,7 @@ class DrawingTools
     let sqVpoints : [Point2D] = [
       (0,0),(0,1),(1,0),(1,1)
     ].map { Point2D(x: $0.0, y: $0.1) }
-    meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as? Mesh
+    meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as! SimpleMesh
 
     // Load the vertex information for a textured square
     glGenVertexArrays(1, &vertexArrayTextured)
@@ -311,7 +324,7 @@ class DrawingTools
   }
   
   // Takes a list of 2D vertices and converts them into a drawable representation
-  func LoadVertices(form : VertexRepresentation, vertices : [Point2D]) -> Drawable2D? {
+  func LoadVertices(form : VertexRepresentation, vertices : [Point2D]) -> Drawable {
     // Turn the vertices into a flat GLfloat array
     var asFloat : [GLfloat] = []
     for vertex in vertices {
@@ -324,7 +337,12 @@ class DrawingTools
     let offset = GLuint(buffer.offset) / GLuint(sizeof(GLfloat)) / 2
     buffers[buffer.name]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
     
-    return Mesh(vertexBuffer: buffer.name, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
+    return SimpleMesh(
+      array: VertexArray(name: buffer.array, buffer_name: buffer.name),
+      texture: nil,
+      vertexType: form, bufferOffset: offset, bufferCount: GLuint(vertices.count))
+//    
+//      vertexBuffer: buffer.name, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
   
   func DecomposePolygon(points : [Point2D]) -> [Triangle<Point2D>]
@@ -382,11 +400,11 @@ class DrawingTools
   ///
   /// It first reduces the polygon to triangles by using ear clipping.
   ///
-  func Load2DPolygon(points : [Point2D]) -> Drawable2D? {
+  func Load2DPolygon(points : [Point2D]) -> Drawable {
     return LoadTriangles(DecomposePolygon(points))
   }
   
-  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable2D?
+  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable
   {
     var vertexList : [Point2D] = []
     for tri in triangles {
@@ -396,11 +414,31 @@ class DrawingTools
     }
     return LoadVertices(.Triangles, vertices: vertexList)
   }
+
+  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>]) -> Drawable
+  {
+    var data = triangles.flatMap { (tri) -> [GLfloat] in
+      var flat : [Float] = []
+      flat.appendContentsOf(tri.p1.flatten())
+      flat.appendContentsOf(tri.p2.flatten())
+      flat.appendContentsOf(tri.p3.flatten())
+      return flat.map({ GLfloat($0) })
+    }
+    let array = createVertexArray(positions: 3, textures: 2)
+    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
+    return SimpleMesh(array: array, texture: nil, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3))
+  }
   
-  func Draw(item : Drawable2D) {
-    let mesh = item as! Mesh
-    bindArray(buffers[mesh.vertexBuffer]!.array)
-    glDrawArrays(mesh.vertexType, GLint(mesh.bufferOffset), GLint(mesh.bufferCount))
+  func Draw(item : Drawable) {
+    if let mesh = item as? SimpleMesh {
+      bind(mesh.array)
+      if let texture = mesh.texture {
+        bind(texture)
+      }
+      glDrawArrays(mesh.vertexType.GLenum, GLint(mesh.bufferOffset), GLsizei(mesh.bufferCount))
+    } else {
+      fatalError("Unrecognised mesh type!")
+    }
   }
   
   func DrawLine(  from  : (x: GLfloat, y: GLfloat),

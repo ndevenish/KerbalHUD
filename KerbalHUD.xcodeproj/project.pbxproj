@@ -214,9 +214,9 @@
 				0A7C02D81B909AF500790764 /* Bounds.swift */,
 				0A7C02DA1B909B0700790764 /* Size2D.swift */,
 				0AAE62E71B90E3A9001060F0 /* Point2D.swift */,
+				0A1E716F1B966F0400C68683 /* Point3D.swift */,
 				0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */,
 				0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */,
-				0A1E716F1B966F0400C68683 /* Point3D.swift */,
 				0A1E71711B966F8A00C68683 /* Triangle.swift */,
 			);
 			name = SimpleStructures;

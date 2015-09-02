@@ -11,6 +11,7 @@ import CoreGraphics
 
 public protocol Point {
   func +(lhs: Self, rhs: Self) -> Self
+  func flatten() -> [Float]
 }
 //protocol Summable { }
 public struct Point2D : Point, NilLiteralConvertible {
@@ -35,6 +36,9 @@ public struct Point2D : Point, NilLiteralConvertible {
   public init(nilLiteral: ()) {
     x = 0
     y = 0
+  }
+  public func flatten() -> [Float] {
+    return [x, y]
   }
 }
 

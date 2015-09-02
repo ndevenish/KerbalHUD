@@ -74,7 +74,7 @@ class RPMPlaneHUD : RPMInstrument
 
   private var latestData : HUDFlightData?
   private var hud : JSIHeadsUpDisplay?
-  private var foil : Drawable2D?
+  private var foil : Drawable?
   
   private let variables = [
         "v.atmosphericDensity", "v.dynamicPressure",
@@ -273,7 +273,7 @@ class RPMPlaneHUD : RPMInstrument
     }
   }
   
-  func generateFoil() -> Drawable2D {
+  func generateFoil() -> Drawable {
     let c : Float = 1
     let t : Float = 0.15
     
@@ -296,7 +296,7 @@ class RPMPlaneHUD : RPMInstrument
 //    print ("xP = [" + ", ".join(points.map{ String($0.x) }) + "]")
 //    print ("yP = [" + ", ".join(points.map{ String($0.y) }) + "]")
     
-    return drawing.Load2DPolygon(points)!
+    return drawing.Load2DPolygon(points)
   }
 }
 
@@ -321,8 +321,8 @@ class JSIHeadsUpDisplay {
   var horizonScale : GLfloat = 90
 
   private(set) var drawing : DrawingTools
-  private var overlay : Drawable2D?
-  private var prograde : Drawable2D?
+  private var overlay : Drawable?
+  private var prograde : Drawable?
   private var page : Instrument
   private var text : TextRenderer
   private var verticalBars : [String: JSIHudVerticalBar] = [:]
@@ -473,7 +473,7 @@ class JSIHeadsUpDisplay {
     }
   }
 
-  private func GenerateHUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable2D
+  private func GenerateHUDoverlay(H : GLfloat = 16, J : GLfloat = 68, w : GLfloat = 5, theta : GLfloat = 0.7243116395776468) -> Drawable
   {
     let m = sin(theta)/cos(theta)
     let W : GLfloat = 41.0
@@ -525,17 +525,17 @@ class JSIHeadsUpDisplay {
     // Finally, an open circle
     triangles.appendContentsOf(GenerateCircleTriangles(5, w: 2.5))
     
-    return drawing.LoadTriangles(triangles)!
+    return drawing.LoadTriangles(triangles)
   }
   
-  func GenerateProgradeMarker(size : GLfloat = 64) -> Drawable2D {
+  func GenerateProgradeMarker(size : GLfloat = 64) -> Drawable {
     let scale = size / 64.0
     var tris = GenerateCircleTriangles(11.0 * scale, w: 4.0*scale)
     tris.appendContentsOf(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
     tris.appendContentsOf(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
     tris.appendContentsOf(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))
     
-    return drawing.LoadTriangles(tris)!
+    return drawing.LoadTriangles(tris)
   }
 }
 

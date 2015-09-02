@@ -9,7 +9,11 @@
 import Foundation
 import CoreGraphics
 
-public struct Point2D : NilLiteralConvertible {
+public protocol Point {
+  func +(lhs: Self, rhs: Self) -> Self
+}
+//protocol Summable { }
+public struct Point2D : Point, NilLiteralConvertible {
   var x : Float
   var y : Float
   

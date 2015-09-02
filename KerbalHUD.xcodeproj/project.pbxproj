@@ -10,6 +10,9 @@
 		0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A05148F1B7682F0000C6DE2 /* Websocket.swift */; };
 		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B0A011B76BE1000381CC7 /* Security.swift */; };
+		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1E71701B966F0400C68683 /* Point3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716F1B966F0400C68683 /* Point3D.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71711B966F8A00C68683 /* Triangle.swift */; settings = {ASSET_TAGS = (); }; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -59,6 +62,9 @@
 		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
 		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A1B0A011B76BE1000381CC7 /* Security.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Security.swift; sourceTree = "<group>"; };
+		0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryGeneration.swift; sourceTree = "<group>"; };
+		0A1E716F1B966F0400C68683 /* Point3D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Point3D.swift; sourceTree = "<group>"; };
+		0A1E71711B966F8A00C68683 /* Triangle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Triangle.swift; sourceTree = "<group>"; };
 		0A3594001B7136B80072CC18 /* KerbalHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -210,6 +216,8 @@
 				0AAE62E71B90E3A9001060F0 /* Point2D.swift */,
 				0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */,
 				0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */,
+				0A1E716F1B966F0400C68683 /* Point3D.swift */,
+				0A1E71711B966F8A00C68683 /* Triangle.swift */,
 			);
 			name = SimpleStructures;
 			sourceTree = "<group>";
@@ -222,6 +230,7 @@
 				0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */,
 				0A36D9021B8E80ED00E85213 /* Textures.swift */,
 				0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */,
+				0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */,
 			);
 			name = Drawing;
 			sourceTree = "<group>";
@@ -351,9 +360,12 @@
 				0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */,
 				0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */,
 				0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */,
+				0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */,
 				0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */,
+				0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */,
 				0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */,
 				0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */,
+				0A1E71701B966F0400C68683 /* Point3D.swift in Sources */,
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
 				0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */,
 				0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */,
@@ -566,6 +578,7 @@
 				0A5DB9CD1B9214F2000174C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

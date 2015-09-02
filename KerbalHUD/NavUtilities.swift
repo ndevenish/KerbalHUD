@@ -148,7 +148,7 @@ class HSIIndicator : RPMInstrument {
       (-4.5, 148.5)].map{Point2D(x: $0.0, y: $0.1)})
     
     
-    var whiteTri : [Triangle] = []
+    var whiteTri : [Triangle<Point2D>] = []
     whiteTri.append(Triangle(Point2D(-15, 19), Point2D(0, 54), Point2D(15, 19)))
     whiteTri.appendContentsOf(drawing.DecomposePolygon([(-46,0), (-50, -7.5), (-54, 0), (-50, 7.5)].map{Point2D($0.0,$0.1)}))
     whiteTri.appendContentsOf(drawing.DecomposePolygon([(-96,0), (-100, -7.5), (-104, 0), (-100, 7.5)].map{Point2D($0.0,$0.1)}))
@@ -156,7 +156,7 @@ class HSIIndicator : RPMInstrument {
     whiteTri.appendContentsOf(drawing.DecomposePolygon([(96,0), (100, -7.5), (104, 0), (100, 7.5)].map{Point2D($0.0,$0.1)}))
     courseWhite = tools.LoadTriangles(whiteTri)
     
-    var purpTri : [Triangle] = []
+    var purpTri : [Triangle<Point2D>] = []
     purpTri.appendContentsOf(drawing.DecomposePolygon([
       (-2.5, 126), (-2.5, 162), (-10.5, 162), (-10.5, 166), (-2.5, 166), (-2.5, 210), (0, 212.5),
       (2.5, 210), (2.5, 166), (10.5, 166), (10.5, 162), (2.5, 162), (2.5, 126)].map{Point2D($0.0,$0.1)}))
@@ -166,7 +166,7 @@ class HSIIndicator : RPMInstrument {
    //-127, 4x48
     
     // Generate glideslope indicators
-    var glideSlopes : [Triangle] = []
+    var glideSlopes : [Triangle<Point2D>] = []
     glideSlopes.appendContentsOf(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
     let baseCircle = GenerateCircleTriangles(8, w: 4)
     glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))

@@ -63,20 +63,17 @@ extension VertexRepresentation {
 
 //typealias Point2D = (x: Float, y: Float)
 
-typealias Triangle = (Point2D, Point2D, Point2D)
+//typealias Triangle = (Point2D, Point2D, Point2D)
 typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 
 
 func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {
   return Point2D(x: base.x + shift.x, y: base.y + shift.y)
 }
-func ShiftTriangle(base : Triangle, shift : Point2D) -> Triangle {
-  return Triangle(
-    ShiftPoint2D(base.0, shift: shift),
-    ShiftPoint2D(base.1, shift: shift),
-    ShiftPoint2D(base.2, shift: shift))
+func ShiftTriangle<T : Point>(base : Triangle<T>, shift : T) -> Triangle<T> {
+  return Triangle(base.p1 + shift, base.p2 + shift, base.p3 + shift)
 }
-func ShiftTriangles(base : [Triangle], shift : Point2D) -> [Triangle] {
+func ShiftTriangles<T : Point>(base : [Triangle<T>], shift : T) -> [Triangle<T>] {
   return base.map({ ShiftTriangle($0, shift: shift) });
 }
 
@@ -330,10 +327,7 @@ class DrawingTools
     return Mesh(vertexBuffer: buffer.name, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
   
-  // Converts a polygon into triangles
-  var decomposeLog : [Triangle] = []
-  
-  func DecomposePolygon(points : [Point2D]) -> [Triangle]
+  func DecomposePolygon(points : [Point2D]) -> [Triangle<Point2D>]
   {
     // Calculate the signed area of this polygon
     var area : Float = 0.0
@@ -343,7 +337,7 @@ class DrawingTools
     }
     let CW = area > 0
     
-    var triangles : [Triangle] = []
+    var triangles : [Triangle<Point2D>] = []
     
     // Continue until only three points remaing
     var remaining : [Point2D]
@@ -355,8 +349,6 @@ class DrawingTools
     }
     
     var lastRemaining = 0
-    
-    decomposeLog.removeAll()
     
     while remaining.count > 3 {
       if lastRemaining == remaining.count {
@@ -382,7 +374,7 @@ class DrawingTools
       }
     }
     // Add the remaining triangle
-    triangles.append((remaining[0], remaining[1], remaining[2]))
+    triangles.append(Triangle(remaining[0], remaining[1], remaining[2]))
     return triangles
   }
   
@@ -394,13 +386,13 @@ class DrawingTools
     return LoadTriangles(DecomposePolygon(points))
   }
   
-  func LoadTriangles(triangles : [Triangle]) -> Drawable2D?
+  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable2D?
   {
     var vertexList : [Point2D] = []
     for tri in triangles {
-      vertexList.append(tri.0)
-      vertexList.append(tri.1)
-      vertexList.append(tri.2)
+      vertexList.append(tri.p1)
+      vertexList.append(tri.p2)
+      vertexList.append(tri.p3)
     }
     return LoadVertices(.Triangles, vertices: vertexList)
   }
@@ -530,79 +522,4 @@ func processGLErrors() {
     print("OpenGL Error: " + _glErrors[error]!)
     error = glGetError()
   }
-}
-
-
-/// Generates a series of triangles for an open circle
-func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle]
-{
-  var tris : [Triangle] = []
-  let Csteps = 20
-  let innerR = r - w/2
-  let outerR = r + w/2
-  
-  for step in 0..<Csteps {
-    let theta = Float(2*M_PI*(Double(step)/Double(Csteps)))
-    let nextTheta = Float(2*M_PI*(Double(step+1)/Double(Csteps)))
-    tris.append((
-      Point2D(x: innerR*sin(theta), y: innerR*cos(theta)),
-      Point2D(x: outerR*sin(theta), y: outerR*cos(theta)),
-      Point2D(x: innerR*sin(nextTheta), y: innerR*cos(nextTheta))
-    ))
-    tris.append((
-      Point2D(x: innerR*sin(nextTheta), y: innerR*cos(nextTheta)),
-      Point2D(x: outerR*sin(theta), y: outerR*cos(theta)),
-      Point2D(x: outerR*sin(nextTheta), y: outerR*cos(nextTheta))
-    ))
-  }
-  return tris
-}
-
-func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat) -> [Triangle] {
-  return [
-    Triangle(Point2D(x: left, y: bottom), Point2D(x: left, y: top), Point2D(x: right, y: top)),
-    Triangle(Point2D(x: right, y: top), Point2D(x: right, y: bottom), Point2D(x: left, y: bottom))
-  ]
-}
-
-func GenerateRoundedBoxPoints(
-  left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat, radius: GLfloat) -> [Point2D]
-{
-  // How many steps to do in a corner
-  let STEPS = 5
-  let STEP_ANGLE = π/2.0/Float(STEPS+2)
-  // Start before the top-left circle
-  var points : [(Float, Float)] = [(left, top-radius)]
-  // Do the inner circle points
-  for step in 1...STEPS {
-    let x = -cos(STEP_ANGLE*Float(step))*radius
-    let y = sin(STEP_ANGLE*Float(step))*radius
-    points.append((left+radius+x, top-radius+y))
-  }
-  points.append((left+radius, top))
-  points.append((right-radius, top))
-  // Do the inner circle points
-  for step in 1...STEPS {
-    let x = sin(STEP_ANGLE*Float(step))*radius
-    let y = cos(STEP_ANGLE*Float(step))*radius
-    points.append((right-radius+x, top-radius+y))
-  }
-  points.append((right, top-radius))
-  points.append((right, bottom+radius))
-  for step in 1...STEPS {
-    let x = cos(STEP_ANGLE*Float(step))*radius
-    let y = -sin(STEP_ANGLE*Float(step))*radius
-    points.append((right-radius+x, bottom+radius+y))
-  }
-  points.append((right-radius, bottom))
-  points.append((left+radius, bottom))
-  for step in 1...STEPS {
-    let x = -sin(STEP_ANGLE*Float(step))*radius
-    let y = -cos(STEP_ANGLE*Float(step))*radius
-    points.append((left+radius+x, bottom+radius+y))
-  }
-  points.append((left, bottom+radius))
-  
-//  return 
-  return points.map({Point2D(x: $0.0, y: $0.1)})
 }

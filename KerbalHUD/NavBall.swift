@@ -17,14 +17,19 @@ class NavBall : Instrument {
   var drawing : DrawingTools
   var navBall : Texture
   var sphere : Drawable
+  var outline : Drawable
   
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
-    sphere = drawing.LoadTriangles(generateSphereTriangles(0.333, latSteps: 50, longSteps: 100))
+    sphere = drawing.LoadTriangles(generateSphereTriangles(0.3333, latSteps: 50, longSteps: 100))
+    
+    outline = drawing.LoadTriangles(GenerateCircleTriangles(228, w: 4))
     
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 1, h: 1)
+    
+    
   }
   
   /// Start communicating with the kerbal data store
@@ -53,6 +58,8 @@ class NavBall : Instrument {
 //    drawing.program.projection = GLKMatrix4MakePerspective(π/2, drawing.screenAspect, 0.1, 100)
     var sphMat = GLKMatrix4Identity
     sphMat = GLKMatrix4Translate(sphMat, 0.5, 0.5, 0)
+    //drawing.program.setModelView(sphMat)
+    //drawing.Draw(outline)
     // Pitch
     sphMat = GLKMatrix4Rotate(sphMat, sin(Float(timer.elapsed)/10), 0, -1, 0)
     // Heading

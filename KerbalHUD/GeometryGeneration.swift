@@ -21,9 +21,9 @@ func generateSphereTriangles(r : GLfloat, latSteps : UInt, longSteps : UInt) -> 
       // B-----D
       // |     |
       // A-----C
-      let u = 1 - Float(iLong)/Float(longSteps)
+      let u = Float(iLong)/Float(longSteps)
       let v = Float(iLat)/Float(latSteps)
-      let uPlus = 1 - Float(iLong+1)/Float(longSteps)
+      let uPlus = Float(iLong+1)/Float(longSteps)
       let vPlus = Float(iLat+1)/Float(latSteps)
       let positionA = TexturedPoint3D(
         SphericalPoint(
@@ -58,10 +58,10 @@ func generateSphereTriangles(r : GLfloat, latSteps : UInt, longSteps : UInt) -> 
 }
 
 /// Generates a series of triangles for an open circle
-func GenerateCircleTriangles(r : GLfloat, w : GLfloat) -> [Triangle<Point2D>]
+func GenerateCircleTriangles(r : GLfloat, w : GLfloat, steps Csteps : Int = 20) -> [Triangle<Point2D>]
 {
   var tris : [Triangle<Point2D>] = []
-  let Csteps = 20
+//  let Csteps = 20
   let innerR = r - w/2
   let outerR = r + w/2
   

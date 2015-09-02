@@ -233,10 +233,10 @@ class DrawingTools
     texturedArray = createVertexArray(positions: 2, textures: 2)
     // Now copy the data into the buffer
     var texturedSquare : [GLfloat] = [
-      0,0,0,1,
-      0,1,0,0,
-      1,0,1,1,
-      1,1,1,0
+      0,0,0,0,
+      0,1,0,1,
+      1,0,1,0,
+      1,1,1,1
     ]
     print("Textured square data loaded into \(texturedArray!.name)")
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))

@@ -76,7 +76,7 @@ class InstrumentPanel
       
       // Reassign the projection matrix
       drawing.program.projection = GLKMatrix4MakeOrtho(0,
-        Float(i.instrument.screenSize.w), 0, Float(i.instrument.screenSize.h), -10, 10)
+        Float(i.instrument.screenSize.w), 0, Float(i.instrument.screenSize.h), -i.instrument.screenSize.h/2, i.instrument.screenSize.h/2)
       i.instrument.draw()
     }
 

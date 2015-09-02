@@ -18,18 +18,21 @@ class NavBall : Instrument {
   var navBall : Texture
   var sphere : Drawable
   var outline : Drawable
-  
+  var roundBox : (inner: Drawable, outer: Drawable)
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
-    sphere = drawing.LoadTriangles(generateSphereTriangles(0.3333, latSteps: 50, longSteps: 100))
+    sphere = drawing.LoadTriangles(generateSphereTriangles(215, latSteps: 50, longSteps: 100))
     
-    outline = drawing.LoadTriangles(GenerateCircleTriangles(228, w: 4))
+    outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
     
     navBall = NavBallTextureRendering(tools: drawing).generate()
-    screenSize = Size2D(w: 1, h: 1)
+    screenSize = Size2D(w: 640, h: 640)
     
     
+    let inBox = GenerateRoundedBoxPoints(-70, bottom: -22, right: 70, top: 22, radius: 4)
+    let outBox = GenerateRoundedBoxPoints(-74, bottom: -26, right: 74, top: 26, radius: 8)
+    roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
   }
   
   /// Start communicating with the kerbal data store
@@ -50,24 +53,31 @@ class NavBall : Instrument {
   func draw() {
     drawing.bind(navBall)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    drawing.program.setUseTexture(true)
-    drawing.DrawTexturedSquare(FixedBounds(left: 0.1, bottom: 0.1, width: 0.8, height: 0.8))
-//    drawing.program.setUseTexture(false)
-//    let ms = Size2D(w: Float(UIScreen.mainScreen().bounds.width),
-//                    h: Float(UIScreen.mainScreen().bounds.height))
-//    drawing.program.projection = GLKMatrix4MakePerspective(π/2, drawing.screenAspect, 0.1, 100)
+
+    // Draw the circle outline in the center
     var sphMat = GLKMatrix4Identity
-    sphMat = GLKMatrix4Translate(sphMat, 0.5, 0.5, 0)
-    //drawing.program.setModelView(sphMat)
-    //drawing.Draw(outline)
+    sphMat = GLKMatrix4Translate(sphMat, 320, 302, 0)
+    drawing.program.setModelView(sphMat)
+    drawing.Draw(outline)
+    
     // Pitch
     sphMat = GLKMatrix4Rotate(sphMat, sin(Float(timer.elapsed)/10), 0, -1, 0)
     // Heading
     sphMat = GLKMatrix4Rotate(sphMat, Float(timer.elapsed/10), 0, 0, -1)
-    // Proper orientation
+    // Proper orientation to start from
     sphMat = GLKMatrix4Rotate(sphMat, π, 0, 0, 1)
     drawing.program.setModelView(sphMat)
+    drawing.program.setUseTexture(true)
     drawing.Draw(sphere)
+    
+    // Draw the data boxes
+    // middle, 230-4
+    drawing.program.setUseTexture(false)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(320, 302-230+4, 0))
+    drawing.Draw(roundBox.outer)
+    drawing.program.setColor(red: 0, green: 0, blue: 0)
+    drawing.Draw(roundBox.inner)
+    
   }
   
 }

@@ -193,7 +193,7 @@ class NavBallTextureRendering {
     
     drawing.program.setModelView(GLKMatrix4Identity)
     // Lower middle text
-    for longitude in [0, 45, 135, 180, 225, 315] {
+    for longitude in [-180, 0, 45, 135, 180, 225, 315] {
       let size = longitude == 0 ? 9 : 7
       drawText(longitude, size : Float(size), position : SphericalPoint(lat: -45, long: Float(longitude), r: 0),
         fillBackground: lowerBackground, foregroundColor: white)
@@ -204,7 +204,7 @@ class NavBallTextureRendering {
       drawText(longitude, size : Float(size), position : SphericalPoint(lat: 5, long: Float(longitude), r: 0),
         fillBackground: upperBackground, foregroundColor: upperBlue)
     }
-    for longitude in [0, 45, 90, 135, 180, 225, 270, 315] {
+    for longitude in [-180, 0, 45, 90, 135, 180, 225, 270, 315] {
       let size = longitude == 0 ? 9 : 7
       drawText(longitude, size : Float(size), position : SphericalPoint(lat: 45, long: Float(longitude), r: 0),
         fillBackground: upperBackground, foregroundColor: upperBlue)
@@ -226,6 +226,9 @@ class NavBallTextureRendering {
     let tex = textures[angle]!
     drawing.bind(tex)
     
+    if angle == -180 {
+      print ("Handling")
+    }
     let size = Size2D(w: tex.size!.aspect*size, h: size)
     if let color = fillBackground {
       drawing.program.setColor(color)

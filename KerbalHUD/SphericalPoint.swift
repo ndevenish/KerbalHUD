@@ -132,7 +132,8 @@ extension DrawingTools {
     // Flatten this into a data array, handling the slice shift
     var data = geometry.flatMap { (pos: Point2D, uv: Point2D) -> [GLfloat] in
       let theta : GLfloat
-      let shiftedTheta = cyc_mod(pos.x - slicePoint + 180, m: 360)-180
+      let shiftedThetaA = cyc_mod(pos.x - slicePoint + 180, m: 360)-180
+      let shiftedTheta = pos.x > 179 && shiftedThetaA == -180 ? 180 : shiftedThetaA
       if sphereDomain == .Left && shiftedTheta > 120 {
         theta = pos.x - 360
       } else if sphereDomain == .Right && shiftedTheta < -120 {

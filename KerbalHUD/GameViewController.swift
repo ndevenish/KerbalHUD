@@ -92,6 +92,8 @@ class GameViewController: GLKViewController {
     
 //   display = RPMPlaneHUD(tools: drawing!)
 //    display = HSIIndicator(tools: drawing!)
+    glEnable(GLenum(GL_BLEND));
+    glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
     panel = InstrumentPanel(tools: drawing!)
 //    let hsi = HSIIndicator(tools: drawing!)
@@ -100,8 +102,6 @@ class GameViewController: GLKViewController {
 //    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
     panel?.AddInstrument(NavBall(tools: drawing!))
-    glEnable(GLenum(GL_BLEND));
-    glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
   }
   

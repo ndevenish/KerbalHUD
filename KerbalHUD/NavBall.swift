@@ -43,18 +43,21 @@ class NavBall : Instrument {
 
   private var data : FlightData? = nil
   
+  var rpmText : RPMTextFile
+  
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
     text = drawing.textRenderer("Menlo-Bold")
     sphere = drawing.LoadTriangles(generateSphereTriangles(215, latSteps: 50, longSteps: 100))
-    
     outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
-    
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 640, h: 640)
-    
-    
+    rpmText = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
+//    func prepareTextFor(lineHeight : Float, screenHeight : Float, fontAspect : Float) {
+    rpmText.prepareTextFor(640/20, screenHeight: 640, font: text, tools: drawing)
+  
+      
     let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
     let outBox = GenerateRoundedBoxPoints(-64, bottom: -26, right: 64, top: 26, radius: 8)
     roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
@@ -124,6 +127,8 @@ class NavBall : Instrument {
 
     drawOverlay()
     drawText()
+    
+    rpmText.draw(dataProvider!)
   }
   
   func drawRoundBox(box : (inner: Drawable, outer: Drawable),

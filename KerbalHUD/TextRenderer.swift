@@ -25,6 +25,7 @@ class TextRenderer {
   /// A list of all textures accessed since the last flush
   private var foundTextures : Set<Int> = []
   private var monospaced : Bool = false
+  private(set) var aspect : Float
   
   private struct TextAtlas {
 //    let texture : GLKTextureInfo
@@ -67,6 +68,7 @@ class TextRenderer {
     if abs(iSize.width - 2*wSize.width) < 1e-2 {
       monospaced = true
     }
+    aspect = Float(iSize.width / iSize.height)
     getAtlas(10)
   }
   

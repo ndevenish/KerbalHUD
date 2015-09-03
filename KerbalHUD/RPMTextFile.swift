@@ -56,27 +56,16 @@ class RPMTextFile {
         let variables = nss.substringWithRange(match.rangeAtIndex(2))
           .componentsSeparatedByCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
         let formatString = nss.substringWithRange(match.rangeAtIndex(1))
-        lineEntries.appendContentsOf(splitLongStringWithFormatting(formatString, variables: variables))
+        lineEntries.appendContentsOf(parseWholeFormattingLine(formatString, variables: variables))
       } else {
         // No formatting variables. pass the whole thing
-        lineEntries.appendContentsOf(splitLongStringWithFormatting(line, variables: []))
+        lineEntries.appendContentsOf(parseWholeFormattingLine(line, variables: []))
       }
       print ("Processed line: ", lineEntries)
-//      let nsStringLine = line as NSString
-//
-//      let variables : [String]
-//      let formatting = nsStringLine.substringWithRange(parts[0].range) as String
-//      if parts.count == 2 {
-//        terSet())
-//      } else {
-//        variables = []
-//      }
-      // Now, handle the formatting string
-//      let lineEntry = splitLongStringWithFormatting(formatting, variables: variables)
     }
   }
   
-  func splitLongStringWithFormatting(line : String, variables : [String]) -> [PageEntry] {
+  func parseWholeFormattingLine(line : String, variables : [String]) -> [PageEntry] {
     let nss = line as NSString
     var entries : [PageEntry] = []
     let formatRE = try! NSRegularExpression(pattern: "\\{([^\\}]+)\\}", options: NSRegularExpressionOptions())
@@ -88,22 +77,27 @@ class RPMTextFile {
       if match.range.location > position {
         let s = nss.substringWithRange(NSRange(location: position, length: match.range.location-position))
         // Process anything between the position and this match
-        entries.appendContentsOf(processNonVariableTags(s as String))
+        entries.appendContentsOf(parsePotentiallyTaggedString(s as String))
         position = match.range.location
       }
       // Append an entry for this variable
-      entries.append(FormatEntry(text: nss.substringWithRange(match.rangeAtIndex(1))))
+      entries.append(parseFormatString(nss.substringWithRange(match.rangeAtIndex(1)), variables: variables))
       position = match.range.location + match.range.length
     }
     if position != nss.length {
       let remaining = nss.substringFromIndex(position)
-      entries.appendContentsOf(processNonVariableTags(remaining))
+      entries.appendContentsOf(parsePotentiallyTaggedString(remaining))
     }
 
     return entries
   }
   
-  func processNonVariableTags(fragment : String) -> [PageEntry] {
+  func parseFormatString(fragment : String, variables : [String]) -> PageEntry {
+    return FormatEntry(text: fragment)
+  }
+  
+  /// Parse a string that contains no variables {} but may contain tags
+  func parsePotentiallyTaggedString(fragment : String) -> [PageEntry] {
     var entries : [PageEntry] = []
     // Handle square bracket escaping
     let fragment = fragment.stringByReplacingOccurrencesOfString("[[", withString: "[")
@@ -144,6 +138,8 @@ class RPMTextFile {
     return charCount
   }
   
+  /// Takes a plain string entry, and splits into an array of potential
+  /// [Whitespace] [String] [Whitespace] entries
   func processStringEntry(var fragment : String) -> [PageEntry] {
     if fragment.isWhitespace() {
       return [EmptyString(length: fragment.characters.count)]
@@ -172,6 +168,7 @@ class RPMTextFile {
     return entries
   }
   
+  /// Processes the inner contents of a tag, and returns the page entry
   func processTag(fragment : String) -> PageEntry {
     let offsetRE = Regex(pattern: "@([xy])(-?\\d+)")
     if let nudge = offsetRE.firstMatchInString(fragment) {

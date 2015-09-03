@@ -307,9 +307,9 @@ class TextRenderer {
             }
             tool.program.setUVProperties(
                 xOffset: atlas.uvSize.width*GLfloat(coords.x),
-                yOffset: atlas.uvSize.height*GLfloat(coords.y),
+                yOffset: atlas.uvSize.height*GLfloat(coords.y+1),
                 xScale:  atlas.uvSize.width,
-                yScale:  atlas.uvSize.height)
+                yScale:  -atlas.uvSize.height)
             glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
           } else {
             // We don't recognise this character. This is a problem.

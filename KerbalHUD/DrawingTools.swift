@@ -77,7 +77,6 @@ extension VertexRepresentation {
 //typealias Point2D = (x: Float, y: Float)
 
 //typealias Triangle = (Point2D, Point2D, Point2D)
-typealias Color4 = (r: GLfloat, g: GLfloat, b: GLfloat, a: GLfloat)
 
 
 func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {

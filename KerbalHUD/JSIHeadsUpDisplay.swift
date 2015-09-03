@@ -63,9 +63,9 @@ struct RPMPageSettings
   var textSize : (width: GLfloat, height: GLfloat) = (32, 8)
   var screenSize = Size2D<Float>(w: 512, h: 256)
   
-  var backgroundColor : Color4 = (0,0,0,1)
+  var backgroundColor : Color4 = Color4.Black
   var fontName : String = "Menlo"
-  var fontColor : Color4 = (1,1,1,1)
+  var fontColor : Color4 = Color4.White
 }
 
 class RPMPlaneHUD : RPMInstrument
@@ -309,9 +309,9 @@ class JSIHeadsUpDisplay {
   var headingBarScale : GLfloat = 58.0
   
   /// The colour the prograde icon is drawn in
-  var progradeColor : (GLfloat, GLfloat, GLfloat, GLfloat) = (0.84, 0.98, 0.0, 1.0)
+  var progradeColor : Color4 = Color4(0.84, 0.98, 0.0, 1.0)
   /// The colour the rest of the HUD is drawn in
-  var foregroundColor : (GLfloat, GLfloat, GLfloat, GLfloat) = (0.0, 1.0, 0.0, 1.0)
+  var foregroundColor : Color4 = Color4.Green
 
   /// Use a 180 or 360 degree horizon
   var use360horizon : Bool = true

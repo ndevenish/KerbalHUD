@@ -90,40 +90,60 @@ func GenerateBoxTriangles(left: GLfloat, bottom: GLfloat, right: GLfloat, top: G
 }
 
 func GenerateRoundedBoxPoints(
-  left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat, radius: GLfloat) -> [Point2D]
+  left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat,
+  radius: GLfloat,
+  topLeft: Bool = true, topRight: Bool = true,
+  bottomRight: Bool = true, bottomLeft: Bool = true)
+    -> [Point2D]
 {
   // How many steps to do in a corner
   let STEPS = 5
   let STEP_ANGLE = π/2.0/Float(STEPS+2)
   // Start before the top-left circle
   var points : [(Float, Float)] = [(left, top-radius)]
-  // Do the inner circle points
-  for step in 1...STEPS {
-    let x = -cos(STEP_ANGLE*Float(step))*radius
-    let y = sin(STEP_ANGLE*Float(step))*radius
-    points.append((left+radius+x, top-radius+y))
+  if topLeft {
+    // Do the inner circle points
+    for step in 1...STEPS {
+      let x = -cos(STEP_ANGLE*Float(step))*radius
+      let y = sin(STEP_ANGLE*Float(step))*radius
+      points.append((left+radius+x, top-radius+y))
+    }
+  } else {
+    points.append((left, top))
   }
   points.append((left+radius, top))
   points.append((right-radius, top))
-  // Do the inner circle points
-  for step in 1...STEPS {
-    let x = sin(STEP_ANGLE*Float(step))*radius
-    let y = cos(STEP_ANGLE*Float(step))*radius
-    points.append((right-radius+x, top-radius+y))
+  if topRight {
+    // Do the inner circle points
+    for step in 1...STEPS {
+      let x = sin(STEP_ANGLE*Float(step))*radius
+      let y = cos(STEP_ANGLE*Float(step))*radius
+      points.append((right-radius+x, top-radius+y))
+    }
+  } else {
+    points.append((right, top))
   }
   points.append((right, top-radius))
   points.append((right, bottom+radius))
-  for step in 1...STEPS {
-    let x = cos(STEP_ANGLE*Float(step))*radius
-    let y = -sin(STEP_ANGLE*Float(step))*radius
-    points.append((right-radius+x, bottom+radius+y))
+  if bottomRight {
+    for step in 1...STEPS {
+      let x = cos(STEP_ANGLE*Float(step))*radius
+      let y = -sin(STEP_ANGLE*Float(step))*radius
+      points.append((right-radius+x, bottom+radius+y))
+    }
+  } else {
+    points.append((right, bottom))
   }
   points.append((right-radius, bottom))
   points.append((left+radius, bottom))
-  for step in 1...STEPS {
-    let x = -sin(STEP_ANGLE*Float(step))*radius
-    let y = -cos(STEP_ANGLE*Float(step))*radius
-    points.append((left+radius+x, bottom+radius+y))
+  if bottomLeft {
+    for step in 1...STEPS {
+      let x = -sin(STEP_ANGLE*Float(step))*radius
+      let y = -cos(STEP_ANGLE*Float(step))*radius
+      points.append((left+radius+x, bottom+radius+y))
+    }
+  } else {
+    points.append((left, bottom))
   }
   points.append((left, bottom+radius))
   

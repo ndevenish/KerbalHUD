@@ -9,19 +9,44 @@
 import Foundation
 import GLKit
 
+private enum SpeedDisplayMode {
+  case Surface
+  case Orbit
+  case Target
+}
+
+private struct FlightData {
+  var Altitude : Float = 0
+  var SurfaceSpeed : Float = 0
+  var OrbitalVelocity : Float = 0
+  var Acceleration : Float = 0
+  var Roll : Float = 0
+  var Pitch : Float = 0
+  var Heading : Float = 0
+  var RadarAltitude : Float = 0
+  var HorizontalSpeed : Float = 0
+  var VerticalSpeed : Float = 0
+}
 
 class NavBall : Instrument {
   /// The INTERNAL screen size e.g. the coordinate system this expects to draw on
   var screenSize : Size2D<Float>
   
+  var dataProvider : IKerbalDataStore? = nil
   var drawing : DrawingTools
+  var text : TextRenderer
   var navBall : Texture
   var sphere : Drawable
   var outline : Drawable
   var roundBox : (inner: Drawable, outer: Drawable)
+  var lesserRoundBox : (inner: Drawable, outer: Drawable)
+
+  private var data : FlightData? = nil
+  
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
     drawing = tools
+    text = drawing.textRenderer("Menlo-Bold")
     sphere = drawing.LoadTriangles(generateSphereTriangles(215, latSteps: 50, longSteps: 100))
     
     outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
@@ -30,14 +55,24 @@ class NavBall : Instrument {
     screenSize = Size2D(w: 640, h: 640)
     
     
-    let inBox = GenerateRoundedBoxPoints(-70, bottom: -22, right: 70, top: 22, radius: 4)
-    let outBox = GenerateRoundedBoxPoints(-74, bottom: -26, right: 74, top: 26, radius: 8)
+    let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
+    let outBox = GenerateRoundedBoxPoints(-64, bottom: -26, right: 64, top: 26, radius: 8)
     roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
+    
+    let lInBox = GenerateRoundedBoxPoints(-83, bottom: -27, right: 83, top: 27, radius: 4, topLeft: false, topRight: false)
+    let lOutBox = GenerateRoundedBoxPoints(-86, bottom: -30, right: 86, top: 30, radius: 8, topLeft: false, topRight: false)
+    lesserRoundBox = (drawing.Load2DPolygon(lInBox), drawing.Load2DPolygon(lOutBox))
   }
+  
+  let variables =   ["rpm.SPEEDDISPLAYMODE",
+    "v.altitude", "n.roll", "n.pitch", "n.heading",
+    "rpm.RADARALTOCEAN", "v.surfaceSpeed", "v.verticalSpeed",
+    "v.orbitalVelocity", "rpm.HORZVELOCITY",]
   
   /// Start communicating with the kerbal data store
   func connect(to : IKerbalDataStore){
-    
+    dataProvider = to
+    to.subscribe(variables)
   }
   /// Stop communicating with the kerbal data store
   func disconnect(from : IKerbalDataStore) {
@@ -46,20 +81,34 @@ class NavBall : Instrument {
   
   /// Update this instrument
   func update() {
-    
+    guard let v = dataProvider else {
+      return
+    }
+    var data = FlightData()
+    data.Altitude = v["v.altitude"]?.floatValue ?? 0
+    data.Acceleration = v["rpm.ACCEL"]?.floatValue ?? 0
+    data.Roll = v["n.roll"]?.floatValue ?? 0
+    data.Pitch = v["n.pitch"]?.floatValue ?? 0
+    data.Heading = v["n.heading"]?.floatValue ?? 0
+    data.RadarAltitude = v["rpm.RADARALTOCEAN"]?.floatValue ?? 0
+    data.SurfaceSpeed = v["v.surfaceSpeed"]?.floatValue ?? 0
+    data.VerticalSpeed = v["v.verticalSpeed"]?.floatValue ?? 0
+    data.OrbitalVelocity = v["v.orbitalVelocity"]?.floatValue ?? 0
+    data.HorizontalSpeed = v["rpm.HORZVELOCITY"]?.floatValue ?? 0
+
+// tr.draw("MODE", size: 15, position: (x: 54, y: 489), align: .Center)
+
+    self.data = data
   }
+
   let timer = Clock.createTimer()
-  
+
   func draw() {
     drawing.bind(navBall)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
 
-    // Draw the circle outline in the center
     var sphMat = GLKMatrix4Identity
-    sphMat = GLKMatrix4Translate(sphMat, 320, 302, 0)
-    drawing.program.setModelView(sphMat)
-    drawing.Draw(outline)
-    
+    sphMat = GLKMatrix4Translate(sphMat, 320, 338, 0)
     // Pitch
     sphMat = GLKMatrix4Rotate(sphMat, sin(Float(timer.elapsed)/10), 0, -1, 0)
     // Heading
@@ -70,16 +119,85 @@ class NavBall : Instrument {
     drawing.program.setUseTexture(true)
     drawing.Draw(sphere)
     
+    // 561
+    //
+
+    drawOverlay()
+    drawText()
+  }
+  
+  func drawRoundBox(box : (inner: Drawable, outer: Drawable),
+    position: Point2D, color: Color4) {
+      drawing.program.setModelView(GLKMatrix4MakeTranslation(position.x, position.y, 0))
+      drawing.program.setColor(color)
+      drawing.Draw(box.outer)
+      drawing.program.setColor(red: 0, green: 0, blue: 0)
+      drawing.Draw(box.inner)
+  }
+  
+  func drawOverlay() {
+    drawing.program.setUseTexture(false)
+
+    // Draw the outline
+    drawing.program.setColor(Color4.White)
+    drawing.program.setModelView(GLKMatrix4MakeTranslation(320, 338, 0))
+    drawing.Draw(outline)
+
     // Draw the data boxes
     // middle, 230-4
-    drawing.program.setUseTexture(false)
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(320, 302-230+4, 0))
-    drawing.Draw(roundBox.outer)
-    drawing.program.setColor(red: 0, green: 0, blue: 0)
-    drawing.Draw(roundBox.inner)
+    drawRoundBox(roundBox, position: Point2D(320, 338+230-16), color: Color4.White)
+    drawRoundBox(roundBox, position: Point2D(64, 400), color: Color4.White)
+    drawRoundBox(roundBox, position: Point2D(640-64, 400), color: Color4.White)
+    
+    // 7 63 96
+    let lesserCol = Color4(fromByteR: 7, g: 63, b: 96)
+    drawRoundBox(lesserRoundBox, position: Point2D(83, 534), color: lesserCol)
+    drawRoundBox(lesserRoundBox, position: Point2D(22, 470), color: lesserCol)
+    drawRoundBox(lesserRoundBox, position: Point2D(640-83, 534), color: lesserCol)
+//    drawRoundBox(lesserRoundBox, position: Point2D(640-22, 470), color: lesserCol)
+
+    drawRoundBox(lesserRoundBox, position: Point2D(83, 640-27), color: lesserCol)
+    drawRoundBox(lesserRoundBox, position: Point2D(640-83, 640-27), color: lesserCol)
+    drawing.program.setColor(lesserCol)
+    drawing.DrawSquare(0, bottom: 36, right: 640, top: 37)
+    
+    // Four 21-px equilateral triangles at corner coordinates
+    
+    // Central targeting polygon. Same as HUD, but black outline and squares
+    
+    // Overlay text
+    let tr = text
+    drawing.program.setColor(Color4.White)
+    tr.draw("ALTITUDE", size: 15, position: (x: 83, y: 591), align: .Center)
+    tr.draw("SRF.SPEED",size: 15, position: (x: 640-83, y: 591), align: .Center)
+    tr.draw("ORB.VELOCITY", size: 15, position: (x: 83, y: 554), align: .Center)
+    tr.draw("ACCEL.", size: 15, position: (x: 640-83, y: 554), align: .Center)
+    
+    tr.draw("MODE", size: 15, position: (x: 54, y: 489), align: .Center)
+    tr.draw("ROLL", size: 15, position: (x: 36, y: 434), align: .Center)
+    tr.draw("PITCH", size: 15, position: (x: 599, y: 434), align: .Center)
+
+    tr.draw("RADAR ALTITUDE", size: 15, position: (x: 104, y: 47), align: .Center)
+    tr.draw("HOR.SPEED", size: 15, position: (x: 320, y: 47), align: .Center)
+    tr.draw("VERT.SPEED", size: 15, position: (x: 534, y: 47), align: .Center)
     
   }
   
+  func drawText() {
+    guard let vars = data else {
+      return
+    }
+    text.draw(String(format: "%03.1f°", vars.Roll), size: 32,
+      position: (x: 64, y: 400), align: .Center)
+    text.draw(String(format: "%03.1f°", vars.Pitch), size: 32,
+      position: (x: 640-64, y: 400), align: .Center)
+    text.draw(String(format: "%03.1f°", vars.Heading), size: 32,
+      position: (x: 320, y: 338+230-16), align: .Center)
+
+
+    // 40x20
+    
+  }
 }
 
 class NavBallTextureRendering {

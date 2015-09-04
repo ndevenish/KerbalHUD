@@ -34,6 +34,10 @@ private struct FlightData {
   var Throttle : Float = 0
   var SpeedDisplay : SpeedDisplayMode = .Surface
 
+  var NodeExists : Bool = false
+  var NodeBurnTime : Float = 0
+  var NodeTime : Float = 0
+  var NodeDv : Float = 0
 }
 
 class NavBall : Instrument {
@@ -78,7 +82,7 @@ class NavBall : Instrument {
     "v.altitude", "n.roll", "n.pitch", "n.heading",
     "rpm.RADARALTOCEAN", "v.surfaceSpeed", "v.verticalSpeed",
     "v.orbitalVelocity", "rpm.HORZVELOCITY", "v.sasValue", "v.rcsValue", "v.lightValue", "v.brakeValue", "v.gearValue", "f.throttle",
-    "rpm.SPEEDDISPLAYMODE", ]
+    "rpm.SPEEDDISPLAYMODE", "rpm.MNODEEXISTS", "rpm.MNODEBURNTIMESECS", "rpm.MNODETIMESECS", "rpm.MNODEDV"]
   
   /// Start communicating with the kerbal data store
   func connect(to : IKerbalDataStore){
@@ -212,7 +216,7 @@ class NavBall : Instrument {
   }
   
   func drawText() {
-    guard let vars = data else {
+    guard let data = data else {
       return
     }
 //    text.draw(String(format: "%03.1f°", vars.Roll), size: 32,
@@ -222,36 +226,50 @@ class NavBall : Instrument {
 //    text.draw(String(format: "%03.1f°", vars.Heading), size: 32,
 //      position: (x: 320, y: 338+230-16), align: .Center)
 
-    drawText("%03.1f°", vars.Roll, x: 64, y: 240)
-    drawText("%03.1f°", vars.Pitch, x: 640-64, y: 240)
-    drawText("%03.1f°", vars.Heading, x: 320, y: 88)
+    drawText("%03.1f°", data.Roll, x: 64, y: 240)
+    drawText("%03.1f°", data.Pitch, x: 640-64, y: 240)
+    drawText("%03.1f°", data.Heading, x: 320, y: 88)
 
-    drawText("{0:SIP_6.1}m", vars.Altitude, x: 75, y: 22)
-    drawText("{0,4:SIP4}m/s", vars.SurfaceSpeed, x: 558, y: 22)
+    drawText("{0:SIP_6.1}m", data.Altitude, x: 75, y: 22)
+    drawText("{0,4:SIP4}m/s", data.SurfaceSpeed, x: 558, y: 22)
     
-    drawText("{0:SIP_6.1}m", vars.OrbitalVelocity, x: 77, y: 115)
-    drawText("{0:SIP4}m/s", vars.Acceleration, x: 558, y: 115)
-    drawText(vars.SpeedDisplay.rawValue, x: 55, y: 177)
+    drawText("{0:SIP_6.1}m", data.OrbitalVelocity, x: 77, y: 115)
+    drawText("{0:SIP4}m/s", data.Acceleration, x: 558, y: 115)
+    drawText(data.SpeedDisplay.rawValue, x: 55, y: 177)
    
-    drawText("{0:SIP_6.3}m", vars.RadarAltitude, x: 95, y: 623)
-    drawText("{0:SIP_6.3}m", vars.HorizontalSpeed, x: 320, y: 623)
-    drawText("{0:SIP_6.3}m", vars.VerticalSpeed, x: 640-95, y: 623)
+    drawText("{0:SIP_6.3}m", data.RadarAltitude, x: 95, y: 623)
+    drawText("{0:SIP_6.3}m", data.HorizontalSpeed, x: 320, y: 623)
+    drawText("{0:SIP_6.3}m", data.VerticalSpeed, x: 640-95, y: 623)
     
     // 10, 300
-    drawText("SAS:", x: 10, y: 300, align: .Left, size: 20)
-    drawOnOff(data!.SAS, x: 43, y: 332)
-    drawText("RCS:", x: 10, y: 364, align: .Left, size: 20)
-    drawOnOff(data!.RCS, x: 43, y: 364+32)
-    drawText("Throttle:", x: 10, y: 428, align: .Left, size: 20)
+    drawText("SAS:", x: 10, y: 280, align: .Left, size: 20)
+    drawOnOff(data.SAS, x: 43, y: 312)
+    drawText("RCS:", x: 10, y: 344, align: .Left, size: 20)
+    drawOnOff(data.RCS, x: 43, y: 344+32)
+    drawText("Throttle:", x: 10, y: 408, align: .Left, size: 20)
     
-    drawText("Gear:", x: 630, y: 300, align: .Right, size: 20)
-    drawOnOff(data!.Gear, x: 640-43, y: 332, onText: "Down", offText: "Up")
-    drawText("Brakes:", x: 630, y: 364, align: .Right, size: 20)
-    drawOnOff(data!.Brakes, x: 640-43, y: 364+32)
-    drawText("Lights:", x: 630, y: 428, align: .Right, size: 20)
-    drawOnOff(data!.Lights, x: 640-43, y: 428+32)
-    drawText("%.0f%%", data!.Throttle*100, x: 90, y: 428+32, align: .Right)
+    drawText("Gear:", x: 630, y: 290, align: .Right, size: 20)
+    drawOnOff(data.Gear, x: 640-43, y: 312, onText: "Down", offText: "Up")
+    drawText("Brakes:", x: 630, y: 344, align: .Right, size: 20)
+    drawOnOff(data.Brakes, x: 640-43, y: 344+32)
+    drawText("Lights:", x: 630, y: 408, align: .Right, size: 20)
+    drawOnOff(data.Lights, x: 640-43, y: 408+32)
+    drawText("%.0f%%", data.Throttle*100, x: 90, y: 408+32, align: .Right)
+
     
+    if data.NodeExists {
+      drawText("Burn T:", x: 10, y: 408+64, align: .Left, size: 20)
+      drawText("{0:METS.f}s", data.NodeBurnTime, x: 10, y: 408+64+32, align: .Left)
+      drawText("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20)
+      drawText("{0,17:MET+yy:ddd:hh:mm:ss.f}", data.NodeTime, x: 10, y: 408+64+64+32, align: .Left)
+      drawText("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20)
+      drawText("{0:SIP_6.3}m/s", data.NodeDv, x: 630, y: 408+64+64+32, align: .Right)
+    }
+
+//      {0:;"                                                       ";""} Burn T:$&$ MNODEEXISTS
+//    {0:;"                                                       ";""} {1:METS.f}s $&$ MNODEEXISTS MNODEBURNTIMESECS
+//      {0:;"                                                       ";""} Node in T                       ΔV $&$ MNODEEXISTS
+//    {2:;"                                                       ";}{0,17:MET+yy:ddd:hh:mm:ss.f}          {1:SIP_6.3}m/s     $&$ v MNODEDV MNODEEXISTS
   }
 
   func drawOnOff(value : Bool, x : Float, y: Float, onText: String = "On", offText : String = "Off") {

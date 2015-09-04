@@ -26,8 +26,13 @@ class RPMTextTests: XCTestCase {
 //        // Use XCTAssert and related functions to verify your tests produce the correct results.
 //    }
 
-    func testParse() {
-      let c = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
-    }
+//    func testParse() {
+//      let c = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
+//    }
 
+  func testSIP() {
+    XCTAssertEqual(processSIPFormat(2000, formatString: "SIP4.0"), "2k")
+    XCTAssertEqual(processSIPFormat(2453, formatString: "SIP6"), "2.453k")
+    XCTAssertEqual(processSIPFormat(2453, formatString: "SIP_6"), "2.45 k")
+  }
 }

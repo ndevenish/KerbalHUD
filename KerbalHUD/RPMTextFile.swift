@@ -362,8 +362,8 @@ class RPMTextFile {
   
   func parseFormatString(fragment : String, variables : [String]) -> PageEntry {
     let fmtRE = Regex(pattern: "(\\d+)(?:,(\\d+))?(?::(.+))?")
-    let info = fmtRE.firstMatchInString(fragment)!.getGroups(fragment)
-    let variable = variables[Int(info[0]!)!]
+    let info = fmtRE.firstMatchInString(fragment)!.groups
+    let variable = variables[Int(info[0])!]
     let alignment = Int(info[1] ?? "0") ?? 0
     let format = info[2] ?? ""
     
@@ -446,8 +446,8 @@ class RPMTextFile {
   func processTag(fragment : String) -> Tag {
     let offsetRE = Regex(pattern: "@([xy])(-?\\d+)")
     if let nudge = offsetRE.firstMatchInString(fragment) {
-      let res = nudge.getGroups(fragment)
-      return NudgeTag(value: Float(res[1]!)!, x: res[0]! == "x")
+      let res = nudge.groups
+      return NudgeTag(value: Float(res[1])!, x: res[0] == "x")
     } else if fragment == "hw" {
       return WidthTag(type: .Half)
     } else if fragment == "/hw" || fragment == "/dw"{
@@ -473,33 +473,6 @@ extension String {
     let trim = self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
     return trim.characters.count == 0
   }
-  func substringWithRange(range : NSRange) -> String {
-    let nss = self as NSString
-    return nss.substringWithRange(range)
-  }
-}
-
-class Regex {
-  let re : NSRegularExpression
-  init(pattern: String) {
-    re = try! NSRegularExpression(pattern: pattern, options: NSRegularExpressionOptions())
-  }
-  func firstMatchInString(string : String) -> NSTextCheckingResult? {
-    let nss = string as NSString
-    return re.firstMatchInString(string, options: NSMatchingOptions(), range: NSRange(location: 0, length: nss.length))
-  }
-}
-
-extension NSTextCheckingResult {
-  func getGroups(string : String) -> [String?] {
-    return (1..<self.numberOfRanges).map { (index : Int) -> String? in
-      if rangeAtIndex(index).location == NSNotFound {
-        return nil
-      }
-      return string.substringWithRange(rangeAtIndex(index))
-    }
-//    for 1..<self.numberOfRanges {
-  }
 }
 
 private let sipRE = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
@@ -523,11 +496,11 @@ class SIFormatter : StringFormatter {
       fatalError()
     }
     // We have an SI processing entry.
-    var parts = match.getGroups(format)
-    spaced = parts[0] != nil
+    var parts = match.groups
+    spaced = parts[0] != ""
     zeroPadded = parts[1] == "0"
-    length = Int(parts[2]!)!
-    precision = parts[3] == nil ? nil : Int(parts[3]!)!
+    length = Int(parts[2])!
+    precision = parts[3] == "" ? nil : Int(parts[3])!
   }
   
 //  var length : Int { return length }

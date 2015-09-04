@@ -17,6 +17,8 @@
 		0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71751B9869B900C68683 /* RPMTextFile.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1E71781B98816400C68683 /* RPMTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71771B98816400C68683 /* RPMTextTests.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0A1E71791B9881DA00C68683 /* RPMHUD.txt */; settings = {ASSET_TAGS = (); }; };
+		0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717B1B99013A00C68683 /* StringFormat.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1E717E1B99032600C68683 /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717D1B99032600C68683 /* Regex.swift */; settings = {ASSET_TAGS = (); }; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -73,6 +75,8 @@
 		0A1E71751B9869B900C68683 /* RPMTextFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RPMTextFile.swift; sourceTree = "<group>"; };
 		0A1E71771B98816400C68683 /* RPMTextTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RPMTextTests.swift; sourceTree = "<group>"; };
 		0A1E71791B9881DA00C68683 /* RPMHUD.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RPMHUD.txt; sourceTree = "<group>"; };
+		0A1E717B1B99013A00C68683 /* StringFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringFormat.swift; sourceTree = "<group>"; };
+		0A1E717D1B99032600C68683 /* Regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Regex.swift; sourceTree = "<group>"; };
 		0A3594001B7136B80072CC18 /* KerbalHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -215,6 +219,8 @@
 				0A77F7251B7D6282002A760F /* ShaderProgram.swift */,
 				0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */,
 				0A1E71751B9869B900C68683 /* RPMTextFile.swift */,
+				0A1E717B1B99013A00C68683 /* StringFormat.swift */,
+				0A1E717D1B99032600C68683 /* Regex.swift */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -357,6 +363,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */,
+				0A1E717E1B99032600C68683 /* Regex.swift in Sources */,
 				0A35940A1B7136B80072CC18 /* GameViewController.swift in Sources */,
 				0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */,
 				0A5DB9BF1B92136C000174C7 /* GLKitExtensions.swift in Sources */,
@@ -378,6 +385,7 @@
 				0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */,
 				0A1E71741B97BD3900C68683 /* Colors.swift in Sources */,
 				0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */,
+				0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */,
 				0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */,
 				0A1E71701B966F0400C68683 /* Point3D.swift in Sources */,
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,

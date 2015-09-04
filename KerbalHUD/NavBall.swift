@@ -9,10 +9,10 @@
 import Foundation
 import GLKit
 
-private enum SpeedDisplayMode {
-  case Surface
-  case Orbit
-  case Target
+private enum SpeedDisplayMode : String {
+  case Surface = "SRF"
+  case Orbit   = "ORB"
+  case Target  = "TGT"
 }
 
 private struct FlightData {
@@ -26,6 +26,10 @@ private struct FlightData {
   var RadarAltitude : Float = 0
   var HorizontalSpeed : Float = 0
   var VerticalSpeed : Float = 0
+  var SAS : Bool = false
+  var RCS : Bool = false
+  var SpeedDisplay : SpeedDisplayMode = .Surface
+
 }
 
 class NavBall : Instrument {
@@ -43,7 +47,7 @@ class NavBall : Instrument {
 
   private var data : FlightData? = nil
   
-  var rpmText : RPMTextFile
+//  var rpmText : RPMTextFile
   
   /// Initialise with a toolset to draw with
   required init(tools : DrawingTools) {
@@ -53,9 +57,8 @@ class NavBall : Instrument {
     outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 640, h: 640)
-    rpmText = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
-//    func prepareTextFor(lineHeight : Float, screenHeight : Float, fontAspect : Float) {
-    rpmText.prepareTextFor(640/20, screenHeight: 640, font: text, tools: drawing)
+//    rpmText = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
+//    rpmText.prepareTextFor(640/20, screenHeight: 640, font: text, tools: drawing)
   
       
     let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
@@ -70,7 +73,8 @@ class NavBall : Instrument {
   let variables =   ["rpm.SPEEDDISPLAYMODE",
     "v.altitude", "n.roll", "n.pitch", "n.heading",
     "rpm.RADARALTOCEAN", "v.surfaceSpeed", "v.verticalSpeed",
-    "v.orbitalVelocity", "rpm.HORZVELOCITY",]
+    "v.orbitalVelocity", "rpm.HORZVELOCITY", "v.sasValue", "v.rcsValue",
+    "rpm.SPEEDDISPLAYMODE", ]
   
   /// Start communicating with the kerbal data store
   func connect(to : IKerbalDataStore){
@@ -98,7 +102,18 @@ class NavBall : Instrument {
     data.VerticalSpeed = v["v.verticalSpeed"]?.floatValue ?? 0
     data.OrbitalVelocity = v["v.orbitalVelocity"]?.floatValue ?? 0
     data.HorizontalSpeed = v["rpm.HORZVELOCITY"]?.floatValue ?? 0
+    data.SAS = v["v.sasValue"]?.boolValue ?? false
+    data.RCS = v["v.rcsValue"]?.boolValue ?? false
 
+    let sdm = v["rpm.SPEEDDISPLAYMODE"]?.intValue ?? 0
+    if sdm < 0 {
+      data.SpeedDisplay = .Target
+    } else if sdm > 0 {
+      data.SpeedDisplay = .Orbit
+    } else {
+      data.SpeedDisplay = .Surface
+    }
+    //  ORB;TGT;SRF + , - , 0
 // tr.draw("MODE", size: 15, position: (x: 54, y: 489), align: .Center)
 
     self.data = data
@@ -128,7 +143,7 @@ class NavBall : Instrument {
     drawOverlay()
     drawText()
     
-    rpmText.draw(dataProvider!)
+//    rpmText.draw(dataProvider!)
   }
   
   func drawRoundBox(box : (inner: Drawable, outer: Drawable),
@@ -192,15 +207,47 @@ class NavBall : Instrument {
     guard let vars = data else {
       return
     }
-    text.draw(String(format: "%03.1f°", vars.Roll), size: 32,
-      position: (x: 64, y: 400), align: .Center)
-    text.draw(String(format: "%03.1f°", vars.Pitch), size: 32,
-      position: (x: 640-64, y: 400), align: .Center)
-    text.draw(String(format: "%03.1f°", vars.Heading), size: 32,
-      position: (x: 320, y: 338+230-16), align: .Center)
+//    text.draw(String(format: "%03.1f°", vars.Roll), size: 32,
+//      position: (x: 64, y: 400), align: .Center)
+//    text.draw(String(format: "%03.1f°", vars.Pitch), size: 32,
+//      position: (x: 640-64, y: 400), align: .Center)
+//    text.draw(String(format: "%03.1f°", vars.Heading), size: 32,
+//      position: (x: 320, y: 338+230-16), align: .Center)
 
+    drawText("%03.1f°", vars.Roll, x: 64, y: 240)
+    drawText("%03.1f°", vars.Pitch, x: 640-64, y: 240)
+    drawText("%03.1f°", vars.Heading, x: 320, y: 88)
 
-    // 40x20
+    drawText("{0:SIP_6.1}m", vars.Altitude, x: 75, y: 22)
+    drawText("{1:SIP4}m/s", vars.SurfaceSpeed, x: 558, y: 22)
+    
+    drawText("{0:SIP_6.1}m", vars.OrbitalVelocity, x: 77, y: 115)
+    drawText("{1:SIP4}m/s", vars.Acceleration, x: 558, y: 115)
+    drawText(vars.SpeedDisplay.rawValue, x: 55, y: 177)
+   
+    drawText("{0:SIP_6.3}m", vars.RadarAltitude, x: 95, y: 623)
+    drawText("{0:SIP_6.3}m", vars.HorizontalSpeed, x: 320, y: 623)
+    drawText("{0:SIP_6.3}m", vars.VerticalSpeed, x: 640-95, y: 623)
+    
+  }
+  
+  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
+    drawText(format, 0, x: x, y: y, align: align, color: color)
+  }
+  
+  func drawText(format : String, _ value : Float, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
+    let realPos = Point2D(x, screenSize.h - y)
+    if let c = color {
+      drawing.program.setColor(c)
+    }
+    // Format the text.
+    let formatted : String
+    if format.containsString("{") {
+      formatted = String(value)
+    } else {
+      formatted = String(format: format, value)
+    }
+    text.draw(formatted, size: 32, position: realPos, align: align)
     
   }
 }

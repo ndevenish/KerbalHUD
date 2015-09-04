@@ -8,8 +8,8 @@
 
 import Foundation
 
-private let formatRegex = Regex(pattern: "{(\\d+)(?:,(\\d+))?(?::(.+?))?}")
-private let sipRegex = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
+private let formatRegex = Regex(pattern: "\\{(\\d+)(?:,(\\d+))?(?::(.+?))?\\}")
+private let sipRegex    = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
 
 enum StringFormatError : ErrorType {
   case InvalidIndex
@@ -44,8 +44,29 @@ func processSIPFormat(value : Double, formatString : String) -> String {
   let space = matchParts.groups[0] == "_"
   let zeros = matchParts.groups[1] == "0"
   let length = Int(matchParts.groups[2])!
-  
-  let leadingExponent = max(0, Int(floor(log10(abs(value)))))
+
+  if !value.isFinite {
+    return String(value)
+  }
+  // Handle degenerate values (NaN, INF)
+  // We should return the string of requested length if we can even then.
+  // Which is why we parse the format string first.
+//  if (double.IsInfinity(inputValue) || double.IsNaN(inputValue))
+//  {
+//    int blankLength;
+//    if (formatData.IndexOf('.') > 0)
+//    {
+//      string[] tokens = formatData.Split('.');
+//      Int32.TryParse(tokens[0], out blankLength);
+//    }
+//    else
+//    {
+//      Int32.TryParse(formatData, out blankLength);
+//    }
+//    return (inputValue + " ").PadLeft(blankLength);
+//  }
+//  
+  let leadingExponent = value == 0.0 ? 0 : max(0, Int(floor(log10(abs(value)))))
   let siExponent = Int(floor(Float(leadingExponent) / 3.0))*3
   // If no precision specified, use the SI exponent
   var precision : Int = Int(matchParts.groups[3]) ?? max(0, siExponent)
@@ -86,28 +107,54 @@ func processSIPFormat(value : Double, formatString : String) -> String {
 }
 
 extension String {
-  func Format(formatString : String, _ args: Any...) throws -> String {
+  static func Format(formatString : String, _ args: Any...) throws -> String {
     var returnString = ""
+    let nsS = formatString as NSString
+    var position = 0
     
     // Compose the string with the regex formatting
     for match in formatRegex.matchesInString(formatString) {
+      if match.range.location > position {
+        let intermediateRange = NSRange(location: position, length: match.range.location-position)
+        returnString += formatString.substringWithRange(intermediateRange)
+      }
       guard let index = Int(match.groups[0]) else {
         throw StringFormatError.InvalidIndex
       }
-      guard let alignment = Int(match.groups[1]) else {
+      guard index < args.count else {
+        throw StringFormatError.InvalidIndex
+      }
+      let alignment = Int(match.groups[1])
+      if !match.groups[1].isEmpty && alignment == nil {
         throw StringFormatError.InvalidAlignment
       }
       let format = match.groups[2]
 
-      let postFormat : String
+      var postFormat : String
       if format.hasPrefix("SIP") {
         let val = downcastToDouble(args[index])
         postFormat = processSIPFormat(val, formatString: format)
+      } else {
+        fatalError()
       }
       
       // Pad with alignment!
-      
+      if let align = alignment where postFormat.characters.count < abs(align) {
+        let difference =  abs(align) - postFormat.characters.count
+        let fillString = String(count: difference, repeatedValue: Character(" "))
+        if align < 0 {
+          postFormat = postFormat + fillString
+        } else {
+          postFormat = fillString + postFormat
+        }
+      }
+      // Append this new entry to our total string
+      returnString += postFormat
+      position = match.range.location + match.range.length
     }
-    return ""
+    if position < nsS.length {
+      returnString += nsS.substringFromIndex(position)
+    }
+    return returnString
   }
 }

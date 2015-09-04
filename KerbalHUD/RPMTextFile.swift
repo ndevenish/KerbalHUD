@@ -475,41 +475,41 @@ extension String {
   }
 }
 
-private let sipRE = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
-
+//private let sipRE = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
+//
 protocol StringFormatter {
   func format<T>(item : T) -> String
   var fixedLength : Bool { get }
   var length : Int { get }
 }
-
-class SIFormatter : StringFormatter {
-  var spaced : Bool
-  var zeroPadded : Bool
-  var length : Int
-  var precision : Int?
-  
-  var fixedLength : Bool { return true }
-  
-  init(format: String) {
-    guard let match = sipRE.firstMatchInString(format) else {
-      fatalError()
-    }
-    // We have an SI processing entry.
-    var parts = match.groups
-    spaced = parts[0] != ""
-    zeroPadded = parts[1] == "0"
-    length = Int(parts[2])!
-    precision = parts[3] == "" ? nil : Int(parts[3])!
-  }
-  
-//  var length : Int { return length }
-  
-  func format<T>(item : T) -> String {
-    fatalError()
-  }
-}
-
+//
+//class SIFormatter : StringFormatter {
+//  var spaced : Bool
+//  var zeroPadded : Bool
+//  var length : Int
+//  var precision : Int?
+//  
+//  var fixedLength : Bool { return true }
+//  
+//  init(format: String) {
+//    guard let match = sipRE.firstMatchInString(format) else {
+//      fatalError()
+//    }
+//    // We have an SI processing entry.
+//    var parts = match.groups
+//    spaced = parts[0] != ""
+//    zeroPadded = parts[1] == "0"
+//    length = Int(parts[2])!
+//    precision = parts[3] == "" ? nil : Int(parts[3])!
+//  }
+//  
+////  var length : Int { return length }
+//  
+//  func format<T>(item : T) -> String {
+//    fatalError()
+//  }
+//}
+//
 class DefaultStringFormatter : StringFormatter {
   var fixedLength : Bool { return false }
   var length : Int { return 0 }
@@ -517,10 +517,10 @@ class DefaultStringFormatter : StringFormatter {
     return String(item)
   }
 }
-
+//
 func getFormatterForString(format: String) -> StringFormatter {
-  if let _ = sipRE.firstMatchInString(format) {
-    return SIFormatter(format: format)
-  }
+//  if let _ = sipRE.firstMatchInString(format) {
+//    return SIFormatter(format: format)
+//  }
   return DefaultStringFormatter()
 }

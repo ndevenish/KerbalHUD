@@ -219,10 +219,10 @@ class NavBall : Instrument {
     drawText("%03.1f°", vars.Heading, x: 320, y: 88)
 
     drawText("{0:SIP_6.1}m", vars.Altitude, x: 75, y: 22)
-    drawText("{1:SIP4}m/s", vars.SurfaceSpeed, x: 558, y: 22)
+    drawText("{0,4:SIP4}m/s", vars.SurfaceSpeed, x: 558, y: 22)
     
     drawText("{0:SIP_6.1}m", vars.OrbitalVelocity, x: 77, y: 115)
-    drawText("{1:SIP4}m/s", vars.Acceleration, x: 558, y: 115)
+    drawText("{0:SIP4}m/s", vars.Acceleration, x: 558, y: 115)
     drawText(vars.SpeedDisplay.rawValue, x: 55, y: 177)
    
     drawText("{0:SIP_6.3}m", vars.RadarAltitude, x: 95, y: 623)
@@ -243,7 +243,7 @@ class NavBall : Instrument {
     // Format the text.
     let formatted : String
     if format.containsString("{") {
-      formatted = String(value)
+      formatted = try! String.Format(format, value)
     } else {
       formatted = String(format: format, value)
     }

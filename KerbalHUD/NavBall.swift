@@ -219,12 +219,6 @@ class NavBall : Instrument {
     guard let data = data else {
       return
     }
-//    text.draw(String(format: "%03.1f°", vars.Roll), size: 32,
-//      position: (x: 64, y: 400), align: .Center)
-//    text.draw(String(format: "%03.1f°", vars.Pitch), size: 32,
-//      position: (x: 640-64, y: 400), align: .Center)
-//    text.draw(String(format: "%03.1f°", vars.Heading), size: 32,
-//      position: (x: 320, y: 338+230-16), align: .Center)
 
     drawText("%03.1f°", data.Roll, x: 64, y: 240)
     drawText("%03.1f°", data.Pitch, x: 640-64, y: 240)
@@ -265,11 +259,6 @@ class NavBall : Instrument {
       drawText("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20)
       drawText("{0:SIP_6.3}m/s", data.NodeDv, x: 630, y: 408+64+64+32, align: .Right)
     }
-
-//      {0:;"                                                       ";""} Burn T:$&$ MNODEEXISTS
-//    {0:;"                                                       ";""} {1:METS.f}s $&$ MNODEEXISTS MNODEBURNTIMESECS
-//      {0:;"                                                       ";""} Node in T                       ΔV $&$ MNODEEXISTS
-//    {2:;"                                                       ";}{0,17:MET+yy:ddd:hh:mm:ss.f}          {1:SIP_6.3}m/s     $&$ v MNODEDV MNODEEXISTS
   }
 
   func drawOnOff(value : Bool, x : Float, y: Float, onText: String = "On", offText : String = "Off") {

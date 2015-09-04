@@ -28,6 +28,10 @@ private struct FlightData {
   var VerticalSpeed : Float = 0
   var SAS : Bool = false
   var RCS : Bool = false
+  var Gear : Bool = false
+  var Brakes : Bool = false
+  var Lights : Bool = false
+  var Throttle : Float = 0
   var SpeedDisplay : SpeedDisplayMode = .Surface
 
 }
@@ -73,7 +77,7 @@ class NavBall : Instrument {
   let variables =   ["rpm.SPEEDDISPLAYMODE",
     "v.altitude", "n.roll", "n.pitch", "n.heading",
     "rpm.RADARALTOCEAN", "v.surfaceSpeed", "v.verticalSpeed",
-    "v.orbitalVelocity", "rpm.HORZVELOCITY", "v.sasValue", "v.rcsValue",
+    "v.orbitalVelocity", "rpm.HORZVELOCITY", "v.sasValue", "v.rcsValue", "v.lightValue", "v.brakeValue", "v.gearValue", "f.throttle",
     "rpm.SPEEDDISPLAYMODE", ]
   
   /// Start communicating with the kerbal data store
@@ -104,6 +108,10 @@ class NavBall : Instrument {
     data.HorizontalSpeed = v["rpm.HORZVELOCITY"]?.floatValue ?? 0
     data.SAS = v["v.sasValue"]?.boolValue ?? false
     data.RCS = v["v.rcsValue"]?.boolValue ?? false
+    data.Lights = v["v.lightValue"]?.boolValue ?? false
+    data.Brakes = v["v.brakeValue"]?.boolValue ?? false
+    data.Gear = v["v.gearValue"]?.boolValue ?? false
+    data.Throttle = v["f.throttle"]?.floatValue ?? 0
 
     let sdm = v["rpm.SPEEDDISPLAYMODE"]?.intValue ?? 0
     if sdm < 0 {
@@ -229,13 +237,41 @@ class NavBall : Instrument {
     drawText("{0:SIP_6.3}m", vars.HorizontalSpeed, x: 320, y: 623)
     drawText("{0:SIP_6.3}m", vars.VerticalSpeed, x: 640-95, y: 623)
     
+    // 10, 300
+    drawText("SAS:", x: 10, y: 300, align: .Left, size: 20)
+    drawOnOff(data!.SAS, x: 43, y: 332)
+    drawText("RCS:", x: 10, y: 364, align: .Left, size: 20)
+    drawOnOff(data!.RCS, x: 43, y: 364+32)
+    drawText("Throttle:", x: 10, y: 428, align: .Left, size: 20)
+    
+    drawText("Gear:", x: 630, y: 300, align: .Right, size: 20)
+    drawOnOff(data!.Gear, x: 640-43, y: 332, onText: "Down", offText: "Up")
+    drawText("Brakes:", x: 630, y: 364, align: .Right, size: 20)
+    drawOnOff(data!.Brakes, x: 640-43, y: 364+32)
+    drawText("Lights:", x: 630, y: 428, align: .Right, size: 20)
+    drawOnOff(data!.Lights, x: 640-43, y: 428+32)
+    drawText("%.0f%%", data!.Throttle*100, x: 90, y: 428+32, align: .Right)
+    
+  }
+
+  func drawOnOff(value : Bool, x : Float, y: Float, onText: String = "On", offText : String = "Off") {
+    if value {
+      drawText(onText, 0, x: x, y: y, align: .Center, color: Color4.Green)
+    } else {
+      drawText(offText, 0, x: x, y: y, align: .Center)
+    }
+    drawing.program.setColor(Color4.White)
   }
   
-  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
-    drawText(format, 0, x: x, y: y, align: align, color: color)
+  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, size : Float = 32) {
+    drawText(format, 0, x: x, y: y, align: align, color: nil, size: size)
   }
+//
+//  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
+//    drawText(format, 0, x: x, y: y, align: align, color: color)
+//  }
   
-  func drawText(format : String, _ value : Float, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
+  func drawText(format : String, _ value : Float, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil, size : Float = 32) {
     let realPos = Point2D(x, screenSize.h - y)
     if let c = color {
       drawing.program.setColor(c)
@@ -247,7 +283,7 @@ class NavBall : Instrument {
     } else {
       formatted = String(format: format, value)
     }
-    text.draw(formatted, size: 32, position: realPos, align: align)
+    text.draw(formatted, size: size, position: realPos, align: align)
     
   }
 }

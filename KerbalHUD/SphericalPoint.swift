@@ -167,8 +167,13 @@ func projectGridOntoSphere(position basePosition : SphericalPoint,
   
   let geometry = data.map { (pos : Point2D, uv: Point2D) -> (pos : Point2D, uv: Point2D) in
     
-    let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
-      offset: pos, radius: 59)!
+//    let sphePos : SphericalPoint
+    guard let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
+      offset: pos, radius: 59) else {
+      let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
+        offset: pos, radius: 59)
+      fatalError()
+    }
     
     return (Point2D(sphePos.long, sphePos.lat), uv)
   }

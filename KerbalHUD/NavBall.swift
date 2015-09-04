@@ -139,18 +139,20 @@ class NavBall : Instrument {
 
     var sphMat = GLKMatrix4Identity
     sphMat = GLKMatrix4Translate(sphMat, 320, 338, 0)
-    // Pitch
-    sphMat = GLKMatrix4Rotate(sphMat, sin(Float(timer.elapsed)/10), 0, -1, 0)
+
+    // Roll
+    sphMat = GLKMatrix4Rotate(sphMat, (data!.Roll) * π/180, 0, 0, 1)
+    // Pitch?
+    sphMat = GLKMatrix4Rotate(sphMat, (data!.Pitch) * π/180, 1, 0, 0)
     // Heading
-    sphMat = GLKMatrix4Rotate(sphMat, Float(timer.elapsed/10), 0, 0, -1)
-    // Proper orientation to start from
-    sphMat = GLKMatrix4Rotate(sphMat, π, 0, 0, 1)
+    sphMat = GLKMatrix4Rotate(sphMat, data!.Heading * π/180, 0, -1, 0)
+
+    // Proper orientation to start from. Heading 0, pitch 0, roll 0.
+    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 0, 1)
+    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
     drawing.program.setModelView(sphMat)
     drawing.program.setUseTexture(true)
     drawing.Draw(sphere)
-    
-    // 561
-    //
 
     drawOverlay()
     drawText()
@@ -273,11 +275,7 @@ class NavBall : Instrument {
   func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, size : Float = 32) {
     drawText(format, 0, x: x, y: y, align: align, color: nil, size: size)
   }
-//
-//  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil) {
-//    drawText(format, 0, x: x, y: y, align: align, color: color)
-//  }
-  
+
   func drawText(format : String, _ value : Float, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil, size : Float = 32) {
     let realPos = Point2D(x, screenSize.h - y)
     if let c = color {
@@ -342,7 +340,12 @@ class NavBallTextureRendering {
       let tex = textures[angle]!
       let textHeight : Float = 4
       let textOffset : Float = 5
-      let size = Size2D(w: tex.size!.aspect*textHeight, h: textHeight)
+      let size : Size2D<Float>
+      if angle == 80 || angle == -80 {
+        size = Size2D(w: tex.size!.aspect*textHeight*0.7, h: textHeight*0.7)
+      } else {
+        size = Size2D(w: tex.size!.aspect*textHeight, h: textHeight)
+      }
       drawing.bind(tex)
       
       drawing.drawProjectedGridOntoSphere(
@@ -398,7 +401,7 @@ class NavBallTextureRendering {
     // Cross-bars locations
 
     // Blue uppers
-    drawing.program.setColor(red: 4.0/255, green: 80.0/255, blue: 117.0/255)
+    drawing.program.setColor(upperBlue)
     drawVerticalBand(90, width: 1.5, upper: true)
     drawVerticalBand(-90, width: 1.5, upper: true)
     drawVerticalBand(180, width: 1.5, upper: true)
@@ -409,8 +412,14 @@ class NavBallTextureRendering {
       drawVerticalBand(Float(longitude), width: 1, upper: true)
     }
     drawing.DrawSquare(-180, bottom: 44.5, right: 180, top: 45.5)
+    drawing.DrawSquare(-180, bottom: 84.75, right: 180, top: 85.25)
+    // Fill in the anti-color on the top
+    drawing.DrawSquare(-180, bottom: 89.5, right: 180, top: 90)
     drawing.program.setModelView(GLKMatrix4Identity)
     drawSpurs(upper: true)
+
+    // Really thin top spur that is a circle
+//    drawing.DrawSquare(-180, bottom: 84.75, right: 180, top: 85.25)
     
     // White lowers
     drawing.program.setColor(red: 1, green: 1, blue: 1)
@@ -432,10 +441,8 @@ class NavBallTextureRendering {
     drawVerticalBand(0, width: 2.5, upper: true)
     drawVerticalBand(0, width: 2.5, upper: false)
     drawing.DrawSquare(-180, bottom: -1, right: 180, top: 1)
-    // middles: [0, 45, 90, 135, 225, 315]
-    // upper middles: [0, 45, 90, 135, 180, 225, 270, 315]
-    
     drawing.program.setModelView(GLKMatrix4Identity)
+    
     // Lower middle text
     for longitude in [-180, 0, 45, 135, 180, 225, 315] {
       let size = longitude == 0 ? 9 : 7
@@ -453,10 +460,10 @@ class NavBallTextureRendering {
       drawText(longitude, size : Float(size), position : SphericalPoint(lat: 45, long: Float(longitude), r: 0),
         fillBackground: upperBackground, foregroundColor: upperBlue)
     }
-    // White across top and bototm
+    // White across top and bottom
     drawing.program.setColor(white)
-    drawing.DrawSquare(-180, bottom: 87-0.5, right: 180, top: 87+0.5)
-    drawing.DrawSquare(-180, bottom: -87-0.5, right: 180, top: -87+0.5)
+    drawing.DrawSquare(-180, bottom:  88.5, right: 180, top:  89.5)
+    drawing.DrawSquare(-180, bottom: -89.5, right: 180, top: -88.5)
     
     drawing.bind(Framebuffer.Default)
     let tex = texture.texture
@@ -501,9 +508,12 @@ class NavBallTextureRendering {
   
   func drawVerticalBand(longitude: Float, width : Float, upper: Bool = true)
   {
+    // Work out the maximum projection for this width
+    let maxDisplacement = (width/2) / tan(sin(width/2/59)) - 0.01
+    
     let points : ((GLfloat, GLfloat), (GLfloat, GLfloat))
     if upper {
-      points = ((0, 50),(50, 58.9))
+      points = ((0, 50),(50, maxDisplacement))
     } else {
       points = ((-50, 0), (-58.9, -50))
     }

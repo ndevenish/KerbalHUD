@@ -134,6 +134,12 @@ extension String {
       if format.hasPrefix("SIP") {
         let val = downcastToDouble(args[index])
         postFormat = processSIPFormat(val, formatString: format)
+      } else if format.hasPrefix("DMS") {
+        print("Warning: DMS not handled")
+        postFormat = String(args[index])
+      } else if format.hasPrefix("KDT") || format.hasPrefix("MET") {
+        print("Warning: KDT/MET not handled")
+        postFormat = String(args[index])
       } else {
         fatalError()
       }

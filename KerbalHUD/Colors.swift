@@ -46,6 +46,8 @@ extension Color4 {
   static var White : Color4 { return Color4(r: 1, g: 1, b: 1, a: 1) }
   static var Black : Color4 { return Color4(r: 0, g: 0, b: 0, a: 1) }
   static var Green : Color4 { return Color4(r: 0, g: 1, b: 0, a: 1) }
+  static var Red : Color4 { return Color4(r: 1, g: 0, b: 0, a: 1) }
+  
   
   
 }

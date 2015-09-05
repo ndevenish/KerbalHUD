@@ -50,6 +50,10 @@
 		0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */; settings = {ASSET_TAGS = (); }; };
 		0A7C02D91B909AF500790764 /* Bounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02D81B909AF500790764 /* Bounds.swift */; settings = {ASSET_TAGS = (); }; };
 		0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02DA1B909B0700790764 /* Size2D.swift */; settings = {ASSET_TAGS = (); }; };
+		0A9B97031B9B6E7D00995795 /* RPM_NavBall_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
+		0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */; settings = {ASSET_TAGS = (); }; };
+		0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97061B9B6F5500995795 /* SVGExtensions.swift */; settings = {ASSET_TAGS = (); }; };
+		0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
 		0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAE62E71B90E3A9001060F0 /* Point2D.swift */; settings = {ASSET_TAGS = (); }; };
 		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
@@ -112,6 +116,10 @@
 		0A77F7251B7D6282002A760F /* ShaderProgram.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderProgram.swift; sourceTree = "<group>"; };
 		0A7C02D81B909AF500790764 /* Bounds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bounds.swift; sourceTree = "<group>"; };
 		0A7C02DA1B909B0700790764 /* Size2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Size2D.swift; sourceTree = "<group>"; };
+		0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = RPM_NavBall_Overlay.svg; sourceTree = "<group>"; };
+		0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSVG.swift; sourceTree = "<group>"; };
+		0A9B97061B9B6F5500995795 /* SVGExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SVGExtensions.swift; sourceTree = "<group>"; };
+		0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Navutils_Overlay.svg; sourceTree = "<group>"; };
 		0AAE62E71B90E3A9001060F0 /* Point2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Point2D.swift; sourceTree = "<group>"; };
 		0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -155,9 +163,8 @@
 		0A3594021B7136B80072CC18 /* KerbalHUD */ = {
 			isa = PBXGroup;
 			children = (
-				0A1E71791B9881DA00C68683 /* RPMHUD.txt */,
+				0A9B97011B9B6E7200995795 /* Resources */,
 				0AF05C381B8E76C500908F37 /* Drawing */,
-				0A602F471B8E5A91000AD177 /* test_texture.png */,
 				0A6724561B8DFFAB00A38BE5 /* Utils */,
 				0A6724551B8DFF8500A38BE5 /* Instruments */,
 				0A6724481B8CE5AD00A38BE5 /* Audio */,
@@ -240,6 +247,17 @@
 			name = SimpleStructures;
 			sourceTree = "<group>";
 		};
+		0A9B97011B9B6E7200995795 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0A1E71791B9881DA00C68683 /* RPMHUD.txt */,
+				0A602F471B8E5A91000AD177 /* test_texture.png */,
+				0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */,
+				0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		0AF05C381B8E76C500908F37 /* Drawing */ = {
 			isa = PBXGroup;
 			children = (
@@ -249,6 +267,8 @@
 				0A36D9021B8E80ED00E85213 /* Textures.swift */,
 				0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */,
 				0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */,
+				0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */,
+				0A9B97061B9B6F5500995795 /* SVGExtensions.swift */,
 			);
 			name = Drawing;
 			sourceTree = "<group>";
@@ -336,10 +356,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A35940D1B7136B80072CC18 /* Main.storyboard in Resources */,
+				0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */,
 				0A3594081B7136B80072CC18 /* Shader.vsh in Resources */,
 				0A602F481B8E5A91000AD177 /* test_texture.png in Resources */,
 				0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */,
 				0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */,
+				0A9B97031B9B6E7D00995795 /* RPM_NavBall_Overlay.svg in Resources */,
 				0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */,
 				0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
@@ -374,11 +396,13 @@
 				0A7C02D91B909AF500790764 /* Bounds.swift in Sources */,
 				0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */,
 				0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */,
+				0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */,
 				0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */,
 				0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */,
 				0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */,
 				0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */,
 				0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */,
+				0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */,
 				0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */,
 				0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */,
 				0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */,

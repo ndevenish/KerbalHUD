@@ -62,6 +62,8 @@ class HSIIndicator : RPMInstrument {
   var purpleTriangles : Drawable?
   var roundBox : Drawable?
   
+  var overlayTexture : Texture
+  
   var innerMarkerAudio : AVAudioPlayer?
   var middleMarkerAudio : AVAudioPlayer?
   var outerMarkerAudio : AVAudioPlayer?
@@ -110,6 +112,12 @@ class HSIIndicator : RPMInstrument {
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
     _dispatch = dispatch_queue_create("com.kerbalhud.queue", nil)
+    
+    // Generate the overlay texture
+    let svgFile = NSBundle.mainBundle().URLForResource("Navutils_Overlay", withExtension: "svg")!
+    let svg = SVGImage(withContentsOfFile: svgFile)
+    overlayTexture = svg.renderToTexture(Size2D(w: Float(tools.screenSize.w), h: Float(tools.screenSize.h)))
+    
     super.init(tools: tools, settings: set)
     
     
@@ -183,7 +191,10 @@ class HSIIndicator : RPMInstrument {
     
     // Huh. Render a compass all from scratch!
     compassTexture = preRenderCompass()
+  
+    
   }
+  
   
   func preRenderCompass() -> Texture {
     let maxSide = Int(0.75*Double(min(drawing.screenSize.w, drawing.screenSize.h)))
@@ -342,12 +353,17 @@ class HSIIndicator : RPMInstrument {
     drawNeedleNDB()
     drawCourseNeedle()
     
-    // Draw the background overlay
-    drawing.program.setModelView(GLKMatrix4Identity)
-    drawing.program.setColor(red: 16.0/255,green: 16.0/255,blue: 16.0/255)
-    drawing.Draw(overlayBackground!)
-    drawing.program.setColor(red: 1,green: 1,blue: 1)
-    drawing.Draw(overlay!)
+    // Draw the overlay texture now
+    drawing.bind(overlayTexture)
+    drawing.program.setUseTexture(true)
+    drawing.DrawTexturedSquare(0, bottom: 0, right: 640, top: 640)
+//
+//    // Draw the background overlay
+//    drawing.program.setModelView(GLKMatrix4Identity)
+//    drawing.program.setColor(red: 16.0/255,green: 16.0/255,blue: 16.0/255)
+//    drawing.Draw(overlayBackground!)
+//    drawing.program.setColor(red: 1,green: 1,blue: 1)
+//    drawing.Draw(overlay!)
     
     if !data.LocFlag {
       // Draw the tracking text

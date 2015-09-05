@@ -41,6 +41,11 @@ private struct SimpleMesh : Mesh {
   var vertexType : VertexRepresentation
   var bufferOffset : GLuint
   var bufferCount : GLuint
+  var color : Color4?
+}
+
+struct MultiDrawable : Drawable {
+  let drawables : [Drawable]
 }
 
 enum VertexRepresentation : GLenum {
@@ -317,7 +322,7 @@ class DrawingTools
   }
   
   // Takes a list of 2D vertices and converts them into a drawable representation
-  func LoadVertices(form : VertexRepresentation, vertices : [Point2D]) -> Drawable {
+  func LoadVertices(form : VertexRepresentation, vertices : [Point2D], color: Color4? = nil) -> Drawable {
     // Turn the vertices into a flat GLfloat array
     var asFloat : [GLfloat] = []
     for vertex in vertices {
@@ -333,7 +338,8 @@ class DrawingTools
     return SimpleMesh(
       array: VertexArray(name: buffer.array, buffer_name: buffer.name),
       texture: nil,
-      vertexType: form, bufferOffset: offset, bufferCount: GLuint(vertices.count))
+      vertexType: form, bufferOffset: offset, bufferCount: GLuint(vertices.count),
+      color: color)
 //    
 //      vertexBuffer: buffer.name, bufferOffset: offset, bufferCount: GLuint(vertices.count), vertexType: form.GLenum)
   }
@@ -408,7 +414,7 @@ class DrawingTools
     return LoadVertices(.Triangles, vertices: vertexList)
   }
 
-  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>]) -> Drawable
+  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], color: Color4? = nil) -> Drawable
   {
     var data = triangles.flatMap { (tri) -> [GLfloat] in
       var flat : [Float] = []
@@ -419,7 +425,7 @@ class DrawingTools
     }
     let array = createVertexArray(positions: 3, textures: 2)
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
-    return SimpleMesh(array: array, texture: nil, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3))
+    return SimpleMesh(array: array, texture: nil, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3), color:color)
   }
   
   func Draw(item : Drawable) {
@@ -428,7 +434,14 @@ class DrawingTools
       if let texture = mesh.texture {
         bind(texture)
       }
+      if let color = mesh.color {
+        program.setColor(color)
+      }
       glDrawArrays(mesh.vertexType.GLenum, GLint(mesh.bufferOffset), GLsizei(mesh.bufferCount))
+    } else if let mesh = item as? MultiDrawable {
+      for drawable in mesh.drawables {
+        Draw(drawable)
+      }
     } else {
       fatalError("Unrecognised mesh type!")
     }

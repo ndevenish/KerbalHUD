@@ -49,11 +49,14 @@ class NavBall : Instrument {
   var text : TextRenderer
   var navBall : Texture
   var sphere : Drawable
-  var outline : Drawable
-  var roundBox : (inner: Drawable, outer: Drawable)
-  var lesserRoundBox : (inner: Drawable, outer: Drawable)
+//  var outline : Drawable
+//  var triPoints : Drawable
+//  var roundBox : (inner: Drawable, outer: Drawable)
+//  var lesserRoundBox : (inner: Drawable, outer: Drawable)
 
   private var data : FlightData? = nil
+  
+  var overlayTexture : Texture
   
 //  var rpmText : RPMTextFile
   
@@ -62,20 +65,37 @@ class NavBall : Instrument {
     drawing = tools
     text = drawing.textRenderer("Menlo-Bold")
     sphere = drawing.LoadTriangles(generateSphereTriangles(215, latSteps: 50, longSteps: 100))
-    outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
+//    outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
     navBall = NavBallTextureRendering(tools: drawing).generate()
     screenSize = Size2D(w: 640, h: 640)
 //    rpmText = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
 //    rpmText.prepareTextFor(640/20, screenHeight: 640, font: text, tools: drawing)
   
-      
-    let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
-    let outBox = GenerateRoundedBoxPoints(-64, bottom: -26, right: 64, top: 26, radius: 8)
-    roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
     
-    let lInBox = GenerateRoundedBoxPoints(-83, bottom: -27, right: 83, top: 27, radius: 4, topLeft: false, topRight: false)
-    let lOutBox = GenerateRoundedBoxPoints(-86, bottom: -30, right: 86, top: 30, radius: 8, topLeft: false, topRight: false)
-    lesserRoundBox = (drawing.Load2DPolygon(lInBox), drawing.Load2DPolygon(lOutBox))
+//    let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
+//    let outBox = GenerateRoundedBoxPoints(-64, bottom: -26, right: 64, top: 26, radius: 8)
+//    roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
+//    
+//    let lInBox = GenerateRoundedBoxPoints(-83, bottom: -27, right: 83, top: 27, radius: 4, topLeft: false, topRight: false)
+//    let lOutBox = GenerateRoundedBoxPoints(-86, bottom: -30, right: 86, top: 30, radius: 8, topLeft: false, topRight: false)
+//    lesserRoundBox = (drawing.Load2DPolygon(lInBox), drawing.Load2DPolygon(lOutBox))
+//    
+//    let w : Float = 9.093
+//    var triList : [Triangle<Point2D>] = [
+//      Triangle(Point2D(0, -230+w), Point2D(w, -230-w), Point2D(-w, -230-w)),
+//      Triangle(Point2D(-230+w, 0), Point2D(-230-w, -w), Point2D(-230-w, w)),
+//      Triangle(Point2D( 230-w, 0), Point2D(230+w, w), Point2D(230+w, -w)),
+//      Triangle(Point2D(-w, 302), Point2D(w, 302), Point2D(0, 302-w-w))
+//      ]
+//    triList.appendContentsOf(GenerateCircleTriangles(4.5, w: 3))
+//    triPoints = drawing.LoadTriangles(triList)
+//    
+    
+    // Generate the overlay texture
+    let svgFile = NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!
+    let svg = SVGImage(withContentsOfFile: svgFile)
+    overlayTexture = svg.renderToTexture(Size2D(w: Float(drawing.screenSize.w), h: Float(drawing.screenSize.h)))
+    
   }
   
   let variables =   ["rpm.SPEEDDISPLAYMODE",
@@ -152,53 +172,29 @@ class NavBall : Instrument {
     sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
     drawing.program.setModelView(sphMat)
     drawing.program.setUseTexture(true)
+    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.Draw(sphere)
 
     drawOverlay()
     drawText()
-    
-//    rpmText.draw(dataProvider!)
+
   }
   
-  func drawRoundBox(box : (inner: Drawable, outer: Drawable),
-    position: Point2D, color: Color4) {
-      drawing.program.setModelView(GLKMatrix4MakeTranslation(position.x, position.y, 0))
-      drawing.program.setColor(color)
-      drawing.Draw(box.outer)
-      drawing.program.setColor(red: 0, green: 0, blue: 0)
-      drawing.Draw(box.inner)
-  }
+//  func drawRoundBox(box : (inner: Drawable, outer: Drawable),
+//    position: Point2D, color: Color4) {
+//      drawing.program.setModelView(GLKMatrix4MakeTranslation(position.x, position.y, 0))
+//      drawing.program.setColor(color)
+//      drawing.Draw(box.outer)
+//      drawing.program.setColor(red: 0, green: 0, blue: 0)
+//      drawing.Draw(box.inner)
+//  }
   
   func drawOverlay() {
-    drawing.program.setUseTexture(false)
+    // Draw the overlay texture now
+    drawing.bind(overlayTexture)
+    drawing.program.setUseTexture(true)
+    drawing.DrawTexturedSquare(0, bottom: 0, right: 640, top: 640)
 
-    // Draw the outline
-    drawing.program.setColor(Color4.White)
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(320, 338, 0))
-    drawing.Draw(outline)
-
-    // Draw the data boxes
-    // middle, 230-4
-    drawRoundBox(roundBox, position: Point2D(320, 338+230-16), color: Color4.White)
-    drawRoundBox(roundBox, position: Point2D(64, 400), color: Color4.White)
-    drawRoundBox(roundBox, position: Point2D(640-64, 400), color: Color4.White)
-    
-    // 7 63 96
-    let lesserCol = Color4(fromByteR: 7, g: 63, b: 96)
-    drawRoundBox(lesserRoundBox, position: Point2D(83, 534), color: lesserCol)
-    drawRoundBox(lesserRoundBox, position: Point2D(22, 470), color: lesserCol)
-    drawRoundBox(lesserRoundBox, position: Point2D(640-83, 534), color: lesserCol)
-//    drawRoundBox(lesserRoundBox, position: Point2D(640-22, 470), color: lesserCol)
-
-    drawRoundBox(lesserRoundBox, position: Point2D(83, 640-27), color: lesserCol)
-    drawRoundBox(lesserRoundBox, position: Point2D(640-83, 640-27), color: lesserCol)
-    drawing.program.setColor(lesserCol)
-    drawing.DrawSquare(0, bottom: 36, right: 640, top: 37)
-    
-    // Four 21-px equilateral triangles at corner coordinates
-    
-    // Central targeting polygon. Same as HUD, but black outline and squares
-    
     // Overlay text
     let tr = text
     drawing.program.setColor(Color4.White)
@@ -291,6 +287,27 @@ class NavBall : Instrument {
     text.draw(formatted, size: size, position: realPos, align: align)
     
   }
+  
+//  func generateCrosshairs(
+  // Build it out of triangles - trace the edge
+//  let points : [Point2D] = [
+//    (w/2, -H-J), (-w/2, -H-J),
+//    // Left spur
+//    (-w/2,m*w/2 - H - w/cos(theta)), (-m*(H+w/cos(theta)-w/2),-w/2),
+//    // Outside of box
+//    (-W, -w/2), (-W, -Bh/2), (-W-B, -Bh/2), (-W-B, Bh/2), (-W, Bh/2),
+//    // Inside of box
+//    (-W-w, BiY), (-W-B+w, BiY), (-W-B+w, -BiY), (-W-w, -BiY), (-W-w, BiY), (-W, Bh/2),
+//    // Spur top
+//    (-W, w/2), (-m*(H+w/2),w/2), (0, -H),
+//    (m*(H+w/2),w/2), (W, w/2),
+//    // Inside of right box
+//    (W, Bh/2), (W+w, BiY), (W+w, -BiY), (W+B-w, -BiY), (W+B-w, BiY), (W+w, BiY),
+//    // Outside of right box
+//    (W, Bh/2), (W+B, Bh/2), (W+B, -Bh/2), (W, -Bh/2), (W, -w/2),
+//    // Right under spur
+//    (m*(H+w/cos(theta)-w/2),-w/2), (w/2,m*w/2 - H - w/cos(theta)),
+//    ].map { Point2D(x: $0.0, y: $0.1) }
 }
 
 class NavBallTextureRendering {
@@ -309,7 +326,6 @@ class NavBallTextureRendering {
       drawing.deleteTexture(t)
     }
     textures.removeAll()
-//    drawing.program.setUseTexture(false)
   }
   
   func generateTextTextures() {

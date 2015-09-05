@@ -54,6 +54,7 @@
 		0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */; settings = {ASSET_TAGS = (); }; };
 		0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97061B9B6F5500995795 /* SVGExtensions.swift */; settings = {ASSET_TAGS = (); }; };
 		0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
+		0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */; settings = {ASSET_TAGS = (); }; };
 		0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAE62E71B90E3A9001060F0 /* Point2D.swift */; settings = {ASSET_TAGS = (); }; };
 		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
@@ -120,6 +121,7 @@
 		0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleSVG.swift; sourceTree = "<group>"; };
 		0A9B97061B9B6F5500995795 /* SVGExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SVGExtensions.swift; sourceTree = "<group>"; };
 		0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Navutils_Overlay.svg; sourceTree = "<group>"; };
+		0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayeredInstrument.swift; sourceTree = "<group>"; };
 		0AAE62E71B90E3A9001060F0 /* Point2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Point2D.swift; sourceTree = "<group>"; };
 		0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -214,6 +216,7 @@
 				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
 				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
 				0A5DB9BA1B91D4FA000174C7 /* NavBall.swift */,
+				0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */,
 			);
 			name = Instruments;
 			sourceTree = "<group>";
@@ -417,6 +420,7 @@
 				0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */,
 				0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */,
 				0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */,
+				0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */,
 				0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

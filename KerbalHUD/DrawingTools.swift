@@ -244,7 +244,7 @@ class DrawingTools
     ]
     print("Textured square data loaded into \(texturedArray!.name)")
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
-    glBindVertexArray(0)
+    bind(VertexArray.Empty)
     
   }
 
@@ -491,7 +491,6 @@ class DrawingTools
     }
     let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
     program.setModelViewProjection(mvp)
-//    bindArray(vertexArrayTextured)
     bind(texturedArray!)
     program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)

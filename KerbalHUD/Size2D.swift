@@ -67,5 +67,7 @@ func *(size: Size2D<Float>, scale: Float) -> Size2D<Float>{
 func *(scale: Float, size: Size2D<Float>) -> Size2D<Float>{
   return Size2D(w: size.w*scale, h: size.h*scale)
 }
-
+func min<T : Comparable>(size : Size2D<T>) -> T {
+  return min(size.w, size.h)
+}
 

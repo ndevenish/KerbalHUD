@@ -108,6 +108,9 @@ func processSIPFormat(value : Double, formatString : String) -> String {
 
 extension String {
   static func Format(formatString : String, _ args: Any...) throws -> String {
+    return try Format(formatString, argList: args)
+  }
+  static func Format(formatString : String, argList args: [Any]) throws -> String {
     var returnString = ""
     let nsS = formatString as NSString
     var position = 0

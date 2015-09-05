@@ -14,9 +14,6 @@ protocol Instrument {
   
   var drawing : DrawingTools { get }
   
-  /// Initialise with a toolset to draw with
-  init(tools : DrawingTools)
-  
   /// Start communicating with the kerbal data store
   func connect(to : IKerbalDataStore)
   /// Stop communicating with the kerbal data store

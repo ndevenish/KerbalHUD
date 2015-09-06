@@ -156,6 +156,7 @@ class GameViewController: GLKViewController {
       fakeData["v.brakeValue"]      = JSON(curInt % 4)
       fakeData["v.lightValue"]      = JSON(curInt % 3)
       fakeData["v.gearValue"]       = JSON(curInt % 5)
+      fakeData["v.rcsValue"]        = JSON(curInt % 6)
       fakeData["rpm.ENGINEOVERHEATALARM"] = true
       fakeData["rpm.GROUNDPROXIMITYALARM"] = true
       fakeData["rpm.SLOPEALARM"] = true

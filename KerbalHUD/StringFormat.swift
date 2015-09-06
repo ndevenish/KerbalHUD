@@ -14,26 +14,31 @@ private let sipRegex    = Regex(pattern: "SIP(_?)(0?)(\\d+)(?:\\.(\\d+))?")
 enum StringFormatError : ErrorType {
   case InvalidIndex
   case InvalidAlignment
+  case CannotCastToDouble
 }
 
-private func downcastToDouble(val : Any) -> Double {
-//  let s = String(val)
-//  let oDB = Double(s) ?? 0
-  let db : Double
-  if val is Float {
-    db = Double(val as! Float)
-  } else if val is Double {
-    db = val as! Double
-  } else if val is Int {
-    db = Double(val as! Int)
-  } else if val is NSNumber {
-    db = (val as! NSNumber).doubleValue
-  } else {
-    print("Couldn't parse")
-    return 0
-//    fatalError()
+func downcastToDouble(val : Any) throws -> Double {
+  guard let dbl = val as? DoubleCoercible else {
+    fatalError()
   }
-  return db
+  return dbl.asDoubleValue
+
+//  let db : Double
+//  if val is Float {
+//    db = Double(val as! Float)
+//  } else if val is Double {
+//    db = val as! Double
+//  } else if val is Int {
+//    db = Double(val as! Int)
+//  } else if val is NSNumber {
+//    db = (val as! NSNumber).doubleValue
+//  } else {
+//    print("Couldn't parse")
+//    throw StringFormatError.CannotCastToDouble
+//    return 0
+////    fatalError()
+//  }
+//  return db
 }
 
 private func getSIPrefix(exponent : Int) -> String {
@@ -102,7 +107,7 @@ extension String {
     var position = 0
     // Attempt to use the built in formatting
     if formatString.containsString("%") {
-      let argList = args.map { $0 is CVarArgType ? downcastToDouble($0) as CVarArgType : 0 }
+      let argList = args.map { $0 is CVarArgType ? try! downcastToDouble($0) as CVarArgType : 0 }
       formatString = String(format: formatString, arguments: argList)
     }
     let nsS = formatString as NSString
@@ -163,6 +168,8 @@ enum NumericFormatSpecifier : String {
 let numericPrefix = Regex(pattern: "^([CDEFGNPRX])(\\d{0,2})$")
 let conditionalSeparator = Regex(pattern: "(?<!\\\\);")
 
+private var formatComplaints = Set<String>()
+
 private func ExpandSingleFormat(format : String, arg: Any) -> String {
   // If not format, use whatever default.
   if format.isEmpty {
@@ -176,7 +183,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     break
   case 2:
     // 0 : positive and zero, negative
-    let val = downcastToDouble(arg)
+    let val = try! downcastToDouble(arg)
     if val >= 0 {
       return ExpandSingleFormat(parts[0], arg: arg)
     } else {
@@ -184,7 +191,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     }
   case 3:
 //The first section applies to positive values, the second section applies to negative values, and the third section applies to zeros.
-    let val = downcastToDouble(arg)
+    let val = try! downcastToDouble(arg)
     if val == 0 {
       return ExpandSingleFormat(parts[2], arg: arg)
     } else {
@@ -202,7 +209,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
   if let match = numericPrefix.firstMatchInString(format.uppercaseString) {
     let formatType = NumericFormatSpecifier(rawValue: match.groups[0])!
     let precision = match.groups[1].isEmpty ? 2 : Int(match.groups[1].isEmpty)
-    let value = downcastToDouble(arg)
+    let value = try! downcastToDouble(arg)
     switch formatType {
     case .Percent:
       return String(format: "%.\(precision)f%%", value*100)
@@ -210,7 +217,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
       fatalError()
     }
   } else if format.hasPrefix("SIP") {
-    let val = downcastToDouble(arg)
+    let val = try! downcastToDouble(arg)
     postFormat = processSIPFormat(val, formatString: format)
   } else if format.hasPrefix("DMS") {
     print("Warning: DMS not handled")
@@ -219,9 +226,13 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     print("Warning: KDT/MET not handled")
     postFormat = String(arg)
   } else {
-    print("Unrecognised string format: ", format)
+    // Else, not a format we recognised. Until we are sure we
+    // have complete formatting, warn about this
+    if !formatComplaints.contains(format) {
+      print("Unrecognised string format: ", format)
+      formatComplaints.insert(format)
+    }
     return format
-//    fatalError()
   }
   return postFormat
 }

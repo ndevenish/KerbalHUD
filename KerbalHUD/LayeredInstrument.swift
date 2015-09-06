@@ -45,15 +45,34 @@ class LayeredInstrument : Instrument {
   var dataStore : IKerbalDataStore? = nil
   let overlayTexture : Texture
   var allVariables : Set<String> = Set()
-  var varValues : [String : AnyObject] = [:]
+  var varValues : [String : Any] = [:]
 
   var widgets : [Widget] = []
+  
+  struct ProcessedText {
+    let entry : TextEntry
+    let expression : BooleanExpression?
+  }
+  var textEntries : [ProcessedText]
   
   init(tools : DrawingTools, config : InstrumentConfiguration) {
     drawing = tools
     self.defaultText = drawing.textRenderer("Menlo")
     self.config = config
     self.screenSize = config.size
+    
+    // Build the text expressions
+    var parsedText : [ProcessedText] = []
+    for entry in config.text {
+      if let condition = entry.condition {
+        try! parsedText.append(ProcessedText(entry: entry,
+          expression: ExpressionParser.parseBooleanExpression(
+            expression: condition)))
+      } else {
+        parsedText.append(ProcessedText(entry: entry, expression: nil))
+      }
+    }
+    textEntries = parsedText
     
     // Render the overlays to a texture
     let svg = SVGImage(withContentsOfFile: (config.overlay as! SVGOverlay).url)
@@ -64,6 +83,8 @@ class LayeredInstrument : Instrument {
   func connect(to : IKerbalDataStore) {
     allVariables = Set(config.text.flatMap { $0.variables })
       .union(widgets.flatMap({$0.variables}))
+      .union(textEntries.flatMap({$0.entry.variables}))
+      .union(textEntries.flatMap({$0.expression?.variables ?? []}))
     dataStore = to
     to.subscribe(Array(allVariables))
   }
@@ -132,7 +153,18 @@ class LayeredInstrument : Instrument {
   }
   
   func drawText() {
-    for entry in self.config.text {
+    for fullEntry in self.textEntries {
+      if let condition = fullEntry.expression {
+        do {
+          if !(try condition.evaluate(varValues)) {
+            continue
+          }
+        } catch let e {
+//          print("Error evaluating condition: ", e)
+          continue
+        }
+      }
+      let entry = fullEntry.entry
       let varEntries = entry.variables.map { (varValues[$0] ?? 0) as Any }
       let str = try! String.Format(entry.string, argList: varEntries)
       drawing.program.setColor(entry.color ?? config.textColor)

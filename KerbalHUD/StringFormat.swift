@@ -54,24 +54,6 @@ func processSIPFormat(value : Double, formatString : String) -> String {
   if !value.isFinite {
     return String(value)
   }
-  // Handle degenerate values (NaN, INF)
-  // We should return the string of requested length if we can even then.
-  // Which is why we parse the format string first.
-//  if (double.IsInfinity(inputValue) || double.IsNaN(inputValue))
-//  {
-//    int blankLength;
-//    if (formatData.IndexOf('.') > 0)
-//    {
-//      string[] tokens = formatData.Split('.');
-//      Int32.TryParse(tokens[0], out blankLength);
-//    }
-//    else
-//    {
-//      Int32.TryParse(formatData, out blankLength);
-//    }
-//    return (inputValue + " ").PadLeft(blankLength);
-//  }
-//  
   let leadingExponent = value == 0.0 ? 0 : max(0, Int(floor(log10(abs(value)))))
   let siExponent = Int(floor(Float(leadingExponent) / 3.0))*3
   // If no precision specified, use the SI exponent
@@ -88,8 +70,6 @@ func processSIPFormat(value : Double, formatString : String) -> String {
     // See how many we can fit.
     precision = min(precision, (length-requiredCharacters-1))
   }
-//  let requiredIncludingDecimal = requiredCharacters + (precision > 0 ? precision + 1 : 0)
-//  double scaledInputValue = Math.Round(inputValue / Math.Pow(10.0, siExponent), postDecimal);
   // Scale the value to it's SI prefix
   let scaledValue = abs(value / pow(10, Double(siExponent)))
   
@@ -116,6 +96,7 @@ extension String {
   static func Format(formatString : String, _ args: Any...) throws -> String {
     return try Format(formatString, argList: args)
   }
+  
   static func Format(var formatString : String, argList args: [Any]) throws -> String {
     var returnString = ""
     var position = 0
@@ -142,20 +123,9 @@ extension String {
         throw StringFormatError.InvalidAlignment
       }
       let format = match.groups[2]
-
-      var postFormat : String
-      if format.hasPrefix("SIP") {
-        let val = downcastToDouble(args[index])
-        postFormat = processSIPFormat(val, formatString: format)
-      } else if format.hasPrefix("DMS") {
-        print("Warning: DMS not handled")
-        postFormat = String(args[index])
-      } else if format.hasPrefix("KDT") || format.hasPrefix("MET") {
-        print("Warning: KDT/MET not handled")
-        postFormat = String(args[index])
-      } else {
-        fatalError()
-      }
+      let formatValue = args[index]
+      
+      var postFormat = ExpandSingleFormat(format, arg: formatValue)
       
       // Pad with alignment!
       if let align = alignment where postFormat.characters.count < abs(align) {
@@ -176,4 +146,23 @@ extension String {
     }
     return returnString
   }
+}
+
+
+private func ExpandSingleFormat(format : String, arg: Any) -> String {
+  //Axx
+  let postFormat : String
+  if format.hasPrefix("SIP") {
+    let val = downcastToDouble(arg)
+    postFormat = processSIPFormat(val, formatString: format)
+  } else if format.hasPrefix("DMS") {
+    print("Warning: DMS not handled")
+    postFormat = String(arg)
+  } else if format.hasPrefix("KDT") || format.hasPrefix("MET") {
+    print("Warning: KDT/MET not handled")
+    postFormat = String(arg)
+  } else {
+    fatalError()
+  }
+  return postFormat
 }

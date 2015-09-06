@@ -52,7 +52,12 @@ struct FixedBounds : Bounds, Equatable {
     self.right = left+width
     self.top = bottom+height
   }
-  
+  init(centerX: Float, centerY: Float, width: Float, height: Float) {
+    self.left = centerX - width/2
+    self.bottom = centerY - height/2
+    self.right = centerX + width/2
+    self.top = centerY + height/2
+  }
   init(bounds : Bounds) {
     left = bounds.left
     right = bounds.right

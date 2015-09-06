@@ -21,6 +21,19 @@
 import Foundation
 import CoreGraphics
 
+private var _stepCount = -1
+
+extension SVGElement {
+  func cont() -> Bool {
+    if _stepCount == 0 {
+      return false
+    }
+    _stepCount -= 1
+    print("Drawing item from line: ", self.sourceLine)
+    return true
+  }
+}
+
 /// The public face of the module. Loads an SVGFile and has options for rendering
 public class SVGImage {
   let svg : SVGContainer
@@ -35,7 +48,13 @@ public class SVGImage {
   public func drawToContext(context : CGContextRef) {
     svg.drawToContext(context)
   }
+  
+  public func drawToContext(context : CGContextRef, steps: Int) {
+    svg.drawToContext(context)
+    _stepCount = steps
+  }
 }
+
 
 /// A function that will take an XML attribute entry and convert it
 private typealias Converter = (String) -> Any
@@ -227,6 +246,7 @@ protocol PresentationElement {
 class SVGElement {
   var id : String? { return attributes["id"] as? String }
   var attributes : [String : Any] = [:]
+  var sourceLine : UInt = 0
 }
 
 /// Used for unknown elements encountered whilst parsing
@@ -243,8 +263,13 @@ class SVGGroup : SVGElement, ContainerElement, SVGDrawable {
   var display : String { return (attributes["display"] ?? "") as? String ?? "inline" }
   
   func drawToContext(context: CGContextRef) {
+    if display == "none" { return }
+
     // Loop over all children and draw
     for child in children.filter({ $0 is SVGDrawable }).map({ $0 as! SVGDrawable }) {
+      if let pres = child as? PresentationElement {
+        if pres.isInvisible() { continue }
+      }
       child.drawToContext(context)
     }
   }
@@ -266,6 +291,9 @@ class SVGContainer : SVGElement, ContainerElement {
   func drawToContext(context: CGContextRef) {
     // Loop over all children and draw
     for child in children.filter({ $0 is SVGDrawable }).map({ $0 as! SVGDrawable }) {
+      if let pres = child as? PresentationElement {
+        if pres.isInvisible() { continue }
+      }
       child.drawToContext(context)
     }
   }
@@ -283,6 +311,8 @@ class Path : SVGElement, SVGDrawable, PresentationElement {
   
   func drawToContext(context : CGContextRef)
   {
+    if (!cont()) { return }
+    
     if (attributes["id"] as? String) == "somePath" {
       print("I")
     }
@@ -291,6 +321,14 @@ class Path : SVGElement, SVGDrawable, PresentationElement {
     }
     var curPoint = CGPoint()
     for command in d {
+      if (sourceLine >= 53) {
+        print(command)
+        if (!cont()) {
+          handleStrokeAndFill(context)
+          return
+        }
+      }
+      
       curPoint = command.executeCommand(context, currentPoint: curPoint)
     }
     handleStrokeAndFill(context)
@@ -307,6 +345,7 @@ class Circle : Path {
   }
   
   override func drawToContext(context: CGContextRef) {
+    if (!cont()) { return }
     CGContextAddEllipseInRect(context,
       CGRect(x: center.x-radius, y: center.y-radius, width: radius*2, height: radius*2))
     handleStrokeAndFill(context)
@@ -326,6 +365,7 @@ class Line : Path {
   }
   
   override func drawToContext(context: CGContextRef) {
+    if (!cont()) { return }
     var points = [start, end]
     CGContextAddLines(context, &points, 2)
     handleStrokeAndFill(context)
@@ -337,6 +377,7 @@ class Polygon : Path {
     return attributes["points"] as? [CGPoint] ?? []
   }
   override func drawToContext(context: CGContextRef) {
+    if (!cont()) { return }
     var pts = points
     CGContextAddLines(context, &pts, pts.count)
     CGContextClosePath(context)
@@ -355,6 +396,7 @@ class Rect : Path {
   }
   
   override func drawToContext(context: CGContextRef) {
+    if (!cont()) { return }
     CGContextAddRect(context, rect)
     handleStrokeAndFill(context)
   }
@@ -371,15 +413,29 @@ class PolyLine : Path {
     return attributes["points"] as? [CGPoint] ?? []
   }
   override func drawToContext(context: CGContextRef) {
+    if (!cont()) { return }
     var pts = points
     CGContextAddLines(context, &pts, pts.count)
     handleStrokeAndFill(context)
   }
-  
+
 }
 
 /// Extension to handle stroke and fill for any PresentationElement objects
 extension PresentationElement {
+  func isInvisible() -> Bool {
+    if (self as! SVGElement).sourceLine == 51 {
+      print(51)
+    }
+    let hasStroke = (stroke ?? .None)  != .None && strokeWidth.value != 0
+    let hasFill =   (fill ?? .Inherit) != .None
+    
+    if hasStroke || hasFill {
+      return false
+    }
+    return true
+  }
+  
   /// Handles generic stroke and fill for this element
   func handleStrokeAndFill(context : CGContextRef) {
     var mode : CGPathDrawingMode? = nil
@@ -407,6 +463,7 @@ extension PresentationElement {
       fatalError()
     }
     if let m = mode {
+      print("Handling path with mode ", m)
       CGContextDrawPath(context, m)
     }
   }
@@ -443,11 +500,25 @@ struct Length : FloatLiteralConvertible, IntegerLiteralConvertible {
 }
 
 /// Handles entries for a painting entry type
-enum Paint {
+enum Paint : Equatable {
   case None
   case CurrentColor
   case Color(CGColor)
   case Inherit
+}
+
+func ==(a : Paint, b : Paint) -> Bool {
+  switch (a, b) {
+  case (.None, .None):
+    return true
+  case (.CurrentColor, .CurrentColor):
+    return true
+  case (.Inherit, .Inherit):
+    return true
+  case (.Color(let a), .Color(let b)):
+    return CGColorEqualToColor(a, b)
+  default: return false
+  }
 }
 
 /// Parse a <length> entry
@@ -517,6 +588,7 @@ class Parser : NSObject, NSXMLParserDelegate {
     } else {
       element = SVGUnknownElement(name: elementName)
     }
+    element.sourceLine = UInt(parser.lineNumber)
     
     for (key, value) in attributeDict {
       if let parser = getParserFor(elementName, attr: key) {
@@ -536,11 +608,7 @@ class Parser : NSObject, NSXMLParserDelegate {
     namespaceURI: String?, qualifiedName qName: String?)
   {
     let removed = elements.removeLast()
-    // If a group and hidden, remove from the parent
-    if removed is SVGGroup && (removed as! SVGGroup).display == "none" {
-      var elem = (elements.last! as! ContainerElement)
-      elem.children.removeLast()
-    }
+
     // Remember the last element we removed, so we don't discard the end result
     lastElementToRemove = removed
   }
@@ -604,7 +672,7 @@ class MoveToPathCommand : PathCommand {
     
     // Draw lines for the remaining points
     for point in points {
-      //      let endPoint : CGPoint
+//      let endPoint : CGPoint
       if relative {
         currentPoint = currentPoint + point
       } else {
@@ -614,7 +682,7 @@ class MoveToPathCommand : PathCommand {
     }
     return currentPoint
   }
-  
+
 }
 
 class LineToPathCommand : PathCommand {
@@ -675,7 +743,7 @@ class CurveToPathCommand : PathCommand {
     }
     return currentPoint
   }
-  //  Draws a cubic Bézier curve from the current point to (x,y) using (x1,y1) as the control point at the beginning of the curve and (x2,y2) as the control point at the end of the curve. C (uppercase) indicates that absolute coordinates will follow; c (lowercase) indicates that relative coordinates will follow. Multiple sets of coordinates may be specified to draw a polybézier. At the end of the command, the new current point becomes the final (x,y) coordinate pair used in the polybézier.
+//  Draws a cubic Bézier curve from the current point to (x,y) using (x1,y1) as the control point at the beginning of the curve and (x2,y2) as the control point at the end of the curve. C (uppercase) indicates that absolute coordinates will follow; c (lowercase) indicates that relative coordinates will follow. Multiple sets of coordinates may be specified to draw a polybézier. At the end of the command, the new current point becomes the final (x,y) coordinate pair used in the polybézier.
 }
 
 class HorizontalLinePathCommand : PathCommand {
@@ -812,52 +880,4 @@ extension CGPoint {
 func +(left: CGPoint, right: CGPoint) -> CGPoint {
   return CGPoint(x: left.x + right.x, y: left.y + right.y)
 }
-
-//
-//struct Match {
-//  //  var range : Range<String.Index>
-//  var groups : [String]
-//  var result : NSTextCheckingResult
-//  
-//  init(string: String, result : NSTextCheckingResult) {
-//    self.result = result
-//    var groups : [String] = []
-//    for i in 1..<result.numberOfRanges {
-//      let range = result.rangeAtIndex(i)
-//      if range.location == NSNotFound {
-//        groups.append("")
-//      } else {
-//        groups.append(string.substringWithRange(range))
-//      }
-//    }
-//    self.groups = groups
-//  }
-//  
-//  var range : NSRange { return result.range }
-//}
-//
-//class Regex {
-//  let re : NSRegularExpression
-//  init(pattern: String) {
-//    re = try! NSRegularExpression(pattern: pattern, options: NSRegularExpressionOptions())
-//  }
-//  func firstMatchInString(string : String) -> Match? {
-//    let nss = string as NSString
-//    if let tr = re.firstMatchInString(string, options: NSMatchingOptions(), range: NSRange(location: 0, length: nss.length)) {
-//      return Match(string: string, result: tr)
-//    }
-//    return nil
-//  }
-//  func matchesInString(string : String) -> [Match] {
-//    let nsS = string as NSString
-//    return re.matchesInString(string, options: NSMatchingOptions(), range: NSRange(location: 0, length: nsS.length)).map { Match(string: string, result: $0) }
-//  }
-//}
-//
-//extension String {
-//  func substringWithRange(range : NSRange) -> String {
-//    let nss = self as NSString
-//    return nss.substringWithRange(range)
-//  }
-//}
 

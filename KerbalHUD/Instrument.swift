@@ -24,3 +24,12 @@ protocol Instrument {
   
   func draw()
 }
+
+protocol Widget {
+  var bounds : Bounds { get }
+  var variables : [String] { get }
+  
+  func update(data : [String : JSON])
+  
+  func draw()
+}

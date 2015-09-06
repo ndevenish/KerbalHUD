@@ -41,9 +41,10 @@ class LayeredInstrument : Instrument {
   
   var dataStore : IKerbalDataStore? = nil
   let overlayTexture : Texture
-  let allVariables : Set<String>
+  var allVariables : Set<String> = Set()
   var varValues : [String : AnyObject] = [:]
 
+  var widgets : [Widget] = []
   
   init(tools : DrawingTools, config : InstrumentConfiguration) {
     drawing = tools
@@ -55,16 +56,13 @@ class LayeredInstrument : Instrument {
     let svg = SVGImage(withContentsOfFile: (config.overlay as! SVGOverlay).url)
     let minScreenSize = Float(min(tools.screenSize))
     overlayTexture = svg.renderToTexture(Size2D(w: minScreenSize*self.screenSize.aspect, h: minScreenSize))
-    
-    // Gather all of the variable names for subscription
-    allVariables = Set(config.text.flatMap { $0.variables })
   }
   
   func connect(to : IKerbalDataStore) {
+    allVariables = Set(config.text.flatMap { $0.variables })
+      .union(widgets.flatMap({$0.variables}))
     dataStore = to
     to.subscribe(Array(allVariables))
-//    let x = to["some"].
-    
   }
   
   func disconnect(from : IKerbalDataStore) {
@@ -78,18 +76,12 @@ class LayeredInstrument : Instrument {
     // Read all the required variables out of the
     for varname in allVariables {
       // Read the "Most natural" form out of the JSON
-//      if let data = data[varname]?.type
       if let val = data[varname] {
         switch val.type {
         case .String:
           varValues[varname] = val.stringValue
         case .Number:
           varValues[varname] = NSNumber(double: val.doubleValue)
-//          if Double(val.intValue) == val.doubleValue {
-//            varValues[varname] = val.intValue
-//          } else {
-//            varValues[varname] = val.doubleValue
-//          }
         case .Bool:
           varValues[varname] = val.boolValue
         case .Null:
@@ -100,19 +92,16 @@ class LayeredInstrument : Instrument {
       } else {
         varValues[varname] = nil
       }
-//      public enum Type :Int{
-//        
-//        case Number
-//        case String
-//        case Bool
-//        case Array
-//        case Dictionary
-//        case Null
-//        case Unknown
-//      }
-//      switch data[varname]?.type {
-//      }
-//      varValues[varname] = data[varname]?.rawValue
+    }
+    // Read the variables for each widget
+    for widget in widgets {
+      var wVars : [String : JSON] = [:]
+      for varname in widget.variables {
+        if let res = data[varname] {
+          wVars[varname] = res
+        }
+      }
+      widget.update(wVars)
     }
   }
   
@@ -127,7 +116,9 @@ class LayeredInstrument : Instrument {
   }
   
   func drawWidgets() {
-    
+    for widget in widgets {
+      widget.draw()
+    }
   }
   
   func drawOverlay() {
@@ -211,8 +202,11 @@ class NewNavBall : LayeredInstrument {
       t("{0:SIP_6.3}m", "rpm.HORZVELOCITY", x: 320, y: 623),
       t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
     ])
-
     
     super.init(tools: tools, config: config)
+    
+    //    320, 338, 215 rad
+    widgets.append(NavBallWidget(tools: tools,
+      bounds: FixedBounds(centerX: 320, centerY: 338, width: 430, height: 430)))
   }
 }

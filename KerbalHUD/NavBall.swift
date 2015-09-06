@@ -570,3 +570,70 @@ class NavBallTextureRendering {
     }
   }
 }
+
+
+//var bounds : Bounds { get }
+//var variables : [String] { get }
+//
+//func update(data : [String : JSON])
+//
+//func draw()
+
+class NavBallWidget : Widget {
+  private struct FlightData {
+    var Roll : Float = 0
+    var Pitch : Float = 0
+    var Heading : Float = 0
+  }
+  private(set) var bounds : Bounds
+  let variables : [String]
+  private let drawing : DrawingTools
+  
+  private let sphere : Drawable
+  private let sphereTexture : Texture
+  private var data = FlightData()
+  
+  init(tools : DrawingTools, bounds : Bounds) {
+    drawing = tools
+    variables = [Vars.Flight.Roll,
+                 Vars.Flight.Pitch,
+                 Vars.Flight.Heading]
+    self.bounds = bounds
+    
+    sphere = tools.LoadTriangles(generateSphereTriangles(1, latSteps: 50, longSteps: 100))
+    sphereTexture = NavBallTextureRendering(tools: drawing).generate()
+  }
+  
+  func update(data : [String : JSON]) {
+    self.data = FlightData(
+      Roll: data[Vars.Flight.Roll]?.floatValue ?? 0,
+      Pitch: data[Vars.Flight.Pitch]?.floatValue ?? 0,
+      Heading: data[Vars.Flight.Heading]?.floatValue ?? 0)
+  }
+  
+  func draw() {
+    drawing.bind(sphereTexture)
+    drawing.program.setColor(red: 1, green: 1, blue: 1)
+    
+    var sphMat = GLKMatrix4Identity
+//    sphMat = GLKMatrix4Translate(sphMat, 320, 338, 0)
+    sphMat = GLKMatrix4Translate(sphMat,
+      bounds.left+bounds.width/2, bounds.bottom+bounds.height/2, 0)
+    sphMat = GLKMatrix4Scale(sphMat, bounds.width/2, bounds.height/2, 1)
+    // Roll
+    sphMat = GLKMatrix4Rotate(sphMat, (data.Roll) * π/180, 0, 0, 1)
+    // Pitch?
+    sphMat = GLKMatrix4Rotate(sphMat, (data.Pitch) * π/180, 1, 0, 0)
+    // Heading
+    sphMat = GLKMatrix4Rotate(sphMat, data.Heading * π/180, 0, -1, 0)
+    
+    // Proper orientation to start from. Heading 0, pitch 0, roll 0.
+    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 0, 1)
+    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
+    drawing.program.setModelView(sphMat)
+    
+    drawing.program.setUseTexture(true)
+    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+    drawing.Draw(sphere)
+  }
+}

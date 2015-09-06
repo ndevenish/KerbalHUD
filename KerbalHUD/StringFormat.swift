@@ -17,6 +17,8 @@ enum StringFormatError : ErrorType {
 }
 
 private func downcastToDouble(val : Any) -> Double {
+  let s = String(val)
+  let oDB = Double(s) ?? 0
   let db : Double
   if val is Float {
     db = Double(val as! Float)
@@ -24,8 +26,12 @@ private func downcastToDouble(val : Any) -> Double {
     db = val as! Double
   } else if val is Int {
     db = Double(val as! Int)
+  } else if val is NSNumber {
+    db = (val as! NSNumber).doubleValue
   } else {
-    fatalError()
+    print("Couldn't parse")
+    return 0
+//    fatalError()
   }
   return db
 }
@@ -110,11 +116,15 @@ extension String {
   static func Format(formatString : String, _ args: Any...) throws -> String {
     return try Format(formatString, argList: args)
   }
-  static func Format(formatString : String, argList args: [Any]) throws -> String {
+  static func Format(var formatString : String, argList args: [Any]) throws -> String {
     var returnString = ""
-    let nsS = formatString as NSString
     var position = 0
-    
+    // Attempt to use the built in formatting
+    if formatString.containsString("%") {
+      let argList = args.map { $0 is CVarArgType ? downcastToDouble($0) as! CVarArgType : 0 }
+      formatString = String(format: formatString, arguments: argList)
+    }
+    let nsS = formatString as NSString
     // Compose the string with the regex formatting
     for match in formatRegex.matchesInString(formatString) {
       if match.range.location > position {

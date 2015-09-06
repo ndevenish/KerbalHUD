@@ -24,12 +24,15 @@ struct TextEntry {
   var align : NSTextAlignment
   var variables : [String]
   var font : String
+  var condition : String? = nil
+  var color : Color4? = nil
 }
 
 struct InstrumentConfiguration {
   var size : Size2D<Float> = Size2D(w: 640, h: 640)
   var overlay : InstrumentOverlay? = nil
   var text : [TextEntry] = []
+  var textColor : Color4 = Color4.White
 }
 
 
@@ -132,20 +135,32 @@ class LayeredInstrument : Instrument {
     for entry in self.config.text {
       let varEntries = entry.variables.map { (varValues[$0] ?? 0) as Any }
       let str = try! String.Format(entry.string, argList: varEntries)
+      drawing.program.setColor(entry.color ?? config.textColor)
       defaultText.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
     }
   }
 }
 
-private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center) -> TextEntry {
-  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "")
+private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "", condition : condition, color: color)
 }
 
 private func t(string : String, _ variable : String,
-  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center) -> TextEntry {
-  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "")
+  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+    return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "", condition : condition, color: color)
+
 }
 
+private func tOnOff(condition: String, x: Float, y: Float, onText: String = "On", offText: String = "Off") -> [TextEntry] {
+  return [
+    TextEntry(string: onText, size: 32, position: Point2D(x, y),
+      align: .Center, variables: [], font: "",
+      condition: condition, color: Color4.Green),
+    TextEntry(string: offText, size: 32, position: Point2D(x, y),
+      align: .Center, variables: [], font: "",
+      condition: "!" + condition, color: nil)
+  ]
+}
 
 struct FlightDataVarNames {
   let Roll = "n.roll"
@@ -218,13 +233,16 @@ class NewNavBall : LayeredInstrument {
       t("Lights:", x: 635, y: 408, align: .Right, size: 20),
     ])
     
-//    drawOnOff(data.SAS, x: 43, y: 312)
-//    drawOnOff(data.RCS, x: 43, y: 344+32)
-//    drawOnOff(data.Gear, x: 640-43, y: 312, onText: "Down", offText: "Up")
-//    drawOnOff(data.Brakes, x: 640-43, y: 344+32)
-//    drawOnOff(data.Lights, x: 640-43, y: 408+32)
-
-
+    // Conditional text entries
+    config.text.appendContentsOf([
+      tOnOff(Vars.Vessel.SAS, x: 43, y: 640-312),
+      tOnOff(Vars.Vessel.RCS, x: 43, y: 640-376),
+      tOnOff(Vars.Vessel.Brakes, x: 640-43, y: 640-(344+32)),
+      tOnOff(Vars.Vessel.Lights, x: 640-43, y: 640-(408+32)),
+      tOnOff(Vars.Vessel.Gear, x: 640-43, y: 640-312, onText: "Down", offText: "Up"),
+    ].flatMap({$0}))
+    
+    
 //    if data.NodeExists {
 //      drawText("Burn T:", x: 10, y: 408+64, align: .Left, size: 20)
 //      drawText("{0:METS.f}s", data.NodeBurnTime, x: 10, y: 408+64+32, align: .Left)

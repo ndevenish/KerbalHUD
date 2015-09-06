@@ -17,8 +17,8 @@ enum StringFormatError : ErrorType {
 }
 
 private func downcastToDouble(val : Any) -> Double {
-  let s = String(val)
-  let oDB = Double(s) ?? 0
+//  let s = String(val)
+//  let oDB = Double(s) ?? 0
   let db : Double
   if val is Float {
     db = Double(val as! Float)
@@ -121,7 +121,7 @@ extension String {
     var position = 0
     // Attempt to use the built in formatting
     if formatString.containsString("%") {
-      let argList = args.map { $0 is CVarArgType ? downcastToDouble($0) as! CVarArgType : 0 }
+      let argList = args.map { $0 is CVarArgType ? downcastToDouble($0) as CVarArgType : 0 }
       formatString = String(format: formatString, arguments: argList)
     }
     let nsS = formatString as NSString

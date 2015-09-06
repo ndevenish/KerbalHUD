@@ -180,7 +180,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     if val >= 0 {
       return ExpandSingleFormat(parts[0], arg: arg)
     } else {
-      return ExpandSingleFormat(parts[1], arg: arg)
+      return ExpandSingleFormat(parts[1], arg: abs(val))
     }
   case 3:
 //The first section applies to positive values, the second section applies to negative values, and the third section applies to zeros.
@@ -190,7 +190,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     } else {
       return ExpandSingleFormat(
         parts[(val > 0 || parts[1].isEmpty) ? 0 : 1],
-        arg: arg)
+        arg: abs(val))
     }
   default:
     // More than three. This is an error.

@@ -19,7 +19,7 @@ struct SVGOverlay : InstrumentOverlay {
 
 struct TextEntry {
   var string : String
-  var size : Int
+  var size : Float
   var position : Point2D
   var align : NSTextAlignment
   var variables : [String]
@@ -137,12 +137,13 @@ class LayeredInstrument : Instrument {
   }
 }
 
-private func t(string : String, x: Float, y: Float) -> TextEntry {
-  return TextEntry(string: string, size: 15, position: Point2D(x,y), align: .Center, variables: [], font: "")
+private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center) -> TextEntry {
+  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "")
 }
 
-private func t(string : String, _ variable : String, x: Float, y: Float) -> TextEntry {
-  return TextEntry(string: string, size: 32, position: Point2D(x,640-y), align: .Center, variables: [variable], font: "")
+private func t(string : String, _ variable : String,
+  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center) -> TextEntry {
+  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "")
 }
 
 
@@ -174,18 +175,21 @@ class NewNavBall : LayeredInstrument {
     var config = InstrumentConfiguration()
     config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!)
     
+    // Fixed text
     config.text = [
-      t("Altitude",     x: 83,     y: 591),
-      t("SRF.SPEED",    x: 640-83, y: 591),
-      t("ORB.VELOCITY", x: 83,     y: 554),
-      t("ACCEL.",       x: 640-83, y: 554),
-      t("MODE",         x: 54,     y: 489),
-      t("ROLL",         x: 36,     y: 434),
-      t("PITCH",        x: 599,    y: 434),
-      t("RADAR ALTITUDE", x: 104,  y: 47 ),
-      t("HOR.SPEED",    x: 320,    y: 47 ),
-      t("VERT.SPEED",   x: 534,    y: 47 ),
+      t("Altitude",     x: 83,     y: 49, size: 15),
+      t("SRF.SPEED",    x: 640-83, y: 49, size: 15),
+      t("ORB.VELOCITY", x: 83,     y: 640-554, size: 15),
+      t("ACCEL.",       x: 640-83, y: 640-554, size: 15),
+      t("MODE",         x: 54,     y: 640-489, size: 15),
+      t("ROLL",         x: 36,     y: 640-434, size: 15),
+      t("PITCH",        x: 599,    y: 640-434, size: 15),
+      t("RADAR ALTITUDE", x: 104,  y: 640-47 , size: 15),
+      t("HOR.SPEED",    x: 320,    y: 640-47 , size: 15),
+      t("VERT.SPEED",   x: 534,    y: 640-47 , size: 15),
     ]
+    
+    // Simple display text
     config.text.appendContentsOf([
       t("%03.1f°", Vars.Flight.Roll, x: 67, y: 240),
       t("%03.1f°", Vars.Flight.Pitch, x: 573, y: 240),
@@ -196,16 +200,44 @@ class NewNavBall : LayeredInstrument {
       
       t("{0:SIP_6.1}m", "v.orbitalVelocity", x: 83.5, y: 115),
       t("{0:SIP4}m/s", "rpm.ACCEL", x: 556.5, y: 115),
-  //    drawText(data.SpeedDisplay.rawValue, x: 55, y: 177),
+      t("{0:ORB;TGT;SRF}", "rpm.SPEEDDISPLAYMODE", x: 55, y: 177),
+      
       
       t("{0:SIP_6.3}m", "rpm.RADARALTOCEAN", x: 95, y: 623),
       t("{0:SIP_6.3}m", "rpm.HORZVELOCITY", x: 320, y: 623),
       t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
     ])
     
+    config.text.appendContentsOf([
+      t("SAS:", x: 10, y: 280, align: .Left, size: 20),
+      t("RCS:", x: 10, y: 344, align: .Left, size: 20),
+      t("Throttle:", x: 10, y: 408, align: .Left, size: 20),
+      t("{0:P0}", Vars.Vessel.Throttle, x: 90, y: 440, align: .Right),
+      t("Gear:", x: 635, y: 290, align: .Right, size: 20),
+      t("Brakes:", x: 635, y: 344, align: .Right, size: 20),
+      t("Lights:", x: 635, y: 408, align: .Right, size: 20),
+    ])
+    
+//    drawOnOff(data.SAS, x: 43, y: 312)
+//    drawOnOff(data.RCS, x: 43, y: 344+32)
+//    drawOnOff(data.Gear, x: 640-43, y: 312, onText: "Down", offText: "Up")
+//    drawOnOff(data.Brakes, x: 640-43, y: 344+32)
+//    drawOnOff(data.Lights, x: 640-43, y: 408+32)
+
+
+//    if data.NodeExists {
+//      drawText("Burn T:", x: 10, y: 408+64, align: .Left, size: 20)
+//      drawText("{0:METS.f}s", data.NodeBurnTime, x: 10, y: 408+64+32, align: .Left)
+//      drawText("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20)
+//      drawText("{0,17:MET+yy:ddd:hh:mm:ss.f}", data.NodeTime, x: 10, y: 408+64+64+32, align: .Left)
+//      drawText("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20)
+//      drawText("{0:SIP_6.3}m/s", data.NodeDv, x: 630, y: 408+64+64+32, align: .Right)
+//    }
+
+    
     super.init(tools: tools, config: config)
     
-    //    320, 338, 215 rad
+    // Add the navball
     widgets.append(NavBallWidget(tools: tools,
       bounds: FixedBounds(centerX: 320, centerY: 338, width: 430, height: 430)))
   }

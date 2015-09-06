@@ -46,6 +46,20 @@ class Regex {
     let nsS = string as NSString
     return re.matchesInString(string, options: NSMatchingOptions(), range: NSRange(location: 0, length: nsS.length)).map { Match(string: string, result: $0) }
   }
+  func splitString(string : String) -> [String] {
+    var parts : [String] = []
+    var remainingString = string as NSString
+    while let match = firstMatchInString(remainingString as String) {
+//    for match in matchesInString(string) {
+      let subs = remainingString.substringToIndex(match.range.location)
+      remainingString = remainingString.substringFromIndex(match.range.location+match.range.length)
+      parts.append(subs)
+    }
+    if remainingString.length > 0 {
+      parts.append(remainingString as String)
+    }
+    return parts
+  }
 }
 
 extension String {

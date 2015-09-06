@@ -148,11 +148,68 @@ extension String {
   }
 }
 
+enum NumericFormatSpecifier : String {
+  case Currency = "C"
+  case Decimal = "D"
+  case Exponential = "E"
+  case FixedPoint = "F"
+  case General = "G"
+  case Number = "N"
+  case Percent = "P"
+  case RoundTrip = "R"
+  case Hexadecimal = "X"
+}
+
+let numericPrefix = Regex(pattern: "^([CDEFGNPRX])(\\d{0,2})$")
+let conditionalSeparator = Regex(pattern: "(?<!\\\\);")
 
 private func ExpandSingleFormat(format : String, arg: Any) -> String {
+  // If not format, use whatever default.
+  if format.isEmpty {
+    return String(arg)
+  }
+  // Attempt to split the format string on ; - conditionals
+  let parts = conditionalSeparator.splitString(format)
+  switch parts.count {
+  case 1:
+    // Just one entry - no splitting
+    break
+  case 2:
+    // 0 : positive and zero, negative
+    let val = downcastToDouble(arg)
+    if val >= 0 {
+      return ExpandSingleFormat(parts[0], arg: arg)
+    } else {
+      return ExpandSingleFormat(parts[1], arg: arg)
+    }
+  case 3:
+//The first section applies to positive values, the second section applies to negative values, and the third section applies to zeros.
+    let val = downcastToDouble(arg)
+    if val == 0 {
+      return ExpandSingleFormat(parts[2], arg: arg)
+    } else {
+      return ExpandSingleFormat(
+        parts[(val > 0 || parts[1].isEmpty) ? 0 : 1],
+        arg: arg)
+    }
+  default:
+    // More than three. This is an error.
+    fatalError()
+  }
   //Axx
   let postFormat : String
-  if format.hasPrefix("SIP") {
+  // Look for form AXX
+  if let match = numericPrefix.firstMatchInString(format.uppercaseString) {
+    let formatType = NumericFormatSpecifier(rawValue: match.groups[0])!
+    let precision = match.groups[1].isEmpty ? 2 : Int(match.groups[1].isEmpty)
+    let value = downcastToDouble(arg)
+    switch formatType {
+    case .Percent:
+      return String(format: "%.\(precision)f%%", value*100)
+    default:
+      fatalError()
+    }
+  } else if format.hasPrefix("SIP") {
     let val = downcastToDouble(arg)
     postFormat = processSIPFormat(val, formatString: format)
   } else if format.hasPrefix("DMS") {
@@ -162,7 +219,9 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     print("Warning: KDT/MET not handled")
     postFormat = String(arg)
   } else {
-    fatalError()
+    print("Unrecognised string format: ", format)
+    return format
+//    fatalError()
   }
   return postFormat
 }

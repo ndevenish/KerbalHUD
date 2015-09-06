@@ -223,7 +223,10 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     print("Warning: DMS not handled")
     postFormat = String(arg)
   } else if format.hasPrefix("KDT") || format.hasPrefix("MET") {
-    print("Warning: KDT/MET not handled")
+    if !formatComplaints.contains(format) {
+      print("Warning: KDT/MET not handled: ", format)
+      formatComplaints.insert(format)
+    }
     postFormat = String(arg)
   } else {
     // Else, not a format we recognised. Until we are sure we

@@ -216,13 +216,26 @@ struct Vars {
   static let Vessel = VesselDataVarNames()
 }
 
+struct RasterPropMonitorVarNames {
+  struct RPMNode {
+    let Exists = "rpm.MNODEEXISTS"
+    let BurnTime = "rpm.MNODEBURNTIMESECS"
+    let TimeTo = "rpm.MNODETIMESECS"
+    let DeltaV = "rpm.MNODEDV"
+  }
+  let Node = RPMNode()
+}
+
+extension Vars {
+  static let RPM = RasterPropMonitorVarNames()
+}
 
 class NewNavBall : LayeredInstrument {
   init(tools : DrawingTools) {
     var config = InstrumentConfiguration()
     config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!)
     
-    // Fixed text
+    // Fixed text labels
     config.text = [
       t("Altitude",     x: 83,     y: 49, size: 15),
       t("SRF.SPEED",    x: 640-83, y: 49, size: 15),
@@ -255,6 +268,7 @@ class NewNavBall : LayeredInstrument {
       t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
     ])
     
+    // Various control Status displays
     config.text.appendContentsOf([
       t("SAS:", x: 10, y: 280, align: .Left, size: 20),
       t("RCS:", x: 10, y: 344, align: .Left, size: 20),
@@ -265,7 +279,7 @@ class NewNavBall : LayeredInstrument {
       t("Lights:", x: 635, y: 408, align: .Right, size: 20),
     ])
     
-    // Conditional text entries
+    // Conditional text entries collections for the status displays
     config.text.appendContentsOf([
       tOnOff(Vars.Vessel.SAS, x: 43, y: 640-312),
       tOnOff(Vars.Vessel.RCS, x: 43, y: 640-376),
@@ -274,16 +288,27 @@ class NewNavBall : LayeredInstrument {
       tOnOff(Vars.Vessel.Gear, x: 640-43, y: 640-312, onText: "Down", offText: "Up"),
     ].flatMap({$0}))
     
-    
-//    if data.NodeExists {
-//      drawText("Burn T:", x: 10, y: 408+64, align: .Left, size: 20)
-//      drawText("{0:METS.f}s", data.NodeBurnTime, x: 10, y: 408+64+32, align: .Left)
-//      drawText("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20)
-//      drawText("{0,17:MET+yy:ddd:hh:mm:ss.f}", data.NodeTime, x: 10, y: 408+64+64+32, align: .Left)
-//      drawText("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20)
-//      drawText("{0:SIP_6.3}m/s", data.NodeDv, x: 630, y: 408+64+64+32, align: .Right)
-//    }
-
+    // Time to node text
+    config.text.appendContentsOf([
+      t("Burn T:", x: 10, y: 472, size: 20, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0:METS.f}s", Vars.RPM.Node.BurnTime, x: 10, y: 408+64+32, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0,17:MET+yy:ddd:hh:mm:ss.f}", Vars.RPM.Node.TimeTo, x: 10, y: 408+64+64+32, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0:SIP_6.3}m/s", Vars.RPM.Node.DeltaV, x: 630, y: 408+64+64+32, align: .Right,
+        color: nil,
+        condition: Vars.RPM.Node.Exists)
+    ])
     
     super.init(tools: tools, config: config)
     

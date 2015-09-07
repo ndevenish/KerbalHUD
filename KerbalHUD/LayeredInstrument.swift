@@ -77,7 +77,7 @@ class LayeredInstrument : Instrument {
     // Render the overlays to a texture
     if let overlayFile = config.overlay as? SVGOverlay {
       let svg = SVGImage(withContentsOfFile: overlayFile.url)
-      let minScreenSize = Float(min(tools.screenSize))
+      let minScreenSize = Float(min(tools.screenSizePhysical))
       overlayTexture = svg.renderToTexture(Size2D(w: minScreenSize*self.screenSize.aspect, h: minScreenSize))
     } else {
       overlayTexture = nil

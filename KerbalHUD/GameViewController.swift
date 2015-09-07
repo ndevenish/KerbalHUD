@@ -121,7 +121,7 @@ class GameViewController: GLKViewController {
     
     // Calculate the frame times
     Clock.frameUpdate()
-    drawing!.screenSize = Size2D(
+    drawing!.screenSizePhysical = Size2D(
       w: Int(self.view.bounds.size.width * UIScreen.mainScreen().scale),
       h: Int(self.view.bounds.size.height * UIScreen.mainScreen().scale))
     
@@ -140,8 +140,9 @@ class GameViewController: GLKViewController {
 //    }
 //    
     //      let edge = (1.0/aspect - 1)*0.5
-    program!.projection = GLKMatrix4MakeOrtho(0, 600, 0, 600, -10, 10)
-
+//    program!.projection = GLKMatrix4MakeOrtho(0, 600, 0, 600, -10, 10)
+//    drawing!.setOrthProjection(left: 0, right: 600, bottom: 0, top: 600)
+    
     if (telemachus?.isConnected ?? false == false) {
       let current = Clock.time
       let curInt = Int(current)

@@ -17,14 +17,14 @@ class NewPlaneHud : LayeredInstrument {
     
     // Set up the indicator bars
     let deltaVzSettings = ScaledBarSettings(
-      variable: "v.verticalSpeed", type: .PseudoLogarithmic, direction: .Left,
-      visibleRange: 10000, maxValue: 10000, minValue: -10000, foregroundColor: Color4.Green)
+      variable: "v.verticalSpeed", scale: .PseudoLogarithmic, ticks: .Left,
+      range: 10000, maxValue: 10000, minValue: -10000, color: Color4.Green)
     let altSettings = ScaledBarSettings(
-      variable: "rpm.RADARALTOCEAN", type: .PseudoLogarithmic, direction: .Right,
-      visibleRange: InversePseudoLog10(4.6), maxValue: 10000, minValue: 0, foregroundColor: Color4.Green)
+      variable: "rpm.RADARALTOCEAN", scale: .PseudoLogarithmic, ticks: .Right,
+      range: InversePseudoLog10(4.6), maxValue: 10000, minValue: 0, color: Color4.Green)
     let headingSettings = ScaledBarSettings(
-      variable: Vars.Flight.Heading, type: .LinearWrapped, direction: .Up,
-      visibleRange: 90, maxValue: 360, minValue: 0, foregroundColor: Color4.Green)
+      variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Up,
+      range: 90, maxValue: 360, minValue: 0, color: Color4.Green)
     
     widgets.append(LadderHorizonWidget(tools: tools,
       bounds: FixedBounds(left: 0.25, bottom: 0.25, right: 0.75, top: 0.75)))

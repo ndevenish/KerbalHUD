@@ -75,15 +75,14 @@ class InstrumentPanel
       drawing.bind(i.framebuffer)
       
       // Reassign the projection matrix
-      drawing.program.projection = GLKMatrix4MakeOrtho(0,
-        Float(i.instrument.screenSize.w), 0, Float(i.instrument.screenSize.h), -i.instrument.screenSize.h/2, i.instrument.screenSize.h/2)
+      drawing.setOrthProjection(left: 0, right: Float(i.instrument.screenSize.w), bottom: 0, top: Float(i.instrument.screenSize.h))
       i.instrument.draw()
     }
 
     // Revert back to the main framebuffer
     drawing.bind(Framebuffer.Default)
     
-    drawing.program.projection = GLKMatrix4MakeOrtho(0, drawing.screenAspect, 0, 1, -10, 10)
+    drawing.setOrthProjection(left: 0, right: drawing.screenSizePhysical.aspect, bottom: 0, top: 1)
     drawing.program.setUseTexture(true)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
@@ -120,7 +119,7 @@ class InstrumentPanel
     
     // Work out the size of the entire array vertically
     let arraySize = Size2D(w: 1.0, h: Float(instruments.count))
-    let screenSize = Size2D(w: drawing.screenAspect, h: 1)
+    let screenSize = Size2D(w: drawing.screenSizePhysical.aspect, h: 1)
     
     // See if we scale better vertically, or horizontally
     let bestVertically = arraySize.scaleForFitInto(screenSize) > arraySize.scaleForFitInto(screenSize.flipped)
@@ -201,12 +200,12 @@ class InstrumentPanel
   
   private func setFocus(pe : PanelEntry?) {
     if let panel = pe {
-      let fullScreenPanel = FixedBounds(left: 0, bottom: 0, right: drawing.screenAspect, top: 1)
+      let fullScreenPanel = FixedBounds(left: 0, bottom: 0, right: drawing.screenSizePhysical.aspect, top: 1)
       let scale = panel.bounds.size.scaleForFitInto(fullScreenPanel.size)
       let size = panel.bounds.size * scale
-      let newBound = FixedBounds(left: (drawing.screenAspect-size.w)/2,
+      let newBound = FixedBounds(left: (drawing.screenSizePhysical.aspect-size.w)/2,
                                bottom: (1-size.h)/2,
-                                right: (drawing.screenAspect-size.w)/2 + size.w,
+                                right: (drawing.screenSizePhysical.aspect-size.w)/2 + size.w,
                                   top: (1-size.h)/2 + size.h)
 //      let index = instruments.indexOf({$0.framebuffer == panel.framebuffer})!
 //      instruments[index].bounds =
@@ -219,7 +218,7 @@ class InstrumentPanel
       focus = panel
       
       // Move all the others to the middle
-      let middlePos = FixedBounds(left: (drawing.screenAspect-oldSize.w)/2,
+      let middlePos = FixedBounds(left: (drawing.screenSizePhysical.aspect-oldSize.w)/2,
                                 bottom: (1-oldSize.h)/2,
                                  width: oldSize.w,
                                 height: oldSize.h)

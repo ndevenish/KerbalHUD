@@ -116,7 +116,7 @@ class HSIIndicator : RPMInstrument {
     // Generate the overlay texture
     let svgFile = NSBundle.mainBundle().URLForResource("Navutils_Overlay", withExtension: "svg")!
     let svg = SVGImage(withContentsOfFile: svgFile)
-    overlayTexture = svg.renderToTexture(Size2D(w: Float(tools.screenSize.w), h: Float(tools.screenSize.h)))
+    overlayTexture = svg.renderToTexture(Size2D(w: Float(min(tools.screenSizePhysical)), h: Float(min(tools.screenSizePhysical))))
     
     super.init(tools: tools, settings: set)
     
@@ -197,7 +197,7 @@ class HSIIndicator : RPMInstrument {
   
   
   func preRenderCompass() -> Texture {
-    let maxSide = Int(0.75*Double(min(drawing.screenSize.w, drawing.screenSize.h)))
+    let maxSide = Int(0.75*Double(min(drawing.screenSizePhysical)))
     
     let cfb = drawing.createTextureFramebuffer(
       Size2D(w: maxSide, h: maxSide),
@@ -206,10 +206,9 @@ class HSIIndicator : RPMInstrument {
     
     // Set up the projection.
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    drawing.program.projection = GLKMatrix4MakeOrtho(
-      320-235, 320+235,
-      320+235, 320-235,
-      -10, 10)
+    drawing.setOrthProjection(
+      left: 320-235, right: 320+235,
+      bottom: 320+235, top: 320-235)
     drawCompass()
     
     let texture = cfb.texture

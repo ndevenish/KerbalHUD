@@ -21,7 +21,7 @@ class ShaderProgram {
   private var uniforms : (mvp : Int32, color : Int32, useTex : Int32, uvOffset: Int32, uvScale: Int32)
   private var currentUseTex = false
   
-  var projection : GLKMatrix4 = GLKMatrix4Identity
+  private(set) var projection : GLKMatrix4 = GLKMatrix4Identity
   
   init() {
     _program = loadShaders()!
@@ -39,12 +39,6 @@ class ShaderProgram {
     let uSca = glGetUniformLocation(_program, "uvScale")
     
     uniforms = (uMVP, uCol, uTex, uOff, uSca)
-    
-//    // Get uniform locations.
-//    uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX] = glGetUniformLocation(program, "modelViewProjectionMatrix")
-//    uniforms[UNIFORM_COLOR] = glGetUniformLocation(program, "color")
-//    uniforms[UNIFORM_USETEX] = glGetUniformLocation(program, "useTex")
-//    //    uniforms[UNIFORM_NORMAL_MATRIX] = glGetUniformLocation(program, "normalMatrix")
   }
   
   func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat) {
@@ -85,6 +79,10 @@ class ShaderProgram {
   /// Sets the modelViewProjection matrix, by multiplying in the projection
   func setModelView(matrix : GLKMatrix4) {
     setModelViewProjection(GLKMatrix4Multiply(projection, matrix))
+  }
+  
+  func setProjection(matrix : GLKMatrix4) {
+    projection = matrix
   }
   
   deinit {

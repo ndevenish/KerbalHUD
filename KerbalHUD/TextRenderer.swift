@@ -266,8 +266,8 @@ class TextRenderer {
         return false
       }
       // Apply the transformation to a vector to get the x scale
-      let scaledX = (tool.program.projection * transform * GLKVector3.eX).length * Float(tool.screenSize.w)
-      let scaledY = (tool.program.projection * transform * GLKVector3.eY).length *  Float(tool.screenSize.h)
+      let scaledX = (tool.program.projection * transform * GLKVector3.eX).length * Float(tool.screenSizePhysical.w)
+      let scaledY = (tool.program.projection * transform * GLKVector3.eY).length *  Float(tool.screenSizePhysical.h)
       let scaledAspect = scaledX/scaledY
       
       

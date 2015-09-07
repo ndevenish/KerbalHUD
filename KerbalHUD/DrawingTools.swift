@@ -174,13 +174,15 @@ class DrawingTools
   var program : ShaderProgram
 
   var defaultFramebuffer : GLuint = 0
-  var screenAspect : Float { return Float(screenSize.w) / Float(screenSize.h) }
-  /// The size, in points, of the entire screen.
-  var screenSize : Size2D = Size2D(w: 0,h: 0)
+  
+  /// The size, in pixels, of the entire hardware screen, in current orientation
+  var screenSizePhysical : Size2D<Int>
+  /// The multiplier to convert the current rendering target to pixels
+  var scaleToPoints = Point2D(0,0)
+  /// The physical size (in pixels) of the currently bound render target
+  var renderTargetPixels : Size2D<Int>
   
   // For textured squares
-//  var vertexArrayTextured : GLuint = 0
-//  var vertexBufferTextured : GLuint = 0
   var texturedArray : VertexArray? = nil
 
   private var buffers : [GLuint : BufferInfo] = [:]
@@ -190,8 +192,6 @@ class DrawingTools
   var pointsToScreenScale : GLfloat = 1
   
   private var meshSquare : Mesh?
-  
-  var time : (total: Double, frame: Double) = (0,0)
   
   private struct BufferInfo {
     let array : GLuint
@@ -220,9 +220,10 @@ class DrawingTools
   init(shaderProgram : ShaderProgram) {
     program = shaderProgram
 
-    screenSize = Size2D(
+    screenSizePhysical = Size2D(
       w: Int(UIScreen.mainScreen().bounds.width),
       h: Int(UIScreen.mainScreen().bounds.height))
+    renderTargetPixels = screenSizePhysical
     
     // Create an initial buffer
     generate_buffer()
@@ -245,9 +246,15 @@ class DrawingTools
     print("Textured square data loaded into \(texturedArray!.name)")
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
     bind(VertexArray.Empty)
-    
   }
 
+  func setOrthProjection(left left: Float, right: Float, bottom: Float, top: Float) {
+    program.setProjection(GLKMatrix4MakeOrtho(left, right, bottom, top, -abs(top-bottom)/2, abs(top-bottom)))
+    let mss = Float(UIScreen.mainScreen().scale)
+    let pointSize = Size2D(w: Float(renderTargetPixels.w)/mss, h: Float(renderTargetPixels.h)/mss)
+    scaleToPoints = Point2D(pointSize.w/abs(right-left), pointSize.h/abs(top-bottom))
+  }
+  
 //  private var current_buffer : GLuint
   private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> BufferInfo {
     var buffer : GLuint = 0
@@ -292,8 +299,10 @@ class DrawingTools
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
     lastFramebuffer = name
-    let size = name == defaultFramebuffer ? screenSize : buffer.size
+    let size = name == defaultFramebuffer ? screenSizePhysical : buffer.size
     glViewport(0, 0, GLsizei(size.w), GLsizei(size.h))
+    renderTargetPixels = size
+    
 //    glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_STENCIL_BUFFER_BIT))
 

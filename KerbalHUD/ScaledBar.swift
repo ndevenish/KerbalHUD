@@ -25,6 +25,18 @@ struct ScaledBarSettings {
   /// The primary display color
   var foregroundColor : Color4?
   
+  init(variable: String, scale: ScaledBarScale, ticks: TickDirection, range: Float,
+    maxValue: Float? = nil, minValue: Float? = nil, color: Color4? = nil)
+  {
+    self.variable = variable
+    self.type = scale
+    self.direction = ticks
+    self.visibleRange = range
+    self.maxValue = maxValue
+    self.minValue = minValue
+    self.foregroundColor = color
+  }
+  
   /// Which orientation the bar is drawn in
   enum TickDirection {
     case Left
@@ -46,6 +58,7 @@ class ScaledBarWidget : Widget {
   
   private let drawing : DrawingTools
   private let config : ScaledBarSettings
+  private let text : TextRenderer
   
   private var data : Float?
   
@@ -53,6 +66,7 @@ class ScaledBarWidget : Widget {
     self.drawing = tools
     self.bounds = bounds
     self.config = config
+    self.text = tools.defaultTextRenderer
     
     self.variables = [config.variable]
   }
@@ -69,6 +83,8 @@ class ScaledBarWidget : Widget {
     guard let data = self.data else {
       return
     }
+    drawing.ConstrainDrawing(bounds)
+    
     let isLog = config.type == .PseudoLogarithmic
     let toLin : (Float) -> Float = isLog ? { PseudoLog10($0) } : { $0 }
     let fromLin : (Float) -> Float = isLog ? { InversePseudoLog10($0) } : { $0 }
@@ -81,11 +97,12 @@ class ScaledBarWidget : Widget {
     
     // Calculate the visible range in linear space, relative to the data point
     let linearRange : (min: Float, max: Float)
-        = (-toLin(config.visibleRange)/2, toLin(config.visibleRange)/2)
+        = (toLin(data)-toLin(config.visibleRange)/2, toLin(data)+toLin(config.visibleRange)/2)
 
+    
     // And now, calculate the range in data-space
     let valueRange : (min: Float, max: Float) =
-      (fromLin(toLin(data) + linearRange.min), fromLin(toLin(data) + linearRange.max))
+      (fromLin(linearRange.min), fromLin(linearRange.max))
 
     // Work out the marker-delimited major marker ranges.
     // Marker placement happens in linear space, at all times.
@@ -114,9 +131,9 @@ class ScaledBarWidget : Widget {
     // Now, draw the markers
     for var value = markerRange.min; value <= markerRange.max; value += majorMarkerStep {
       // Now, can draw a major marker at value, with text fromLin(value)
-      let linPos = (Float(value)-valueRange.min)/(valueRange.max-valueRange.min)
+      let linPos = (Float(value)-linearRange.min)/(linearRange.max-linearRange.min)
       drawMajorMarker(fromLin(Float(value)), linearPosition: linPos)
-      print("Major marker at ", fromLin(Float(value)))
+//      print("Major marker at ", fromLin(Float(value)))
       // Do minor markers, only for the but-final entries
       if value < markerRange.max {
         let minorValue : Float
@@ -127,10 +144,10 @@ class ScaledBarWidget : Widget {
         }
         // Now, can draw a minor marker at minorValue, with text fromLin(minorValue)
         
-        print("Minor marker at ", fromLin(minorValue))
+//        print("Minor marker at ", fromLin(minorValue))
       }
     }
-    
+    drawing.UnconstrainDrawing()
   }
   
   /// Abstracts out the concept of bar direction
@@ -143,19 +160,28 @@ class ScaledBarWidget : Widget {
     } else {
       pAP = bounds.left + bounds.width*linearPosition
     }
-    let mL : Float = 0.05 // MarkerLength
-    let mW : Float = 0.0015
+    let mL : Float = 16 / drawing.scaleToPoints.x // MarkerLength
+    let mW : Float = 2 / drawing.scaleToPoints.x
+    let textSize : Float = 16 / drawing.scaleToPoints.y
+    let str = String(format: "%.0f", dataValue)
     switch config.direction {
     case .Left:
       drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right-mL, pAP), width: mW)
+      text.draw(str, size: textSize, position: (x: bounds.right-mL*1.5, y: pAP), align: .Right)
     case .Right:
       drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right+mL, pAP), width: mW)
     case .Up:
       drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom+mL), width: mW)
+      text.draw(str, size: textSize, position: (x: pAP, y: bounds.bottom+mL+textSize/2), align: .Center)
     case .Down:
       drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom-mL), width: mW)
     }
   }
+  
+  func drawMinorMarker(dataValue : Float, linearPosition : Float) {
+    
+  }
+
 }
 
 

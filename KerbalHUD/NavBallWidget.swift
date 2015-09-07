@@ -142,7 +142,7 @@ class NavBallTextureRendering {
   func generate() -> Texture {
     let texture = drawing.createTextureFramebuffer(Size2D(w: 2048, h: 1024), depth: false, stencil: false)
     drawing.bind(texture)
-    drawing.program.projection = GLKMatrix4MakeOrtho(-180, 180, -90, 90, -10, 10)
+    drawing.setOrthProjection(left: -180, right: 180, bottom: -90, top: 90)
     drawing.program.setModelView(GLKMatrix4Identity)
     
     let upperBackground = Color4(r: 93.0/255, g: 177.0/255, b: 228.0/225, a: 1)

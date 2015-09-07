@@ -190,12 +190,14 @@ class ScaledBarWidget : Widget {
       drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right-mL, pAP), width: mW)
       text.draw(markText, size: textSize, position: (x: bounds.right-textOffset, y: pAP), align: .Right)
     case .Right:
-      drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right+mL, pAP), width: mW)
+      drawing.DrawLine(from: (bounds.left, pAP), to: (bounds.left+mL, pAP), width: mW)
+      text.draw(markText, size: textSize, position: (x: bounds.left+textOffset, y: pAP), align: .Left)
     case .Up:
       drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom+mL), width: mW)
       text.draw(markText, size: textSize, position: (x: pAP, y: bounds.bottom+textOffset+textSize/2), align: .Center)
     case .Down:
-      drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom-mL), width: mW)
+      drawing.DrawLine(from: (pAP, bounds.top), to: (pAP, bounds.top-mL), width: mW)
+      text.draw(markText, size: textSize, position: (x: pAP, y: bounds.top-textOffset-textSize/2), align: .Center)
     }
   }
   

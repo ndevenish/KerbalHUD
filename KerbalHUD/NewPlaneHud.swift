@@ -25,6 +25,9 @@ class NewPlaneHud : LayeredInstrument {
     let headingSettings = ScaledBarSettings(
       variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Up,
       range: 90, maxValue: 360, minValue: 0, color: Color4.Green)
+    let headingSettings2 = ScaledBarSettings(
+      variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Down,
+      range: 90, maxValue: 360, minValue: 0, color: Color4.Green)
     
     widgets.append(LadderHorizonWidget(tools: tools,
       bounds: FixedBounds(left: 0.25, bottom: 0.25, right: 0.75, top: 0.75)))
@@ -38,6 +41,11 @@ class NewPlaneHud : LayeredInstrument {
     widgets.append(ScaledBarWidget(tools: tools,
       bounds: FixedBounds(left: 0.25, bottom: 0.75, right: 0.75, top: 1.0),
       config: headingSettings ))
+    
+    widgets.append(ScaledBarWidget(tools: tools,
+      bounds: FixedBounds(left: 0.25, bottom: 0, right: 0.75, top: 0.25),
+      config: headingSettings2 ))
+
   }
 }
 

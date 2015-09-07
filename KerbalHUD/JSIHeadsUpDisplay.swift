@@ -650,20 +650,3 @@ class JSIHudVerticalBar {
     }
   }
 }
-
-func PseudoLog10(x : Float) -> Float
-{
-
-  if abs(x) <= 1.0 {
-    return x
-  }
-  return (1.0 + log10(abs(x))) * sign(x)
-}
-
-func InversePseudoLog10(x : Float) -> Float
-{
-  if abs(x) <= 1.0 {
-    return x
-  }
-  return pow(10, abs(x)-1)*sign(x)
-}

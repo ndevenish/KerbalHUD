@@ -25,7 +25,6 @@ private struct FlightData {
   var Pitch   : Float = 0
   var Roll    : Float = 0
   var AngleOfAttack : Float?
-//  var Heading : Float = 0
 }
 
 class LadderHorizonWidget : Widget {
@@ -170,28 +169,3 @@ private func GenerateProgradeMarker(tools: DrawingTools, size : GLfloat = 1) -> 
   
   return tools.LoadTriangles(tris)
 }
-
-//  // Do the text labels
-//  for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
-//    if angle % 20 != 0 {
-//      continue
-//    }
-//    let y = horizonSize.height * GLfloat(angle)/horizonScale
-//    text.draw(String(format: "%d", angle), size: (angle == 0 ? 16 : 10),
-//      position: (-64-8, y), align: .Left, rotation: π, transform: horzFrame)
-//    text.draw(String(format: "%d", angle), size: (angle == 0 ? 16 : 10),
-//      position: (64+8, y), align: .Left, rotation: 0, transform: horzFrame)
-//  }
-//  
-//  // Do the prograde marker - position
-//  //    horzFrame = GLKMatrix4Translate(horzFrame, 0, latestData?.AngleOfAttack ?? 0, 0)
-//  if let data = latestData {
-//    horzFrame = GLKMatrix4Translate(horzFrame, 0, horizonSize.height*((data.Pitch-data.AngleOfAttack ?? 0) / horizonScale), 0)
-//    // And roll backwards...
-//    horzFrame = GLKMatrix4Rotate(horzFrame, -roll*π/180, 0, 0, -1)
-//    
-//    drawing.program.setModelView(horzFrame)
-//    drawing.program.setColor(progradeColor)
-//    drawing.Draw(prograde!)
-//  }
-//}

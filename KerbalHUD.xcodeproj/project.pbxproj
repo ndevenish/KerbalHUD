@@ -15,6 +15,7 @@
 		0A1177981B9DB99A00FD8CA8 /* NewPlaneHud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */; settings = {ASSET_TAGS = (); }; };
 		0A11779A1B9DB9BF00FD8CA8 /* NavBall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */; settings = {ASSET_TAGS = (); }; };
 		0A11779C1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */; settings = {ASSET_TAGS = (); }; };
+		0A11779E1B9DE7BF00FD8CA8 /* ScaledBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B0A011B76BE1000381CC7 /* Security.swift */; };
 		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; settings = {ASSET_TAGS = (); }; };
@@ -85,6 +86,7 @@
 		0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewPlaneHud.swift; sourceTree = "<group>"; };
 		0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavBall.swift; sourceTree = "<group>"; };
 		0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LadderHorizonWidget.swift; sourceTree = "<group>"; };
+		0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScaledBar.swift; sourceTree = "<group>"; };
 		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A1B0A011B76BE1000381CC7 /* Security.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Security.swift; sourceTree = "<group>"; };
 		0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryGeneration.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */,
 				0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */,
 				0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */,
+				0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */,
 			);
 			name = Widgets;
 			sourceTree = "<group>";
@@ -427,6 +430,7 @@
 				0A6724541B8DEDCA00A38BE5 /* Timers.swift in Sources */,
 				0A11779C1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift in Sources */,
 				0A5DB9BB1B91D4FA000174C7 /* NavBallWidget.swift in Sources */,
+				0A11779E1B9DE7BF00FD8CA8 /* ScaledBar.swift in Sources */,
 				0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */,
 				0A7C02D91B909AF500790764 /* Bounds.swift in Sources */,
 				0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */,

@@ -175,7 +175,7 @@ class DrawingTools
 
   var defaultFramebuffer : GLuint = 0
   var screenAspect : Float { return Float(screenSize.w) / Float(screenSize.h) }
-  /// The size, in pixels, of the entire screen.
+  /// The size, in points, of the entire screen.
   var screenSize : Size2D = Size2D(w: 0,h: 0)
   
   // For textured squares
@@ -460,12 +460,15 @@ class DrawingTools
     baseMatrix = GLKMatrix4Rotate(baseMatrix, (0.5*3.1415926)-rotation_angle, 0, 0, -1)
     baseMatrix = GLKMatrix4Scale(baseMatrix, width, length, 1)
     baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, 0, 0)
-    let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
-    program.setModelViewProjection(mvp)
+    program.setModelView(baseMatrix)
     
     Draw(meshSquare!)
   }
   
+  func DrawSquare(bounds : Bounds)
+  {
+    DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
+  }
   func DrawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
   {
     var baseMatrix = GLKMatrix4Identity

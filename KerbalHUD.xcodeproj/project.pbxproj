@@ -10,6 +10,7 @@
 		0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A05148F1B7682F0000C6DE2 /* Websocket.swift */; };
 		0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B0A011B76BE1000381CC7 /* Security.swift */; };
 		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; settings = {ASSET_TAGS = (); }; };
@@ -75,6 +76,7 @@
 		0A05148F1B7682F0000C6DE2 /* Websocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Websocket.swift; sourceTree = "<group>"; };
 		0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicExpressions.swift; sourceTree = "<group>"; };
 		0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coercion.swift; sourceTree = "<group>"; };
+		0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemachusVariables.swift; sourceTree = "<group>"; };
 		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A1B0A011B76BE1000381CC7 /* Security.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Security.swift; sourceTree = "<group>"; };
 		0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryGeneration.swift; sourceTree = "<group>"; };
@@ -237,6 +239,7 @@
 				0A1E717D1B99032600C68683 /* Regex.swift */,
 				0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */,
 				0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */,
+				0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -405,6 +408,7 @@
 				0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */,
 				0A7C02D91B909AF500790764 /* Bounds.swift in Sources */,
 				0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */,
+				0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */,
 				0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */,
 				0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */,
 				0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */,

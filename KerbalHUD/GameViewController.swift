@@ -102,7 +102,7 @@ class GameViewController: GLKViewController {
 //    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
 //    panel?.AddInstrument(NavBall(tools: drawing!))
-    panel?.AddInstrument(NewNavBall(tools: drawing!))
+    panel?.AddInstrument(NavBall(tools: drawing!))
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
     glFrontFace(GLenum(GL_CW))
@@ -185,7 +185,7 @@ class GameViewController: GLKViewController {
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
-      fakeData["rpm.MNODEEXISTS"] = JSON(true)
+//      fakeData["rpm.MNODEEXISTS"] = JSON(true)
       telemachus?.processJSONMessage(fakeData)
     }
 

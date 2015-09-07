@@ -9,305 +9,116 @@
 import Foundation
 import GLKit
 
-private enum SpeedDisplayMode : String {
-  case Surface = "SRF"
-  case Orbit   = "ORB"
-  case Target  = "TGT"
+
+
+class NavBall : LayeredInstrument {
+  init(tools : DrawingTools) {
+    var config = InstrumentConfiguration()
+    config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!)
+    
+    // Fixed text labels
+    config.text = [
+      t("Altitude",     x: 83,     y: 49, size: 15),
+      t("SRF.SPEED",    x: 640-83, y: 49, size: 15),
+      t("ORB.VELOCITY", x: 83,     y: 640-554, size: 15),
+      t("ACCEL.",       x: 640-83, y: 640-554, size: 15),
+      t("MODE",         x: 54,     y: 640-489, size: 15),
+      t("ROLL",         x: 36,     y: 640-434, size: 15),
+      t("PITCH",        x: 599,    y: 640-434, size: 15),
+      t("RADAR ALTITUDE", x: 104,  y: 640-47 , size: 15),
+      t("HOR.SPEED",    x: 320,    y: 640-47 , size: 15),
+      t("VERT.SPEED",   x: 534,    y: 640-47 , size: 15),
+    ]
+    
+    // Simple display text
+    config.text.appendContentsOf([
+      t("%03.1f°", Vars.Flight.Roll, x: 67, y: 240),
+      t("%03.1f°", Vars.Flight.Pitch, x: 573, y: 240),
+      t("%03.1f°", Vars.Flight.Heading, x: 320, y: 80),
+      
+      t("{0:SIP_6.1}m", Vars.Vessel.Altitude, x: 83.5, y: 22),
+      t("{0,4:SIP4}m/s", "v.surfaceSpeed", x: 556.5, y: 22),
+      
+      t("{0:SIP_6.1}m", "v.orbitalVelocity", x: 83.5, y: 115),
+      t("{0:SIP4}m/s", "rpm.ACCEL", x: 556.5, y: 115),
+      t("{0:ORB;TGT;SRF}", "rpm.SPEEDDISPLAYMODE", x: 55, y: 177),
+      
+      
+      t("{0:SIP_6.3}m", "rpm.RADARALTOCEAN", x: 95, y: 623),
+      t("{0:SIP_6.3}m", "rpm.HORZVELOCITY", x: 320, y: 623),
+      t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
+      ])
+    
+    // Various control Status displays
+    config.text.appendContentsOf([
+      t("SAS:", x: 10, y: 280, align: .Left, size: 20),
+      t("RCS:", x: 10, y: 344, align: .Left, size: 20),
+      t("Throttle:", x: 10, y: 408, align: .Left, size: 20),
+      t("{0:P0}", Vars.Vessel.Throttle, x: 90, y: 440, align: .Right),
+      t("Gear:", x: 635, y: 290, align: .Right, size: 20),
+      t("Brakes:", x: 635, y: 344, align: .Right, size: 20),
+      t("Lights:", x: 635, y: 408, align: .Right, size: 20),
+      ])
+    
+    // Conditional text entries collections for the status displays
+    config.text.appendContentsOf([
+      tOnOff(Vars.Vessel.SAS, x: 43, y: 640-312),
+      tOnOff(Vars.Vessel.RCS, x: 43, y: 640-376),
+      tOnOff(Vars.Vessel.Brakes, x: 640-43, y: 640-(344+32)),
+      tOnOff(Vars.Vessel.Lights, x: 640-43, y: 640-(408+32)),
+      tOnOff(Vars.Vessel.Gear, x: 640-43, y: 640-312, onText: "Down", offText: "Up"),
+      ].flatMap({$0}))
+    
+    // Time to node text
+    config.text.appendContentsOf([
+      t("Burn T:", x: 10, y: 472, size: 20, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0:METS.f}s", Vars.RPM.Node.BurnTime, x: 10, y: 408+64+32, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0,17:MET+yy:ddd:hh:mm:ss.f}", Vars.RPM.Node.TimeTo, x: 10, y: 408+64+64+32, align: .Left,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20,
+        color: nil,
+        condition: Vars.RPM.Node.Exists),
+      t("{0:SIP_6.3}m/s", Vars.RPM.Node.DeltaV, x: 630, y: 408+64+64+32, align: .Right,
+        color: nil,
+        condition: Vars.RPM.Node.Exists)
+      ])
+    
+    super.init(tools: tools, config: config)
+    
+    // Add the navball
+    widgets.append(NavBallWidget(tools: tools,
+      bounds: FixedBounds(centerX: 320, centerY: 338, width: 430, height: 430)))
+  }
 }
 
-private struct FlightData {
-  var Altitude : Float = 0
-  var SurfaceSpeed : Float = 0
-  var OrbitalVelocity : Float = 0
-  var Acceleration : Float = 0
-  var Roll : Float = 0
-  var Pitch : Float = 0
-  var Heading : Float = 0
-  var RadarAltitude : Float = 0
-  var HorizontalSpeed : Float = 0
-  var VerticalSpeed : Float = 0
-  var SAS : Bool = false
-  var RCS : Bool = false
-  var Gear : Bool = false
-  var Brakes : Bool = false
-  var Lights : Bool = false
-  var Throttle : Float = 0
-  var SpeedDisplay : SpeedDisplayMode = .Surface
 
-  var NodeExists : Bool = false
-  var NodeBurnTime : Float = 0
-  var NodeTime : Float = 0
-  var NodeDv : Float = 0
+private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "", condition : condition, color: color)
 }
 
-class NavBall : Instrument {
-  /// The INTERNAL screen size e.g. the coordinate system this expects to draw on
-  var screenSize : Size2D<Float>
-  
-  var dataProvider : IKerbalDataStore? = nil
-  var drawing : DrawingTools
-  var text : TextRenderer
-  var navBall : Texture
-  var sphere : Drawable
-//  var outline : Drawable
-//  var triPoints : Drawable
-//  var roundBox : (inner: Drawable, outer: Drawable)
-//  var lesserRoundBox : (inner: Drawable, outer: Drawable)
-
-  private var data : FlightData? = nil
-  
-  var overlayTexture : Texture
-  
-//  var rpmText : RPMTextFile
-  
-  /// Initialise with a toolset to draw with
-  required init(tools : DrawingTools) {
-    drawing = tools
-    text = drawing.textRenderer("Menlo-Bold")
-    sphere = drawing.LoadTriangles(generateSphereTriangles(215, latSteps: 50, longSteps: 100))
-//    outline = drawing.LoadTriangles(GenerateCircleTriangles(230, w: 8, steps: 100))
-    navBall = NavBallTextureRendering(tools: drawing).generate()
-    screenSize = Size2D(w: 640, h: 640)
-//    rpmText = RPMTextFile(file: NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")!)
-//    rpmText.prepareTextFor(640/20, screenHeight: 640, font: text, tools: drawing)
-  
+private func t(string : String, _ variable : String,
+  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+    return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "", condition : condition, color: color)
     
-//    let inBox = GenerateRoundedBoxPoints(-60, bottom: -22, right: 60, top: 22, radius: 4)
-//    let outBox = GenerateRoundedBoxPoints(-64, bottom: -26, right: 64, top: 26, radius: 8)
-//    roundBox = (drawing.Load2DPolygon(inBox), drawing.Load2DPolygon(outBox))
-//    
-//    let lInBox = GenerateRoundedBoxPoints(-83, bottom: -27, right: 83, top: 27, radius: 4, topLeft: false, topRight: false)
-//    let lOutBox = GenerateRoundedBoxPoints(-86, bottom: -30, right: 86, top: 30, radius: 8, topLeft: false, topRight: false)
-//    lesserRoundBox = (drawing.Load2DPolygon(lInBox), drawing.Load2DPolygon(lOutBox))
-//    
-//    let w : Float = 9.093
-//    var triList : [Triangle<Point2D>] = [
-//      Triangle(Point2D(0, -230+w), Point2D(w, -230-w), Point2D(-w, -230-w)),
-//      Triangle(Point2D(-230+w, 0), Point2D(-230-w, -w), Point2D(-230-w, w)),
-//      Triangle(Point2D( 230-w, 0), Point2D(230+w, w), Point2D(230+w, -w)),
-//      Triangle(Point2D(-w, 302), Point2D(w, 302), Point2D(0, 302-w-w))
-//      ]
-//    triList.appendContentsOf(GenerateCircleTriangles(4.5, w: 3))
-//    triPoints = drawing.LoadTriangles(triList)
-//    
-    
-    // Generate the overlay texture
-    let svgFile = NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!
-    let svg = SVGImage(withContentsOfFile: svgFile)
-    overlayTexture = svg.renderToTexture(Size2D(w: Float(drawing.screenSize.w), h: Float(drawing.screenSize.h)))
-    
-  }
-  
-  let variables =   ["rpm.SPEEDDISPLAYMODE",
-    "v.altitude", "n.roll", "n.pitch", "n.heading",
-    "rpm.RADARALTOCEAN", "v.surfaceSpeed", "v.verticalSpeed",
-    "v.orbitalVelocity", "rpm.HORZVELOCITY", "v.sasValue", "v.rcsValue", "v.lightValue", "v.brakeValue", "v.gearValue", "f.throttle",
-    "rpm.SPEEDDISPLAYMODE", "rpm.MNODEEXISTS", "rpm.MNODEBURNTIMESECS", "rpm.MNODETIMESECS", "rpm.MNODEDV"]
-  
-  /// Start communicating with the kerbal data store
-  func connect(to : IKerbalDataStore){
-    dataProvider = to
-    to.subscribe(variables)
-  }
-  /// Stop communicating with the kerbal data store
-  func disconnect(from : IKerbalDataStore) {
-    
-  }
-  
-  /// Update this instrument
-  func update() {
-    guard let v = dataProvider else {
-      return
-    }
-    var data = FlightData()
-    data.Altitude = v["v.altitude"]?.floatValue ?? 0
-    data.Acceleration = v["rpm.ACCEL"]?.floatValue ?? 0
-    data.Roll = v["n.roll"]?.floatValue ?? 0
-    data.Pitch = v["n.pitch"]?.floatValue ?? 0
-    data.Heading = v["n.heading"]?.floatValue ?? 0
-    data.RadarAltitude = v["rpm.RADARALTOCEAN"]?.floatValue ?? 0
-    data.SurfaceSpeed = v["v.surfaceSpeed"]?.floatValue ?? 0
-    data.VerticalSpeed = v["v.verticalSpeed"]?.floatValue ?? 0
-    data.OrbitalVelocity = v["v.orbitalVelocity"]?.floatValue ?? 0
-    data.HorizontalSpeed = v["rpm.HORZVELOCITY"]?.floatValue ?? 0
-    data.SAS = v["v.sasValue"]?.boolValue ?? false
-    data.RCS = v["v.rcsValue"]?.boolValue ?? false
-    data.Lights = v["v.lightValue"]?.boolValue ?? false
-    data.Brakes = v["v.brakeValue"]?.boolValue ?? false
-    data.Gear = v["v.gearValue"]?.boolValue ?? false
-    data.Throttle = v["f.throttle"]?.floatValue ?? 0
+}
 
-    let sdm = v["rpm.SPEEDDISPLAYMODE"]?.intValue ?? 0
-    if sdm < 0 {
-      data.SpeedDisplay = .Target
-    } else if sdm > 0 {
-      data.SpeedDisplay = .Orbit
-    } else {
-      data.SpeedDisplay = .Surface
-    }
-    //  ORB;TGT;SRF + , - , 0
-// tr.draw("MODE", size: 15, position: (x: 54, y: 489), align: .Center)
-
-    self.data = data
-  }
-
-  let timer = Clock.createTimer()
-
-  func draw() {
-    drawing.bind(navBall)
-    drawing.program.setColor(red: 1, green: 1, blue: 1)
-
-    var sphMat = GLKMatrix4Identity
-    sphMat = GLKMatrix4Translate(sphMat, 320, 338, 0)
-
-    // Roll
-    sphMat = GLKMatrix4Rotate(sphMat, (data!.Roll) * π/180, 0, 0, 1)
-    // Pitch?
-    sphMat = GLKMatrix4Rotate(sphMat, (data!.Pitch) * π/180, 1, 0, 0)
-    // Heading
-    sphMat = GLKMatrix4Rotate(sphMat, data!.Heading * π/180, 0, -1, 0)
-
-    // Proper orientation to start from. Heading 0, pitch 0, roll 0.
-    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 0, 1)
-    sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
-    drawing.program.setModelView(sphMat)
-    drawing.program.setUseTexture(true)
-    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
-    drawing.Draw(sphere)
-
-    drawOverlay()
-    drawText()
-
-  }
-  
-//  func drawRoundBox(box : (inner: Drawable, outer: Drawable),
-//    position: Point2D, color: Color4) {
-//      drawing.program.setModelView(GLKMatrix4MakeTranslation(position.x, position.y, 0))
-//      drawing.program.setColor(color)
-//      drawing.Draw(box.outer)
-//      drawing.program.setColor(red: 0, green: 0, blue: 0)
-//      drawing.Draw(box.inner)
-//  }
-  
-  func drawOverlay() {
-    // Draw the overlay texture now
-    drawing.bind(overlayTexture)
-    drawing.program.setUseTexture(true)
-    drawing.DrawTexturedSquare(0, bottom: 0, right: 640, top: 640)
-
-    // Overlay text
-    let tr = text
-    drawing.program.setColor(Color4.White)
-    tr.draw("ALTITUDE", size: 15, position: (x: 83, y: 591), align: .Center)
-    tr.draw("SRF.SPEED",size: 15, position: (x: 640-83, y: 591), align: .Center)
-    tr.draw("ORB.VELOCITY", size: 15, position: (x: 83, y: 554), align: .Center)
-    tr.draw("ACCEL.", size: 15, position: (x: 640-83, y: 554), align: .Center)
-    
-    tr.draw("MODE", size: 15, position: (x: 54, y: 489), align: .Center)
-    tr.draw("ROLL", size: 15, position: (x: 36, y: 434), align: .Center)
-    tr.draw("PITCH", size: 15, position: (x: 599, y: 434), align: .Center)
-
-    tr.draw("RADAR ALTITUDE", size: 15, position: (x: 104, y: 47), align: .Center)
-    tr.draw("HOR.SPEED", size: 15, position: (x: 320, y: 47), align: .Center)
-    tr.draw("VERT.SPEED", size: 15, position: (x: 534, y: 47), align: .Center)
-    
-  }
-  
-  func drawText() {
-    guard let data = data else {
-      return
-    }
-
-    drawText("%03.1f°", data.Roll, x: 64, y: 240)
-    drawText("%03.1f°", data.Pitch, x: 640-64, y: 240)
-    drawText("%03.1f°", data.Heading, x: 320, y: 88)
-
-    drawText("{0:SIP_6.1}m", data.Altitude, x: 75, y: 22)
-    drawText("{0,4:SIP4}m/s", data.SurfaceSpeed, x: 558, y: 22)
-    
-    drawText("{0:SIP_6.1}m", data.OrbitalVelocity, x: 77, y: 115)
-    drawText("{0:SIP4}m/s", data.Acceleration, x: 558, y: 115)
-    drawText(data.SpeedDisplay.rawValue, x: 55, y: 177)
-   
-    drawText("{0:SIP_6.3}m", data.RadarAltitude, x: 95, y: 623)
-    drawText("{0:SIP_6.3}m", data.HorizontalSpeed, x: 320, y: 623)
-    drawText("{0:SIP_6.3}m", data.VerticalSpeed, x: 640-95, y: 623)
-    
-    // 10, 300
-    drawText("SAS:", x: 10, y: 280, align: .Left, size: 20)
-    drawOnOff(data.SAS, x: 43, y: 312)
-    drawText("RCS:", x: 10, y: 344, align: .Left, size: 20)
-    drawOnOff(data.RCS, x: 43, y: 344+32)
-    drawText("Throttle:", x: 10, y: 408, align: .Left, size: 20)
-    
-    drawText("Gear:", x: 630, y: 290, align: .Right, size: 20)
-    drawOnOff(data.Gear, x: 640-43, y: 312, onText: "Down", offText: "Up")
-    drawText("Brakes:", x: 630, y: 344, align: .Right, size: 20)
-    drawOnOff(data.Brakes, x: 640-43, y: 344+32)
-    drawText("Lights:", x: 630, y: 408, align: .Right, size: 20)
-    drawOnOff(data.Lights, x: 640-43, y: 408+32)
-    drawText("%.0f%%", data.Throttle*100, x: 90, y: 408+32, align: .Right)
-
-    
-    if data.NodeExists {
-      drawText("Burn T:", x: 10, y: 408+64, align: .Left, size: 20)
-      drawText("{0:METS.f}s", data.NodeBurnTime, x: 10, y: 408+64+32, align: .Left)
-      drawText("Node in T", x: 10, y: 408+64+64, align: .Left, size: 20)
-      drawText("{0,17:MET+yy:ddd:hh:mm:ss.f}", data.NodeTime, x: 10, y: 408+64+64+32, align: .Left)
-      drawText("ΔV", x: 640-10, y: 408+64+64, align: .Right, size: 20)
-      drawText("{0:SIP_6.3}m/s", data.NodeDv, x: 630, y: 408+64+64+32, align: .Right)
-    }
-  }
-
-  func drawOnOff(value : Bool, x : Float, y: Float, onText: String = "On", offText : String = "Off") {
-    if value {
-      drawText(onText, 0, x: x, y: y, align: .Center, color: Color4.Green)
-    } else {
-      drawText(offText, 0, x: x, y: y, align: .Center)
-    }
-    drawing.program.setColor(Color4.White)
-  }
-  
-  func drawText(format : String, x: Float, y: Float, align: NSTextAlignment = .Center, size : Float = 32) {
-    drawText(format, 0, x: x, y: y, align: align, color: nil, size: size)
-  }
-
-  func drawText(format : String, _ value : Float, x: Float, y: Float, align: NSTextAlignment = .Center, color : Color4? = nil, size : Float = 32) {
-    let realPos = Point2D(x, screenSize.h - y)
-    if let c = color {
-      drawing.program.setColor(c)
-    }
-    // Format the text.
-    let formatted : String
-    if format.containsString("{") {
-      formatted = try! String.Format(format, value)
-    } else {
-      formatted = String(format: format, value)
-    }
-    text.draw(formatted, size: size, position: realPos, align: align)
-    
-  }
-  
-//  func generateCrosshairs(
-  // Build it out of triangles - trace the edge
-//  let points : [Point2D] = [
-//    (w/2, -H-J), (-w/2, -H-J),
-//    // Left spur
-//    (-w/2,m*w/2 - H - w/cos(theta)), (-m*(H+w/cos(theta)-w/2),-w/2),
-//    // Outside of box
-//    (-W, -w/2), (-W, -Bh/2), (-W-B, -Bh/2), (-W-B, Bh/2), (-W, Bh/2),
-//    // Inside of box
-//    (-W-w, BiY), (-W-B+w, BiY), (-W-B+w, -BiY), (-W-w, -BiY), (-W-w, BiY), (-W, Bh/2),
-//    // Spur top
-//    (-W, w/2), (-m*(H+w/2),w/2), (0, -H),
-//    (m*(H+w/2),w/2), (W, w/2),
-//    // Inside of right box
-//    (W, Bh/2), (W+w, BiY), (W+w, -BiY), (W+B-w, -BiY), (W+B-w, BiY), (W+w, BiY),
-//    // Outside of right box
-//    (W, Bh/2), (W+B, Bh/2), (W+B, -Bh/2), (W, -Bh/2), (W, -w/2),
-//    // Right under spur
-//    (m*(H+w/cos(theta)-w/2),-w/2), (w/2,m*w/2 - H - w/cos(theta)),
-//    ].map { Point2D(x: $0.0, y: $0.1) }
+private func tOnOff(condition: String, x: Float, y: Float, onText: String = "On", offText: String = "Off") -> [TextEntry] {
+  return [
+    TextEntry(string: onText, size: 32, position: Point2D(x, y),
+      align: .Center, variables: [], font: "",
+      condition: condition, color: Color4.Green),
+    TextEntry(string: offText, size: 32, position: Point2D(x, y),
+      align: .Center, variables: [], font: "",
+      condition: "!" + condition, color: nil)
+  ]
 }
 
 class NavBallTextureRendering {

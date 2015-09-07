@@ -143,15 +143,35 @@ class ScaledBarWidget : Widget {
           minorValue = Float(value) + Float(majorMarkerStep) * minorMarkerStep
         }
         // Now, can draw a minor marker at minorValue, with text fromLin(minorValue)
-        
+        let minorLinPos = (Float(minorValue)-linearRange.min)/(linearRange.max-linearRange.min)
+        drawMinorMarker(fromLin(minorValue), linearPosition: minorLinPos)
 //        print("Minor marker at ", fromLin(minorValue))
       }
     }
     drawing.UnconstrainDrawing()
   }
   
-  /// Abstracts out the concept of bar direction
+  func drawMinorMarker(dataValue : Float, linearPosition : Float) {
+    let mL : Float = 8 / drawing.scaleToPoints.x // MarkerLength
+    var str = ""
+    if config.type == .PseudoLogarithmic {
+      if abs(dataValue) < 1 {
+        str = String(format: "%.1f", dataValue)
+      } else {
+        str = String(format: "%.0f", dataValue)
+      }
+    }
+    drawMarker(linearPosition, length: mL, markText: str)
+  }
   func drawMajorMarker(dataValue : Float, linearPosition : Float) {
+    let mL : Float = 16 / drawing.scaleToPoints.x // MarkerLength
+    let str = String(format: "%.0f", dataValue)
+    drawMarker(linearPosition, length: mL, markText: str)
+  }
+
+  
+  /// Abstracts out the concept of bar direction
+  func drawMarker(linearPosition : Float, length : Float, markText : String) {
     let pAP : GLfloat
     let horizontal = (config.direction == .Left || config.direction == .Right)
     // Calculate the position along the primary axis
@@ -160,27 +180,25 @@ class ScaledBarWidget : Widget {
     } else {
       pAP = bounds.left + bounds.width*linearPosition
     }
-    let mL : Float = 16 / drawing.scaleToPoints.x // MarkerLength
+    let mL = length
     let mW : Float = 2 / drawing.scaleToPoints.x
     let textSize : Float = 16 / drawing.scaleToPoints.y
-    let str = String(format: "%.0f", dataValue)
+    let textOffset : Float = length + 2/drawing.scaleToPoints.x
+//    let str = String(format: "%.0f", dataValue)
     switch config.direction {
     case .Left:
       drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right-mL, pAP), width: mW)
-      text.draw(str, size: textSize, position: (x: bounds.right-mL*1.5, y: pAP), align: .Right)
+      text.draw(markText, size: textSize, position: (x: bounds.right-textOffset, y: pAP), align: .Right)
     case .Right:
       drawing.DrawLine(from: (bounds.right, pAP), to: (bounds.right+mL, pAP), width: mW)
     case .Up:
       drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom+mL), width: mW)
-      text.draw(str, size: textSize, position: (x: pAP, y: bounds.bottom+mL+textSize/2), align: .Center)
+      text.draw(markText, size: textSize, position: (x: pAP, y: bounds.bottom+textOffset+textSize/2), align: .Center)
     case .Down:
       drawing.DrawLine(from: (pAP, bounds.bottom), to: (pAP, bounds.bottom-mL), width: mW)
     }
   }
   
-  func drawMinorMarker(dataValue : Float, linearPosition : Float) {
-    
-  }
 
 }
 

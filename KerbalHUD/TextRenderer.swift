@@ -265,9 +265,9 @@ class TextRenderer {
       if !monospaced {
         return false
       }
-      // Apply the transformation to a vector to get the x scale
-      let scaledX = (tool.program.projection * transform * GLKVector3.eX).length * Float(tool.screenSizePhysical.w)
-      let scaledY = (tool.program.projection * transform * GLKVector3.eY).length *  Float(tool.screenSizePhysical.h)
+      // Apply the transformation to a vector to get the x scale, then convert to points
+      let scaledX = (transform * GLKVector3.eX).length * tool.scaleToPoints.x //* Float(tool.screenSizePhysical.w)
+      let scaledY = (transform * GLKVector3.eY).length * tool.scaleToPoints.y//*  Float(tool.screenSizePhysical.h)
       let scaledAspect = scaledX/scaledY
       
       

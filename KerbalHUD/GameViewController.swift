@@ -102,7 +102,9 @@ class GameViewController: GLKViewController {
 //    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
 //    panel?.AddInstrument(NavBall(tools: drawing!))
-    panel?.AddInstrument(NavBall(tools: drawing!))
+//    panel?.AddInstrument(NavBall(tools: drawing!))
+    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
+    
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
     glFrontFace(GLenum(GL_CW))

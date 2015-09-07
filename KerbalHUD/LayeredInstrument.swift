@@ -43,7 +43,7 @@ class LayeredInstrument : Instrument {
   let defaultText : TextRenderer
   
   var dataStore : IKerbalDataStore? = nil
-  let overlayTexture : Texture
+  let overlayTexture : Texture?
   var allVariables : Set<String> = Set()
   var varValues : [String : Any] = [:]
 
@@ -75,9 +75,13 @@ class LayeredInstrument : Instrument {
     textEntries = parsedText
     
     // Render the overlays to a texture
-    let svg = SVGImage(withContentsOfFile: (config.overlay as! SVGOverlay).url)
-    let minScreenSize = Float(min(tools.screenSize))
-    overlayTexture = svg.renderToTexture(Size2D(w: minScreenSize*self.screenSize.aspect, h: minScreenSize))
+    if let overlayFile = config.overlay as? SVGOverlay {
+      let svg = SVGImage(withContentsOfFile: overlayFile.url)
+      let minScreenSize = Float(min(tools.screenSize))
+      overlayTexture = svg.renderToTexture(Size2D(w: minScreenSize*self.screenSize.aspect, h: minScreenSize))
+    } else {
+      overlayTexture = nil
+    }
   }
   
   func connect(to : IKerbalDataStore) {
@@ -146,7 +150,10 @@ class LayeredInstrument : Instrument {
   }
   
   func drawOverlay() {
-    drawing.bind(overlayTexture)
+    guard let texture = overlayTexture else {
+      return
+    }
+    drawing.bind(texture)
     drawing.program.setUseTexture(true)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.DrawTexturedSquare(0, bottom: 0, right: screenSize.w, top: screenSize.h)

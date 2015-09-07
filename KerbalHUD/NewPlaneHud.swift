@@ -27,11 +27,11 @@ class NewPlaneHud : LayeredInstrument {
     let headingSettings = ScaledBarSettings(
       variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Up,
       range: 90, maxValue: 360, minValue: 0, color: Color4.Green)
-    let headingSettings2 = ScaledBarSettings(
-      variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Down,
-      range: 90, maxValue: 360, minValue: 0, color: Color4.Green,
-      markerLine: 5)
-    
+//    let headingSettings2 = ScaledBarSettings(
+//      variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Down,
+//      range: 90, maxValue: 360, minValue: 0, color: Color4.Green,
+//      markerLine: 5)
+
     widgets.append(LadderHorizonWidget(tools: tools,
       bounds: FixedBounds(left: 0.25, bottom: 0.25, right: 0.75, top: 0.75)))
     
@@ -45,10 +45,12 @@ class NewPlaneHud : LayeredInstrument {
       bounds: FixedBounds(left: 0.25, bottom: 0.75, right: 0.75, top: 1.0),
       config: headingSettings ))
     
-    widgets.append(ScaledBarWidget(tools: tools,
-      bounds: FixedBounds(left: 0.25, bottom: 0, right: 0.75, top: 0.25),
-      config: headingSettings2 ))
+    widgets.append(FlapsIndicatorWidget(tools: tools,
+      bounds: FixedBounds(centerX: 7/8, centerY: 1/8,
+        width: 0.2, height: 0.15),
+      configuration: [:]))
 
+    // Now do the text
   }
 }
 

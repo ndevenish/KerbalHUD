@@ -265,7 +265,13 @@ class TextRenderer {
       if !monospaced {
         return false
       }
-      let fontSize = Int(ceil(size / tool.pointsToScreenScale))
+      // Apply the transformation to a vector to get the x scale
+      let scaledX = (tool.program.projection * transform * GLKVector3.eX).length * Float(tool.screenSize.w)
+      let scaledY = (tool.program.projection * transform * GLKVector3.eY).length *  Float(tool.screenSize.h)
+      let scaledAspect = scaledX/scaledY
+      
+      
+      let fontSize = Int(ceil(size*scaledY / tool.pointsToScreenScale))
       if let atlas = getAtlas(fontSize) {
         tool.program.setUseTexture(true)
         tool.bind(atlas.texture)
@@ -288,7 +294,7 @@ class TextRenderer {
         }
         baseMatrix = GLKMatrix4Rotate(baseMatrix, rotation, 0, 0, 1)
         // Scale to match the shape of a single character
-        baseMatrix = GLKMatrix4Scale(baseMatrix, size*aspect, size, 1)
+        baseMatrix = GLKMatrix4Scale(baseMatrix, size*aspect/scaledAspect, size, 1)
         // Offset so that the text is center-aligned
         baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
         

@@ -434,7 +434,7 @@ class HSIIndicator : RPMInstrument {
       if data.TrackingMode == .Fine {
         drawing.program.setColor(red: 1, green: 1, blue: 0)
       }
-      drawing.DrawLine((needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
+      drawing.DrawLine(from: (needleOffset, -123.5), to: (needleOffset, 123.5), width: 5, transform: offset)
     }
   }
 
@@ -473,7 +473,7 @@ class HSIIndicator : RPMInstrument {
       let length : GLfloat = angle % 90 == 0 ? 16 : (angle % 10 == 0 ? 25 : 20)
       let width : GLfloat = angle % 30 == 0 ? 4 : 3
       let outer = inner+length
-      drawing.DrawLine((inner*sin(rad), inner*cos(rad)) , to: (outer*sin(rad), outer*cos(rad)), width: width, transform: offset)
+      drawing.DrawLine(from: (inner*sin(rad), inner*cos(rad)) , to: (outer*sin(rad), outer*cos(rad)), width: width, transform: offset)
     }
     
     // Draw text

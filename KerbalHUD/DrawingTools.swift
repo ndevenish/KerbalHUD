@@ -447,7 +447,7 @@ class DrawingTools
     }
   }
   
-  func DrawLine(  from  : (x: GLfloat, y: GLfloat),
+  func DrawLine( from from  : (x: GLfloat, y: GLfloat),
                       to: (x: GLfloat, y: GLfloat),
                   width : GLfloat,
              transform  : GLKMatrix4 = GLKMatrix4Identity) {

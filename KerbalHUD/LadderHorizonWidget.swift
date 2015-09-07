@@ -6,14 +6,18 @@
 //  Copyright © 2015 Nicholas Devenish. All rights reserved.
 //
 
-import Foundation
+import UIKit
+import GLKit
 
 private struct LadderHorizonSettings {
   /// Use a 180 or 360 degree horizon
   var use360Horizon : Bool = true
   /// The vertical angle of view for the horizon
   var verticalAngleView : Float = 90
+  /// The color of the ladder lines
+  var foregroundColor : Color4 = Color4.Green
 }
+
 private struct FlightData {
   var Pitch   : Float = 0
   var Roll    : Float = 0
@@ -27,12 +31,14 @@ class LadderHorizonWidget : Widget {
   ]
   
   private let drawing : DrawingTools
-
+  private let text : TextRenderer
+  
   private var data : FlightData?
   private let settings = LadderHorizonSettings()
   
   init(tools : DrawingTools, bounds : Bounds) {
     self.drawing = tools
+    self.text = tools.textRenderer("Menlo")
     self.bounds = bounds
   }
   
@@ -53,43 +59,74 @@ class LadderHorizonWidget : Widget {
     // Constrain drawing to the bounds
     drawing.ConstrainDrawing(bounds)
     
+    // Draw a background
     drawing.program.setColor(Color4.Red)
     drawing.DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
+    drawing.program.setModelView(GLKMatrix4Identity)
+    
+    // Set the drawing color
+    drawing.program.setColor(settings.foregroundColor)
+    // Because of roll corners, effective size is increased according to aspect
+    let pitchHeight = settings.verticalAngleView * sqrt(pow(bounds.size.aspect, 2)+1)
+    // Calculate the angle range to draw lines and text for
+    let angleRangeFor360 = (min: Int(floor((data.Pitch - pitchHeight/2)/10)*10),
+                            max: Int(ceil( (data.Pitch + pitchHeight/2)/10)*10))
+    let angleRange = settings.use360Horizon
+      ? angleRangeFor360
+      : (min: max(angleRangeFor360.min, -90), max: min(angleRangeFor360.max, 90))
+
+    // Build a transform to apply to all drawing to put us in horizon frame
+    var frame = GLKMatrix4Identity
+    // Put us in the center of the bounds
+    frame = GLKMatrix4Translate(frame, bounds.center.x, bounds.center.y, 0)
+    // Rotate according to the roll
+    frame = GLKMatrix4Rotate(frame, data.Roll*π/180, 0, 0, -1)
+    // And translate for pitch in the center
+    frame = GLKMatrix4Translate(frame, 0, (-data.Pitch/settings.verticalAngleView)*bounds.height, 0)
+    // And scale so the height = vertical view
+    let heightScale = settings.verticalAngleView / bounds.height
+    frame = GLKMatrix4Scale(frame, bounds.width, 1/heightScale, 1)
+    
+    // Draw bars every 5 degrees
+    let maxBarWidth : Float = 0.4
+    for var angle = angleRange.min; angle <= angleRange.max; angle += 5 {
+      let width : GLfloat
+      if angle % 20 == 0 {
+        width = 0.4
+      } else if angle % 10 == 0 {
+        width = 0.6*0.4
+      } else {
+        width = 0.2*0.4
+      }
+      let thickness : GLfloat = angle % 20 == 0 ? 1 : 0.5
+      let y = GLfloat(angle)
+      drawing.DrawLine(
+        from: (-width/2, y), to: (width/2, y),
+        width: thickness, transform: frame)
+    }
+
+    // Do the text labels
+    // Additionally transform the frame so that the axis are equal aspect
+//    frame = GLKMatrix4Scale(frame, 1, heightScale*bounds.height, 1)
+    let textOffset = (maxBarWidth + 0.05) / 2
+    let baseFontSize : Float = 5 // / heightScale
+    for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
+      if angle % 20 != 0 {
+        continue
+      }
+      let y = GLfloat(angle)///heightScale
+      text.draw(String(format: "%d", angle), size: (angle == 0 ? baseFontSize*1.6 : baseFontSize),
+        position: (-textOffset, y), align: .Left, rotation: π, transform: frame)
+      text.draw(String(format: "%d", angle), size: (angle == 0 ? baseFontSize*1.6 : baseFontSize),
+        position: (textOffset, y), align: .Left, rotation: 0, transform: frame)
+    }
+
+    
+    
     drawing.UnconstrainDrawing()
   }
 }
-//
-//private func drawHorizonView() {
-//  let pitch : GLfloat = latestData?.Pitch ?? 0
-//  let roll : GLfloat = latestData?.Roll ?? 0
-//  
-//  drawing.program.setColor(foregroundColor)
-//  
-//  // Because of roll corners, effective size is increased according to aspect
-//  let hScale = horizonScale*sqrt(pow(horizonSize.width/horizonSize.height, 2)+1)
-//  
-//  var angleRange = (min: Int(floor((pitch - hScale/2)/10)*10),
-//    max: Int(ceil( (pitch + hScale/2)/10)*10))
-//  // Apply the constrained horizon, if turned on
-//  if use360horizon == false {
-//    angleRange = (max(angleRange.min, -90), min(angleRange.max, 90))
-//  }
-//  // Build a transform to apply to all drawing to put us in horizon frame
-//  var horzFrame = GLKMatrix4Identity
-//  // Put us in the center of the screen
-//  horzFrame = GLKMatrix4Translate(horzFrame, page.screenSize.w/2, page.screenSize.h/2, 0)
-//  // Rotate according to the roll
-//  horzFrame = GLKMatrix4Rotate(horzFrame, roll*π/180, 0, 0, -1)
-//  // And translate for pitch in the center
-//  horzFrame = GLKMatrix4Translate(horzFrame, 0, (-pitch/horizonScale)*horizonSize.height, 0)
-//  
-//  
-//  for var angle = angleRange.min; angle <= angleRange.max; angle += 5 {
-//    // How wide do we draw this bar?
-//    let width : GLfloat = angle % 20 == 0 ? 128 : (angle % 10 == 0 ? 74 : 23)
-//    let y = horizonSize.height * GLfloat(angle)/horizonScale
-//    drawing.DrawLine((-width/2, y), to: (width/2, y), width: (angle % 20 == 0 ? 2 : 1), transform: horzFrame)
-//  }
+
 //  // Do the text labels
 //  for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
 //    if angle % 20 != 0 {

@@ -410,7 +410,7 @@ class JSIHeadsUpDisplay {
       // How wide do we draw this bar?
       let width : GLfloat = angle % 20 == 0 ? 128 : (angle % 10 == 0 ? 74 : 23)
       let y = horizonSize.height * GLfloat(angle)/horizonScale
-      drawing.DrawLine((-width/2, y), to: (width/2, y), width: (angle % 20 == 0 ? 2 : 1), transform: horzFrame)
+      drawing.DrawLine(from: (-width/2, y), to: (width/2, y), width: (angle % 20 == 0 ? 2 : 1), transform: horzFrame)
     }
     // Do the text labels
     for var angle = angleRange.min; angle <= angleRange.max; angle += 10 {
@@ -447,7 +447,7 @@ class JSIHeadsUpDisplay {
     for var angle = minAngle; angle <= maxAngle; angle += 10 {
       let x = headingBarBounds.left + headingBarBounds.width*((Float(angle)-lowAngle)/headingBarScale)
       let height = angle % 20 == 0 ? 19 : 11
-      drawing.DrawLine((x, headingBarBounds.bottom), to: (x, headingBarBounds.bottom+GLfloat(height)), width: 1)
+      drawing.DrawLine(from: (x, headingBarBounds.bottom), to: (x, headingBarBounds.bottom+GLfloat(height)), width: 1)
     }
     
     for var angle = minAngle; angle <= maxAngle; angle += 10 {
@@ -589,7 +589,7 @@ class JSIHudVerticalBar {
 //    let smlTickSize = medTickSize / 2
     let axisLinePos = direction == .Left ? bounds.right : bounds.left
     let lineOffset : GLfloat = direction == .Left ? -0.5 : 0.5
-    drawing.DrawLine((axisLinePos+lineOffset, bounds.bottom), to: (axisLinePos+lineOffset, bounds.top), width: 1)
+    drawing.DrawLine(from: (axisLinePos+lineOffset, bounds.bottom), to: (axisLinePos+lineOffset, bounds.top), width: 1)
     
     // Calculate the visible range of markers
     let center = useLog ? PseudoLog10(variable) : variable
@@ -608,7 +608,7 @@ class JSIHudVerticalBar {
     // Draw the major marks now
     for value in markerRange.min...markerRange.max {
       let y : GLfloat = bounds.bottom + bounds.height * ((GLfloat(value)-range.min) / (2*rangeOffset))
-      drawing.DrawLine((axisLinePos, y), to: (axisLinePos+lgeTickSize, y), width: 1)
+      drawing.DrawLine(from: (axisLinePos, y), to: (axisLinePos+lgeTickSize, y), width: 1)
       
       // Now, draw the intermediate markers
       if !(value == markerRange.max) {
@@ -621,7 +621,7 @@ class JSIHudVerticalBar {
           halfValue = Float(value) + 0.5
         }
         let halfwayY : GLfloat = bounds.bottom + bounds.height * ((GLfloat(halfValue)-range.min) / (2*rangeOffset))
-        drawing.DrawLine((axisLinePos, halfwayY), to: (axisLinePos+medTickSize, halfwayY), width: 1)
+        drawing.DrawLine(from: (axisLinePos, halfwayY), to: (axisLinePos+medTickSize, halfwayY), width: 1)
       }
     }
     

@@ -15,7 +15,8 @@ protocol Bounds {
   var top    : Float { get }
   var height : Float { get }
   var width  : Float { get }
-  
+
+  var center : Point2D { get }
   var size : Size2D<Float> { get }
 }
 
@@ -26,7 +27,8 @@ struct ErrorBounds : Bounds {
   var top : Float { fatalError() }
   var width : Float { fatalError() }
   var height : Float { fatalError() }
-  
+
+  var center : Point2D { fatalError() }
   var size : Size2D<Float> { fatalError() }
 }
 struct FixedBounds : Bounds, Equatable {
@@ -38,6 +40,7 @@ struct FixedBounds : Bounds, Equatable {
   var width : Float { return abs(right-left) }
   var height : Float { return abs(top-bottom) }
   
+  var center : Point2D { return Point2D(left+width/2, bottom+height/2) }
   var size : Size2D<Float> { return Size2D(w: width, h: height) }
   
   init(left: Float, bottom: Float, right: Float, top: Float) {
@@ -81,7 +84,8 @@ struct BoundsInterpolator : Bounds {
   var width : Float { return abs(right-left) }
   var height : Float { return abs(top-bottom) }
   var size : Size2D<Float> { return Size2D(w: width, h: height) }
-  
+  var center : Point2D { return Point2D(left+width/2, bottom+height/2) }
+
   var start : Bounds
   var end : Bounds
   var clock : Timer

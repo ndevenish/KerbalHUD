@@ -96,6 +96,10 @@ class NavBall : LayeredInstrument {
     // Add the navball
     widgets.append(NavBallWidget(tools: tools,
       bounds: FixedBounds(centerX: 320, centerY: 338, width: 430, height: 430)))
+    widgets.append(FlapsIndicatorWidget(tools: tools,
+      bounds: FixedBounds(centerX: 640*13/16, centerY: 640*3/16,
+        width: 640*1/8, height: 640*1/8),
+      configuration: [:]))
   }
 }
 
@@ -398,6 +402,8 @@ class NavBallWidget : Widget {
   }
   private(set) var bounds : Bounds
   let variables : [String]
+  private(set) var configuration : [String : Any] = [:]
+  
   private let drawing : DrawingTools
   
   private let sphere : Drawable

@@ -205,7 +205,8 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
   }
   //Axx
   let postFormat : String
-  // Look for form AXX
+  
+  // Look for form AXX e.g. standard numeric formats
   if let match = numericPrefix.firstMatchInString(format.uppercaseString) {
     let formatType = NumericFormatSpecifier(rawValue: match.groups[0])!
     let precision = match.groups[1].isEmpty ? 2 : Int(match.groups[1].isEmpty)

@@ -11,6 +11,7 @@
 		0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1177961B9DA16600FD8CA8 /* FlapsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B0A011B76BE1000381CC7 /* Security.swift */; };
 		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; settings = {ASSET_TAGS = (); }; };
@@ -77,6 +78,7 @@
 		0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicExpressions.swift; sourceTree = "<group>"; };
 		0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coercion.swift; sourceTree = "<group>"; };
 		0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemachusVariables.swift; sourceTree = "<group>"; };
+		0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlapsIndicator.swift; sourceTree = "<group>"; };
 		0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		0A1B0A011B76BE1000381CC7 /* Security.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Security.swift; sourceTree = "<group>"; };
 		0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeometryGeneration.swift; sourceTree = "<group>"; };
@@ -150,6 +152,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0A1177941B9DA15700FD8CA8 /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+				0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */,
+			);
+			name = Widgets;
+			sourceTree = "<group>";
+		};
 		0A3593F71B7136B80072CC18 = {
 			isa = PBXGroup;
 			children = (
@@ -216,6 +226,7 @@
 		0A6724551B8DFF8500A38BE5 /* Instruments */ = {
 			isa = PBXGroup;
 			children = (
+				0A1177941B9DA15700FD8CA8 /* Widgets */,
 				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
 				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
 				0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */,
@@ -422,6 +433,7 @@
 				0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */,
 				0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */,
 				0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */,
+				0A1177961B9DA16600FD8CA8 /* FlapsIndicator.swift in Sources */,
 				0A1E71741B97BD3900C68683 /* Colors.swift in Sources */,
 				0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */,
 				0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */,

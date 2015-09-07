@@ -20,6 +20,7 @@ struct Vars {
   static let Flight = FlightDataVarNames()
   static let Vessel = VesselDataVarNames()
   static let RPM = RasterPropMonitorVarNames()
+  static let FAR = FARVarNames()
   
   private init() {
     
@@ -30,44 +31,47 @@ struct Vars {
 // All the secondary level access structures. Inside an extension so as not
 // to pollute the general namespace.
 extension Vars {
-  
-struct FlightDataVarNames {
-  let Roll = "n.roll"
-  let Pitch = "n.pitch"
-  let Heading = "n.heading"
+  struct FlightDataVarNames {
+    let Roll = "n.roll"
+    let Pitch = "n.pitch"
+    let Heading = "n.heading"
 
-  private init() {
-    
+    private init() {
+      
+    }
   }
-}
 
-struct VesselDataVarNames {
-  let SAS    = "v.sasValue"
-  let RCS    = "v.rcsValue"
-  let Lights = "v.lightValue"
-  let Brakes = "v.brakeValue"
-  let Gear   = "v.gearValue"
-  
-  let Altitude = "v.altitude"
-  let Throttle = "f.throttle"
-  
-  private init() {
+  struct VesselDataVarNames {
+    let SAS    = "v.sasValue"
+    let RCS    = "v.rcsValue"
+    let Lights = "v.lightValue"
+    let Brakes = "v.brakeValue"
+    let Gear   = "v.gearValue"
     
+    let Altitude = "v.altitude"
+    let Throttle = "f.throttle"
+    
+    private init() {
+      
+    }
   }
-}
 
-struct RasterPropMonitorVarNames {
-  struct RPMNode {
-    let Exists = "rpm.MNODEEXISTS"
-    let BurnTime = "rpm.MNODEBURNTIMESECS"
-    let TimeTo = "rpm.MNODETIMESECS"
-    let DeltaV = "rpm.MNODEDV"
-  }
-  let Node = RPMNode()
-  
-  private init() {
+  struct RasterPropMonitorVarNames {
+    struct RPMNode {
+      let Exists = "rpm.MNODEEXISTS"
+      let BurnTime = "rpm.MNODEBURNTIMESECS"
+      let TimeTo = "rpm.MNODETIMESECS"
+      let DeltaV = "rpm.MNODEDV"
+    }
+    let Node = RPMNode()
     
+    private init() {
+      
+    }
   }
-}
+  
+  struct FARVarNames {
+    let Flaps = "rpm.PLUGIN_JSIFAR:GetFlapSetting"
+  }
 
 }

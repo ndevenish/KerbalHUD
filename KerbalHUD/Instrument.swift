@@ -25,11 +25,15 @@ protocol Instrument {
   func draw()
 }
 
+// Configuring a widget. 
+// - Remapping input variables
+// - Configuration
+// - Position and Size
 protocol Widget {
+  /// The bounding rectangle for this widget
   var bounds : Bounds { get }
+  /// List of variables that this widget uses
   var variables : [String] { get }
-  
   func update(data : [String : JSON])
-  
   func draw()
 }

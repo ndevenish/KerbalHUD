@@ -511,6 +511,7 @@ class DrawingTools
   func drawText(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left, rotation : GLfloat = 0) {
     textRenderer("Menlo").draw(text, size: size, position: position, align: align, rotation: rotation)
   }
+  var defaultTextRenderer : TextRenderer { return textRenderer("Menlo") }
   
   private func startWritingStencilBuffer() {
     glEnable(GLenum(GL_STENCIL_TEST))

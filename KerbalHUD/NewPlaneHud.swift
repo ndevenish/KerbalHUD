@@ -9,19 +9,24 @@
 import UIKit
 
 private func t(format : String, _ variable : String, x: Float, y: Float, align: NSTextAlignment = .Center,
-    condition: String? = nil) -> TextEntry {
+  condition: String? = nil, size: Float = 1) -> TextEntry {
       let rX = x * 1.0/40
       let rY = 1 - ((y+0.5) * 1.0/20)
-      let lineHeight : Float = 1.0/20
-  return TextEntry(string: format, size: lineHeight, position: Point2D(rX,rY), align: align, variables: [variable], font: "", condition: condition, color: nil)
+    return t(format, [variable], exactX: rX, exactY: rY, align: align, condition: condition, size: size)
+}
+
+private func t(format : String, _ variable : [String], exactX: Float, exactY: Float, align: NSTextAlignment = .Center,
+  condition: String? = nil, size: Float = 1) -> TextEntry {
+    let lineHeight : Float = size * 1.0/20
+    return TextEntry(string: format, size: lineHeight, position: Point2D(exactX,exactY), align: align, variables: variable, font: "", condition: condition, color: Color4.Green)
 }
 
 private func t(format : String, x: Float, y: Float, align: NSTextAlignment = .Center,
-  condition: String? = nil) -> TextEntry {
+  condition: String? = nil, size: Float = 1) -> TextEntry {
     let rX = x * 1.0/40
     let rY = 1 - ((y+0.5) * 1.0/20)
-    let lineHeight : Float = 1.0/20
-    return TextEntry(string: format, size: lineHeight, position: Point2D(rX,rY), align: align, variables: [], font: "", condition: condition, color: nil)
+    let lineHeight : Float = size * 1.0/20
+    return TextEntry(string: format, size: lineHeight, position: Point2D(rX,rY), align: align, variables: [], font: "", condition: condition, color: Color4.Green)
 }
 
 class NewPlaneHud : LayeredInstrument {
@@ -31,19 +36,30 @@ class NewPlaneHud : LayeredInstrument {
     
     // Now do the text
     config.text.appendContentsOf([
-      t("PRS: %7.3f Pa", "v.dynamicPressure", x: 1, y: 1, align: .Left),
-      t("ASL: {0:SIP6}m", "v.altitude", x:39, y: 1, align: .Right)
+      t("PRS: %7.3f Pa",  "v.dynamicPressure", x: 1, y: 1, align: .Left),
+      t("ATM: {0,5:00.0%}",  "rpm.ATMOSPHEREDEPTH", x: 1, y: 2, align: .Left),
+      
+      t("ASL: {0:SIP6}m", "v.altitude", x:39, y: 1, align: .Right),
+      t("TER: {0:SIP6}m", "rpm.TERRAINHEIGHT", x:39, y: 2, align: .Right),
+      t("%03.1f°", Vars.Flight.Heading, x:20, y: 3, align: .Center),
+      t("{0:SIP6}m/s", ["v.verticalSpeed"], exactX: 0.25, exactY: 0.75+0.7/2/20, align: .Right, condition: nil, size: 0.7),
+      t("{0:SIP6}m", ["rpm.RADARALTOCEAN"], exactX: 0.75, exactY: 0.75+0.7/2/20, align: .Left, condition: nil, size: 0.7),
+      t("SAS",   x: 2, y: 5.5, align: .Left, condition: Vars.Vessel.SAS),
+      t("GEAR",  x: 2, y: 7.5, align: .Left, condition: Vars.Vessel.Gear),
+      t("BRAKE", x: 2, y: 9.5, align: .Left, condition: Vars.Vessel.Brakes),
+      t("LIGHT", x: 2, y: 11.5, align: .Left, condition: Vars.Vessel.Lights),
+      t("HEAT!", x: 39, y: 5.5, align: .Right, condition: "rpm.ENGINEOVERHEATALARM"),
+      t("GEAR!", x: 39, y: 7.5, align: .Right, condition: "rpm.GROUNDPROXIMITYALARM"),
+      t("SLOPE!",x: 39, y: 9.5, align: .Right, condition: "rpm.SLOPEALARM"),
+      
+      t("SPD: {0:SIP6}m/s", "rpm.SURFSPEED", x: 1, y: 16, align: .Left),
+      t("EAS: {0:SIP6}m/s", "rpm.EASPEED", x: 1, y: 17, align: .Left),
+      t("HRZ: {0:SIP6}m/s", "rpm.HORZVELOCITY", x: 1, y: 18, align: .Left),
+      t("THR: {0,6:00.0%} ({1,6:00.0%})", ["rpm.THROTTLE", "rpm.EFFECTIVETHROTTLE"], exactX: 1.0/40, exactY: 1 - (19.5*1.0/20), align: .Left),
+      
+      t("P: {0,6:000.0}° R: {1,6:000.0}°", [Vars.Flight.Pitch, Vars.Flight.Roll], exactX: 0.5, exactY: 0.25-0.5/2/20, align: .Center, condition: nil, size: 0.5)
       ])
     
-    //      // Render the text!
-    //      text.draw(String(format:"ASL: %6.0fm", data.AtmHeight),
-    //        size: lineHeight, position: Point2D(x: screenSize.w-16, y: lineY[1]), align: .Right)
-    //      text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
-    //        position: Point2D(x: screenSize.w-16, y: lineY[2]), align: .Right)
-    //
-    //      // Heading note
-    //      text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
-    //        position: Point2D(x: screenSize.w/2, y: lineY[3]), align: .Center)
     //
     //      text.draw(String(format:"SPD: %6.0fm/s", data.Speed), size: lineHeight, position: (16, lineY[16]))
     //      text.draw(String(format:"HRZ: %6.0fm/s", data.HrzSpeed), size: lineHeight, position: (16, lineY[18]))
@@ -129,7 +145,7 @@ class NewPlaneHud : LayeredInstrument {
         width: 0.2, height: 0.15),
       configuration: [:]))
     
-    widgets.append(RPMTextFileWidget(tools: tools, bounds: FixedBounds(left: 0, bottom: 0, right: 1, top: 1)))
+//    widgets.append(RPMTextFileWidget(tools: tools, bounds: FixedBounds(left: 0, bottom: 0, right: 1, top: 1)))
 
   }
 }

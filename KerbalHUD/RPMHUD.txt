@@ -1,4 +1,3 @@
-
 PRS: {1,7:0.000}kPa          ASL: {0:SIP6}m $&$ ALTITUDE DYNAMICPRESSURE
 ATM: {0,5:00.0%}               TER: {1:SIP6}m $&$ ATMOSPHEREDEPTH TERRAINHEIGHT
 [@y-3][@x2]{0,6:000.0}° $&$ HEADING

@@ -9,9 +9,10 @@
 import Foundation
 import GLKit
 
+/// Generate an NA0015 NACA airfoil
 private func generateFoil(drawing : DrawingTools) -> Drawable {
-  let c : Float = 1
-  let t : Float = 0.15
+  let c : Float = 1     // Chord length e.g. how wide in x
+  let t : Float = 0.15  // Maximum thickness in c e.g. Height = c*t
   
   let numSteps = 20
   var points : [Point2D] = []
@@ -63,7 +64,7 @@ class FlapsIndicatorWidget : Widget {
     } else {
       // Work out from the bounds to fill the width
       let numChars = Float(" FLP: X ".characters.count)
-      self.fontSize = (self.bounds.width / numChars) / text.aspect
+      self.fontSize = (bounds.width / numChars) / text.aspect
     }
 
     fontColor = Color4.coerceTo(configuration["fontcolor"]) ?? Color4.White
@@ -78,16 +79,19 @@ class FlapsIndicatorWidget : Widget {
       return
     }
     
-    // length 1, 20° == height = 0.35*width
-    let foilSweepSize = Size2D<Float>(w: bounds.width, h: bounds.width * 0.35)
+//    drawing.program.setColor(Color4.Red)
+//    drawing.program.setUseTexture(false)
+//    drawing.DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
     
     let foilPosition = Point2D(
-      x: bounds.center.x - foilSweepSize.w/2,
-      y: bounds.top - fontSize - 1.25 * foilSweepSize.h/2)
+      x: bounds.center.x,
+      y: (bounds.height - fontSize)/2 + bounds.bottom)
     
     var foilMV = GLKMatrix4MakeTranslation(foilPosition.x, foilPosition.y, 0)
-    foilMV = GLKMatrix4Scale(foilMV, foilSweepSize.w, foilSweepSize.h, 0)
-    foilMV = GLKMatrix4Translate(foilMV, 0.15-0.5 , 0, 0)
+    // Scale the foil 1 -> Bounds.width
+    foilMV = GLKMatrix4Scale(foilMV, bounds.width, bounds.width, 0)
+    // Move the foil so that the chord center is centered
+    foilMV = GLKMatrix4Translate(foilMV, 0.15-0.5, 0, 0)
     
     if flaps > 0 {
       drawing.program.setModelView(foilMV)
@@ -116,7 +120,7 @@ class FlapsIndicatorWidget : Widget {
     drawing.program.setColor(fontColor)
     text.draw("FLP: " + (flaps == 0 ? "-" : String(flaps)),
       size: fontSize, position: Point2D(
-        x: bounds.left,
+        x: bounds.center.x,
         y: bounds.top-fontSize/2), align: .Center)
   }
 }

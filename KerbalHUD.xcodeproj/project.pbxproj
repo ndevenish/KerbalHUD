@@ -155,6 +155,7 @@
 		0A1177941B9DA15700FD8CA8 /* Widgets */ = {
 			isa = PBXGroup;
 			children = (
+				0A5DB9BA1B91D4FA000174C7 /* NavBall.swift */,
 				0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */,
 			);
 			name = Widgets;
@@ -232,7 +233,6 @@
 				0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */,
 				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
 				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
-				0A5DB9BA1B91D4FA000174C7 /* NavBall.swift */,
 				0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */,
 			);
 			name = Instruments;

@@ -68,7 +68,7 @@ class TextRenderer {
     if abs(iSize.width - 2*wSize.width) < 1e-2 {
       monospaced = true
     }
-    aspect = Float(iSize.width / iSize.height)
+    aspect = Float(wSize.width / wSize.height)
     getAtlas(10)
   }
   

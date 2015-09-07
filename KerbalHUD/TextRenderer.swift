@@ -272,6 +272,10 @@ class TextRenderer {
       
       
       let fontSize = Int(ceil(size*scaledY / tool.pointsToScreenScale))
+      guard fontSize < 100 else {
+//        fatalError()
+        return false
+      }
       if let atlas = getAtlas(fontSize) {
         tool.program.setUseTexture(true)
         tool.bind(atlas.texture)

@@ -8,6 +8,38 @@
 
 import Foundation
 
+class RPMTextFileWidget : Widget {
+  private(set) var bounds : Bounds
+  private(set) var variables : [String]
+  
+  private let drawing : DrawingTools
+  private let rpm : RPMTextFile
+  
+  private var data : [String : Any]? = nil
+  
+  init(tools : DrawingTools, bounds : Bounds) {
+    self.bounds = bounds
+    self.drawing = tools
+    let url = NSBundle.mainBundle().URLForResource("RPMHUD", withExtension: "txt")
+    let rpm = RPMTextFile(file: url!)
+    rpm.prepareTextFor(1.0/20, screenHeight: 1, font: self.drawing.defaultTextRenderer, tools: tools)
+    self.rpm = rpm
+    self.variables = rpm.variables
+  }
+  
+  func update(data : [String : JSON]) {
+    var c : [String : Any] = [:]
+    for (x, y) in data {
+      c[x] = y
+    }
+    self.data = c
+  }
+  func draw() {
+    if let data = self.data {
+      self.rpm.draw(data)
+    }
+  }
+}
 struct TextDrawInfo {
   var position : Point2D
   var color : Color4
@@ -33,7 +65,9 @@ protocol PageEntry {
   // Position, in lines, where we would expect to start
   var position : Point2D? { get set }
   
-  func process(data : IKerbalDataStore) -> TextDrawInfo
+  var variables : [String] { get }
+  
+  func process(data : [String : Any]) -> TextDrawInfo
 }
 
 class FixedLengthEntry : PageEntry {
@@ -55,7 +89,9 @@ class FixedLengthEntry : PageEntry {
   var state : FormatState?
   var position : Point2D? = nil
   
-  func process(data : IKerbalDataStore) -> TextDrawInfo {
+  let variables : [String] = []
+  
+  func process(data : [String : Any]) -> TextDrawInfo {
     fatalError()
   }
 
@@ -73,7 +109,7 @@ class FixedString : FixedLengthEntry {
     super.init(length: text.characters.count)
   }
   
-  override func process(data : IKerbalDataStore) -> TextDrawInfo {
+  override func process(data : [String : Any]) -> TextDrawInfo {
     return TextDrawInfo(position: position!+state!.offset, color: state!.color, size: 1, string: text)
   }
 }
@@ -82,6 +118,8 @@ class FormatEntry : PageEntry {
   var variable : String
   var alignment : Int
   var format : String
+  
+  var variables : [String] { return variable.isEmpty ? [] : [variable] }
   
   private(set) var length : Int
   var isDynamic : Bool { return true }
@@ -113,7 +151,7 @@ class FormatEntry : PageEntry {
     affectsOffset = false
   }
   
-  func process(data : IKerbalDataStore) -> TextDrawInfo {
+  func process(data : [String : Any]) -> TextDrawInfo {
     let dataVar = "rpm." + variable
     return TextDrawInfo(position: position!+state!.offset, color: state!.color, size: 1,
       string: stringFormatter.format(data[dataVar]))
@@ -229,6 +267,8 @@ class RPMTextFile {
   var text : TextRenderer? = nil
   var drawing : DrawingTools? = nil
   
+  private(set) var variables : [String] = []
+  
   convenience init(file : NSURL) {
     let data = NSData(contentsOfURL: file)
     let s = NSString(bytes: data!.bytes, length: data!.length, encoding: NSUTF8StringEncoding)! as String
@@ -264,6 +304,7 @@ class RPMTextFile {
         } else {
           variables = []
         }
+        self.variables.appendContentsOf(variables)
         print ("\(i) Vars: ", variables)
         lineEntries.appendContentsOf(parseWholeFormattingLine(formatString, variables: variables))
         //      } else {
@@ -331,6 +372,8 @@ class RPMTextFile {
     self.fixedEntries = fixedEntries
     self.dynamicEntries = dynamicEntries
     self.dynamicLines = dynamicLines
+    // Deduplicate the variables
+    self.variables = Array(Set(self.variables.map({"rpm."+$0})))
   }
   
   func parseWholeFormattingLine(line : String, variables : [String]) -> [PageEntry] {
@@ -458,7 +501,7 @@ class RPMTextFile {
     fatalError()
   }
   
-  func draw(data : IKerbalDataStore) {
+  func draw(data : [String : Any]) {
     // Draw all the fixed positions
     for entry in fixedEntries {
       let txt = entry.process(data)

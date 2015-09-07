@@ -89,9 +89,10 @@ func processSIPFormat(value : Double, formatString : String) -> String {
   parts.append(getSIPrefix(siExponent))
   // Handle undersized
   let currentLength = parts.reduce(0, combine: {$0 + $1.characters.count })
-  if length > currentLength && zeros {
-    let insertPoint = value < 0 ? 1 : 0
-    let fillString = String(count: length-currentLength, repeatedValue: Character("0"))
+  if length > currentLength {
+    let fillCharacter = zeros ? Character("0") : Character(" ")
+    let insertPoint = value < 0 && zeros ? 1 : 0
+    let fillString = String(count: length-currentLength, repeatedValue: fillCharacter)
     parts.insert(fillString, atIndex: insertPoint)
   }
   return parts.joinWithSeparator("")

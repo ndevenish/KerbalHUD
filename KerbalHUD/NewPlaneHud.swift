@@ -8,10 +8,89 @@
 
 import UIKit
 
+private func t(format : String, _ variable : String, x: Float, y: Float, align: NSTextAlignment = .Center,
+    condition: String? = nil) -> TextEntry {
+      let rX = x * 1.0/40
+      let rY = 1 - ((y+0.5) * 1.0/20)
+      let lineHeight : Float = 1.0/20
+  return TextEntry(string: format, size: lineHeight, position: Point2D(rX,rY), align: align, variables: [variable], font: "", condition: condition, color: nil)
+}
+
+private func t(format : String, x: Float, y: Float, align: NSTextAlignment = .Center,
+  condition: String? = nil) -> TextEntry {
+    let rX = x * 1.0/40
+    let rY = 1 - ((y+0.5) * 1.0/20)
+    let lineHeight : Float = 1.0/20
+    return TextEntry(string: format, size: lineHeight, position: Point2D(rX,rY), align: align, variables: [], font: "", condition: condition, color: nil)
+}
+
 class NewPlaneHud : LayeredInstrument {
   init(tools : DrawingTools) {
     var config = InstrumentConfiguration()
     config.size = Size2D(w: 1, h: 1)
+    
+    // Now do the text
+    config.text.appendContentsOf([
+      t("PRS: %7.3f Pa", "v.dynamicPressure", x: 1, y: 1, align: .Left),
+      t("ASL: {0:SIP6}m", "v.altitude", x:39, y: 1, align: .Right)
+      ])
+    
+    //      // Render the text!
+    //      text.draw(String(format:"ASL: %6.0fm", data.AtmHeight),
+    //        size: lineHeight, position: Point2D(x: screenSize.w-16, y: lineY[1]), align: .Right)
+    //      text.draw(String(format:"TER: %6.0fm", data.TerrHeight), size: lineHeight,
+    //        position: Point2D(x: screenSize.w-16, y: lineY[2]), align: .Right)
+    //
+    //      // Heading note
+    //      text.draw(String(format:"%05.1f˚", data.Heading), size: lineHeight,
+    //        position: Point2D(x: screenSize.w/2, y: lineY[3]), align: .Center)
+    //
+    //      text.draw(String(format:"SPD: %6.0fm/s", data.Speed), size: lineHeight, position: (16, lineY[16]))
+    //      text.draw(String(format:"HRZ: %6.0fm/s", data.HrzSpeed), size: lineHeight, position: (16, lineY[18]))
+    //
+    //      text.draw(String(format:"P:  %05.1f˚ R:  %05.1f˚", data.Pitch, -data.Roll), size: 16,
+    //        position:(screenSize.w/2, screenSize.h*0.25-8), align: .Center)
+    //
+    //      text.draw(String(format:"%6.0fm/s", (data.DeltaH > -0.5 ? abs(data.DeltaH) : data.DeltaH)),
+    //        size: 18, position: (screenSize.w*0.25, screenSize.h*0.75+8), align: .Right)
+    //      text.draw(String(format:"%6.0fm", data.RadarHeight),
+    //        size: 18, position: (screenSize.w*0.75, screenSize.h*0.75+8), align: .Left)
+    //
+    //      if data.SAS {
+    //        text.draw(" SAS", size: lineHeight, position: (8, lineY[5]))
+    //      }
+    //      if data.Gear {
+    //        text.draw(" GEAR", size: lineHeight, position: (8, lineY[6]))
+    //      }
+    //      if data.Brake {
+    //        text.draw(" BRAKE", size: lineHeight, position: (8, lineY[7]))
+    //      }
+    //      if data.Lights {
+    //        text.draw(" LIGHT", size: lineHeight, position: (8, lineY[8]))
+    //      }
+    //
+    //      if data.RPMVariablesAvailable {
+    //        text.draw(String(format:"ATM: %5.1f%%", data.AtmPercent*100.0), size: lineHeight, position: (16, lineY[2]))
+    //        text.draw(String(format:"EAS: %6.0fm/s", data.EASpeed), size: lineHeight, position: (16, lineY[17]))
+    //
+    //        text.draw(String(format:"THR: %5.1f%% [%5.1f%%]", data.ThrottleSet*100, data.ThrottleActual*100.0),
+    //          size: lineHeight, position: (16, lineY[19]))
+    //
+    //        if data.HeatAlarm {
+    //          text.draw("HEAT! ", size: lineHeight, position: (screenSize.w-8, lineY[5]), align: .Right)
+    //        }
+    //        if data.GroundAlarm {
+    //          text.draw("GEAR! ", size: lineHeight, position: (screenSize.w-8, lineY[6]), align: .Right)
+    //        }
+    //        if data.SlopeAlarm {
+    //          text.draw("SLOPE!", size: lineHeight, position: (screenSize.w-8, lineY[7]), align: .Right)
+    //        }
+    //      } else {
+    //        // Only display partial throttle without RPM
+    //        text.draw(String(format:"THR: %5.1f%%", data.ThrottleSet*100), size: lineHeight, position: (16, lineY[19]))
+    //
+    //      }
+
     
     super.init(tools: tools, config: config)
     
@@ -49,8 +128,9 @@ class NewPlaneHud : LayeredInstrument {
       bounds: FixedBounds(centerX: 7/8, centerY: 1/8,
         width: 0.2, height: 0.15),
       configuration: [:]))
+    
+    widgets.append(RPMTextFileWidget(tools: tools, bounds: FixedBounds(left: 0, bottom: 0, right: 1, top: 1)))
 
-    // Now do the text
   }
 }
 
@@ -148,23 +228,23 @@ class NewPlaneHud : LayeredInstrument {
 //}
 //
 
-private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
-  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "", condition : condition, color: color)
-}
-
-private func t(string : String, _ variable : String,
-  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
-    return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "", condition : condition, color: color)
-    
-}
-
-private func tOnOff(condition: String, x: Float, y: Float, onText: String = "On", offText: String = "Off") -> [TextEntry] {
-  return [
-    TextEntry(string: onText, size: 32, position: Point2D(x, y),
-      align: .Center, variables: [], font: "",
-      condition: condition, color: Color4.Green),
-    TextEntry(string: offText, size: 32, position: Point2D(x, y),
-      align: .Center, variables: [], font: "",
-      condition: "!" + condition, color: nil)
-  ]
-}
+//private func t(string : String, x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+//  return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [], font: "", condition : condition, color: color)
+//}
+//
+//private func t(string : String, _ variable : String,
+//  x: Float, y: Float, size: Float = 32, align: NSTextAlignment = .Center, color: Color4? = nil, condition: String? = nil) -> TextEntry {
+//    return TextEntry(string: string, size: size, position: Point2D(x,640-y), align: align, variables: [variable], font: "", condition : condition, color: color)
+//    
+//}
+//
+//private func tOnOff(condition: String, x: Float, y: Float, onText: String = "On", offText: String = "Off") -> [TextEntry] {
+//  return [
+//    TextEntry(string: onText, size: 32, position: Point2D(x, y),
+//      align: .Center, variables: [], font: "",
+//      condition: condition, color: Color4.Green),
+//    TextEntry(string: offText, size: 32, position: Point2D(x, y),
+//      align: .Center, variables: [], font: "",
+//      condition: "!" + condition, color: nil)
+//  ]
+//}

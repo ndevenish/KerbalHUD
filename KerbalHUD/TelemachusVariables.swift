@@ -65,6 +65,8 @@ extension Vars {
     }
     let Node = RPMNode()
     
+    let AngleOfAttack = "rpm.ANGLEOFATTACK"
+    
     private init() {
       
     }

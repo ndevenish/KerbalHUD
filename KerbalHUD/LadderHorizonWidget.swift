@@ -16,11 +16,15 @@ private struct LadderHorizonSettings {
   var verticalAngleView : Float = 90
   /// The color of the ladder lines
   var foregroundColor : Color4 = Color4.Green
+  /// Show the prograde marker?
+  var progradeMarker : Bool = true
+  var progradeColor : Color4 = Color4(0.84, 0.98, 0, 1)
 }
 
 private struct FlightData {
   var Pitch   : Float = 0
   var Roll    : Float = 0
+  var AngleOfAttack : Float?
 //  var Heading : Float = 0
 }
 
@@ -35,17 +39,28 @@ class LadderHorizonWidget : Widget {
   
   private var data : FlightData?
   private let settings = LadderHorizonSettings()
+  private let progradeMarker : Drawable?
   
   init(tools : DrawingTools, bounds : Bounds) {
     self.drawing = tools
     self.text = tools.textRenderer("Menlo")
     self.bounds = bounds
+    
+    // Generate a prograde marker if we want one
+    if settings.progradeMarker {
+      variables.append(Vars.RPM.AngleOfAttack)
+      // Construct the prograde marker
+      progradeMarker = GenerateProgradeMarker(tools)
+    } else {
+      progradeMarker = nil
+    }
   }
   
   func update(data : [String : JSON]) {
     if let pitch = data[Vars.Flight.Pitch]?.float,
       let roll = data[Vars.Flight.Roll]?.float {
-      self.data = FlightData(Pitch: pitch, Roll: roll)
+        let aOa = data[Vars.RPM.AngleOfAttack]?.float
+        self.data = FlightData(Pitch: pitch, Roll: roll, AngleOfAttack: aOa)
     } else {
       self.data = nil
     }
@@ -80,10 +95,10 @@ class LadderHorizonWidget : Widget {
     // Rotate according to the roll
     frame = GLKMatrix4Rotate(frame, data.Roll*π/180, 0, 0, -1)
     // And translate for pitch in the center
-    frame = GLKMatrix4Translate(frame, 0, (-data.Pitch/settings.verticalAngleView)*bounds.height, 0)
+    let preScaleFrame = GLKMatrix4Translate(frame, 0, (-data.Pitch/settings.verticalAngleView)*bounds.height, 0)
     // And scale so the height = vertical view
     let heightScale = settings.verticalAngleView / bounds.height
-    frame = GLKMatrix4Scale(frame, bounds.width, 1/heightScale, 1)
+    frame = GLKMatrix4Scale(preScaleFrame, bounds.width, 1/heightScale, 1)
     
     // Draw bars every 5 degrees
     let maxBarWidth : Float = 0.4
@@ -119,10 +134,41 @@ class LadderHorizonWidget : Widget {
         position: (textOffset, y), align: .Left, rotation: 0, transform: frame)
     }
 
+    // Prograde marker
+    if let aoa = data.AngleOfAttack,
+       let pgm = progradeMarker
+    {
+      // Set the color and start building the transformation
+      drawing.program.setColor(settings.progradeColor)
+      var progradeFrame = preScaleFrame
+      // Re-apply the scaling, but in an equal-aspect way
+      progradeFrame = GLKMatrix4Scale(progradeFrame, 1/heightScale, 1/heightScale, 1)
+      // Move it, in the frame of reference of the angles
+      progradeFrame = GLKMatrix4Translate(progradeFrame, 0, data.Pitch-aoa, 0)
+      // Scale this to match the frame scale
+      // Scale to the right size e.g. 10 degrees tall
+      progradeFrame = GLKMatrix4Scale(progradeFrame, 20, 20, 1)
+      // And roll backwards...
+      progradeFrame = GLKMatrix4Rotate(progradeFrame, -data.Roll*π/180, 0, 0, -1)
+      
+      drawing.program.setModelView(progradeFrame)
+      drawing.Draw(pgm)
+    }
     
-    
+    // Remove the stencil constraints
     drawing.UnconstrainDrawing()
   }
+}
+
+
+private func GenerateProgradeMarker(tools: DrawingTools, size : GLfloat = 1) -> Drawable {
+  let scale = size / 64.0
+  var tris = GenerateCircleTriangles(11.0 * scale, w: 4.0*scale)
+  tris.appendContentsOf(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
+  tris.appendContentsOf(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))
+  tris.appendContentsOf(GenerateBoxTriangles(14*scale, bottom: -1*scale, right: 30*scale, top: 1*scale))
+  
+  return tools.LoadTriangles(tris)
 }
 
 //  // Do the text labels

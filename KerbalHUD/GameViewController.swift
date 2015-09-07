@@ -178,7 +178,7 @@ class GameViewController: GLKViewController {
       fakeData["navutil.glideslope"] = JSON(5)
       fakeData["navutil.dme"] = JSON(7500+sin(current*0.5)*2000)
 
-      fakeData["n.heading"] = JSON(90 + 5*sin(current))
+      fakeData["n.heading"] = JSON(270 + 5*sin(current) + current*2)
       if Int(floor(current/10)) % 2 == 0 {
         fakeData["navutil.locdeviation"] = JSON(90 - fakeData["n.heading"]!.floatValue)
       } else {

@@ -24,9 +24,11 @@ struct ScaledBarSettings {
   var minValue : Float?
   /// The primary display color
   var foregroundColor : Color4?
+  /// Draw a line with thickness on the metered edge...
+  var markerEdgeLineThickness : Float = 0
   
   init(variable: String, scale: ScaledBarScale, ticks: TickDirection, range: Float,
-    maxValue: Float? = nil, minValue: Float? = nil, color: Color4? = nil)
+    maxValue: Float? = nil, minValue: Float? = nil, color: Color4? = nil, markerLine : Float = 0)
   {
     self.variable = variable
     self.type = scale
@@ -35,6 +37,7 @@ struct ScaledBarSettings {
     self.maxValue = maxValue
     self.minValue = minValue
     self.foregroundColor = color
+    self.markerEdgeLineThickness = markerLine
   }
   
   /// Which orientation the bar is drawn in
@@ -132,8 +135,9 @@ class ScaledBarWidget : Widget {
     for var value = markerRange.min; value <= markerRange.max; value += majorMarkerStep {
       // Now, can draw a major marker at value, with text fromLin(value)
       let linPos = (Float(value)-linearRange.min)/(linearRange.max-linearRange.min)
-      drawMajorMarker(fromLin(Float(value)), linearPosition: linPos)
-//      print("Major marker at ", fromLin(Float(value)))
+      let realVal = wrapToValueRange(fromLin(Float(value)))
+      drawMajorMarker(realVal, linearPosition: linPos)
+      
       // Do minor markers, only for the but-final entries
       if value < markerRange.max {
         let minorValue : Float
@@ -143,12 +147,50 @@ class ScaledBarWidget : Widget {
           minorValue = Float(value) + Float(majorMarkerStep) * minorMarkerStep
         }
         // Now, can draw a minor marker at minorValue, with text fromLin(minorValue)
+        let minorRealVal = wrapToValueRange(fromLin(Float(minorValue)))
+
         let minorLinPos = (Float(minorValue)-linearRange.min)/(linearRange.max-linearRange.min)
-        drawMinorMarker(fromLin(minorValue), linearPosition: minorLinPos)
+        drawMinorMarker(minorRealVal, linearPosition: minorLinPos)
 //        print("Minor marker at ", fromLin(minorValue))
       }
     }
+    
+    
+    // Draw the marker edge
+    if config.markerEdgeLineThickness > 0 {
+      switch config.direction {
+      case .Left:
+        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.x
+        drawing.DrawLine(from: (bounds.right-w/2, bounds.bottom), to: (bounds.right-w/2, bounds.top), width: w)
+      case .Right:
+        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.x
+        drawing.DrawLine(from: (bounds.left+w/2, bounds.bottom), to: (bounds.left+w/2, bounds.top), width: w)
+      case .Up:
+        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.y
+        drawing.DrawLine(from: (bounds.left, bounds.bottom+w/2), to: (bounds.right, bounds.bottom+w/2), width: w)
+      case .Down:
+        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.y
+        drawing.DrawLine(from: (bounds.left, bounds.top-w/2), to: (bounds.right, bounds.top-w/2), width: w)
+      }
+    }
+    
     drawing.UnconstrainDrawing()
+  }
+  
+  private func wrapToValueRange(var value : Float) -> Float {
+    guard let minV = config.minValue,
+          let maxV = config.maxValue
+          where config.type == .LinearWrapped else {
+        return value
+    }
+    // If wrapping, then handle this
+    while value < minV {
+      value += maxV-minV
+    }
+    while value >= maxV {
+      value -= maxV-minV
+    }
+    return value
   }
   
   func drawMinorMarker(dataValue : Float, linearPosition : Float) {

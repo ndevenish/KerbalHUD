@@ -60,8 +60,6 @@ class LadderHorizonWidget : Widget {
     drawing.ConstrainDrawing(bounds)
     
     // Draw a background
-    drawing.program.setColor(Color4.Red)
-    drawing.DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
     drawing.program.setModelView(GLKMatrix4Identity)
     
     // Set the drawing color

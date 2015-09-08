@@ -26,16 +26,13 @@ extension DrawingTools {
     var buffer : GLuint = 0
     
     glGenVertexArrays(1, &vao)
-    glBindVertexArray(vao)
-    glGenBuffers(1, &buffer)
+    bind(VertexArray(name: vao, buffer_name: 0))
 
-    let b = VertexArray(name: vao, buffer_name: buffer)
-    bind(b)
-    
+    glGenBuffers(1, &buffer)
     glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
     
     let stride = GLsizei(GLuint(sizeof(GLfloat))*(positions+textures))
-    
+  
     glEnableVertexAttribArray(program.attributes.position)
     glVertexAttribPointer(program.attributes.position, GLint(positions), GLenum(GL_FLOAT), GLboolean(GL_FALSE), stride, BUFFER_OFFSET(0))
     
@@ -44,6 +41,8 @@ extension DrawingTools {
       glEnableVertexAttribArray(program.attributes.texture)
       glVertexAttribPointer(program.attributes.texture, GLint(textures), GLenum(GL_FLOAT), GLboolean(GL_FALSE), stride, BUFFER_OFFSET(offset))
     }
+    // Return an info object
+    let b = VertexArray(name: vao, buffer_name: buffer)
     return b
   }
   
@@ -54,23 +53,3 @@ extension DrawingTools {
     glDeleteVertexArrays(1, &name)
   }
 }
-
-//// Load the vertex information for a textured square
-//glGenVertexArrays(1, &vertexArrayTextured)
-//glBindVertexArray(vertexArrayTextured)
-//glGenBuffers(1, &vertexBufferTextured)
-//glBindBuffer(GLenum(GL_ARRAY_BUFFER), vertexBufferTextured)
-//// Set up the vertex array information
-//glEnableVertexAttribArray(program.attributes.position)
-//glEnableVertexAttribArray(program.attributes.texture)
-//glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(0))
-//glVertexAttribPointer(program.attributes.texture, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*4), BUFFER_OFFSET(8))
-//// Now copy the data into the buffer
-//var texturedSquare : [GLfloat] = [
-//  0,0,0,1,
-//  0,1,0,0,
-//  1,0,1,1,
-//  1,1,1,0
-//]
-//glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
-//glBindVertexArray(0)

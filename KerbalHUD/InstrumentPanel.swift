@@ -204,7 +204,8 @@ class InstrumentPanel
   }
   
   func registerTap(loc: Point2D) {
-    let myLoc = Point2D(x: loc.x, y: 1-loc.y)
+    let myLoc = Point2D(x: loc.x*drawing.renderTargetPixels.aspect, y: 1-loc.y)
+//    drawing.
     print (myLoc)
     // Find which instrument this corresponds to
     if focus != nil {

@@ -167,7 +167,7 @@ class DrawingTools
 {
   // State storing
   private var lastArray : GLuint = 0
-  private var lastFramebuffer : GLuint = 0
+  private var lastFramebuffer : Framebuffer = Framebuffer.Default
   private var lastTexture : GLuint = 0
   private var lastVertexBuffer : GLuint = 0
   
@@ -194,8 +194,9 @@ class DrawingTools
   private var meshSquare : Mesh?
   
   private struct BufferInfo {
-    let array : GLuint
-    let name : GLuint
+    let array : VertexArray
+//    let array : GLuint
+//    let name : GLuint
     let size : GLsizeiptr
     var offset : GLintptr = 0
     var spaceFree : GLsizeiptr {
@@ -203,7 +204,7 @@ class DrawingTools
     }
     mutating func write(size : GLsizeiptr, data : UnsafePointer<Void>) {
       assert(spaceFree >= size)
-      glBindBuffer(GLenum(GL_ARRAY_BUFFER), name)
+      glBindBuffer(GLenum(GL_ARRAY_BUFFER), array.buffer_name)
       glBufferSubData(GLenum(GL_ARRAY_BUFFER), offset, size, data)
       glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
       offset += size
@@ -257,22 +258,27 @@ class DrawingTools
   
 //  private var current_buffer : GLuint
   private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> BufferInfo {
-    var buffer : GLuint = 0
-    var array : GLuint = 0
-    glGenVertexArrays(1, &array)
-    glBindVertexArray(array)
-    glGenBuffers(1, &buffer)
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
-    glBufferData(GLenum(GL_ARRAY_BUFFER), size, nil, GLenum(GL_STATIC_DRAW))
-    buffers[buffer] = BufferInfo(array: array, name: buffer, size: Int(size), offset: 0)
-
-    // Now create the vertex array settings
-    glEnableVertexAttribArray(program.attributes.position)
-    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
-
-    glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
-    glBindVertexArray(0);
     
+    let array = createVertexArray(positions: 2, textures: 0)
+    let buffer = array.buffer_name
+//    var buffer : GLuint = 0
+//    var array : GLuint = 0
+//    glGenVertexArrays(1, &array)
+//    glBindVertexArray(array)
+//    glGenBuffers(1, &buffer)
+//    glBindBuffer(GLenum(GL_ARRAY_BUFFER), buffer)
+
+    // Preallocate the data
+    glBufferData(GLenum(GL_ARRAY_BUFFER), size, nil, GLenum(GL_STATIC_DRAW))
+    buffers[buffer] = BufferInfo(array: array, size: Int(size), offset: 0)
+
+//    // Now create the vertex array settings
+//    glEnableVertexAttribArray(program.attributes.position)
+//    glVertexAttribPointer(program.attributes.position, 2, GLenum(GL_FLOAT), GLboolean(GL_FALSE), GLsizei(sizeof(GLfloat)*2), BUFFER_OFFSET(0))
+
+//    glBindBuffer(GLenum(GL_ARRAY_BUFFER), 0)
+
+    bind(VertexArray.Empty)
     return buffers[buffer]!
   }
 
@@ -283,22 +289,15 @@ class DrawingTools
     glBindVertexArray(array.name)
     lastArray = array.name
   }
-  func bindArray(array : GLuint) {
-    if lastArray == array {
-      return
-    }
-    glBindVertexArray(array)
-    lastArray = array
-  }
   
   
   func bind(buffer : Framebuffer) {
-    if lastFramebuffer == buffer.name {
+    if lastFramebuffer.name == buffer.name {
       return
     }
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
-    lastFramebuffer = name
+    lastFramebuffer = buffer
     let size = name == defaultFramebuffer ? screenSizePhysical : buffer.size
     glViewport(0, 0, GLsizei(size.w), GLsizei(size.h))
     renderTargetPixels = size
@@ -311,9 +310,12 @@ class DrawingTools
   func forceBind(buffer : Framebuffer) {
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
-    lastFramebuffer = name
+    lastFramebuffer = buffer
   }
   
+  func getCurrentFramebuffer() -> Framebuffer {
+    return lastFramebuffer
+  }
   private func bufferWithSpace(space : GLsizeiptr) -> BufferInfo
   {
     for buffer in buffers.values {
@@ -342,10 +344,10 @@ class DrawingTools
 
     let buffer = bufferWithSpace(sizeof(GLfloat)*asFloat.count)
     let offset = GLuint(buffer.offset) / GLuint(sizeof(GLfloat)) / 2
-    buffers[buffer.name]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
+    buffers[buffer.array.buffer_name]!.write(sizeof(GLfloat)*asFloat.count, data: &asFloat)
     
     return SimpleMesh(
-      array: VertexArray(name: buffer.array, buffer_name: buffer.name),
+      array: buffer.array,
       texture: nil,
       vertexType: form, bufferOffset: offset, bufferCount: GLuint(vertices.count),
       color: color)
@@ -470,7 +472,6 @@ class DrawingTools
     baseMatrix = GLKMatrix4Scale(baseMatrix, width, length, 1)
     baseMatrix = GLKMatrix4Translate(baseMatrix, -0.5, 0, 0)
     program.setModelView(baseMatrix)
-    
     Draw(meshSquare!)
   }
   

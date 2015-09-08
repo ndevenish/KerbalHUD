@@ -144,6 +144,7 @@ class NavBallTextureRendering {
     drawing.bind(texture)
     drawing.setOrthProjection(left: -180, right: 180, bottom: -90, top: 90)
     drawing.program.setModelView(GLKMatrix4Identity)
+    drawing.program.setUseTexture(false)
     
     let upperBackground = Color4(r: 93.0/255, g: 177.0/255, b: 228.0/225, a: 1)
     let lowerBackground = Color4(r: 4.0/255, g: 80.0/255, b: 117.0/255, a: 1)

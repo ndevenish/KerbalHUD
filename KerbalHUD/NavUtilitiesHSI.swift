@@ -127,27 +127,27 @@ class HSIIndicator : RPMInstrument {
     innerMarkerAudio?.prepareToPlay()
     middleMarkerAudio?.prepareToPlay()
     outerMarkerAudio?.prepareToPlay()
-    
-    let d : GLfloat = 0.8284271247461902
-    // Inner loop
-    let overlayBase : [Point2D] = [(128,70), (128,113), (50, 191), (50, 452), (128, 530), (128, 574),
-      (306, 574), (319, 561), (319, 471), (321, 471), (321, 561), (334,574),
-      (510, 574), (510, 530), (588, 452), (588, 70),
-      (336, 70), (320, 86), (304, 70), (128,70),
-      // move to outer edge (rem (590, 191+d),  from second to last on next line)
-      (128,68), (640, 68), (640, 70), (590, 70), (590, 452+d),
-      (512, 530+d), (512, 574), (640, 574), (640, 576), (0, 576), (0, 574),
-      (126, 574), (126, 530+d), (48, 452+d), (48, 191-d), (126, 113-d), (126, 70),
-      (0, 70), (0, 68), (128, 68)].map{Point2D(x: $0.0, y: $0.1)}
-    overlay = tools.Load2DPolygon(overlayBase)
-
-    // Do the overlay background separately
-    let overlayBackgroundPts : [Point2D] = [
-      (128,70), (128,113), (50, 191), (50, 452), (128, 530), (128, 574),
-      (510, 574), (510, 530), (588, 452), (588, 70), (128,70),
-      (0,0), (640,0), (640,640), (0, 640), (0,0) ].map{Point2D(x: $0.0, y: $0.1)}
-    overlayBackground = tools.Load2DPolygon(overlayBackgroundPts)
-    
+//    
+//    let d : GLfloat = 0.8284271247461902
+//    // Inner loop
+//    let overlayBase : [Point2D] = [(128,70), (128,113), (50, 191), (50, 452), (128, 530), (128, 574),
+//      (306, 574), (319, 561), (319, 471), (321, 471), (321, 561), (334,574),
+//      (510, 574), (510, 530), (588, 452), (588, 70),
+//      (336, 70), (320, 86), (304, 70), (128,70),
+//      // move to outer edge (rem (590, 191+d),  from second to last on next line)
+//      (128,68), (640, 68), (640, 70), (590, 70), (590, 452+d),
+//      (512, 530+d), (512, 574), (640, 574), (640, 576), (0, 576), (0, 574),
+//      (126, 574), (126, 530+d), (48, 452+d), (48, 191-d), (126, 113-d), (126, 70),
+//      (0, 70), (0, 68), (128, 68)].map{Point2D(x: $0.0, y: $0.1)}
+//    overlay = tools.Load2DPolygon(overlayBase)
+//
+//    // Do the overlay background separately
+//    let overlayBackgroundPts : [Point2D] = [
+//      (128,70), (128,113), (50, 191), (50, 452), (128, 530), (128, 574),
+//      (510, 574), (510, 530), (588, 452), (588, 70), (128,70),
+//      (0,0), (640,0), (640,640), (0, 640), (0,0) ].map{Point2D(x: $0.0, y: $0.1)}
+//    overlayBackground = tools.Load2DPolygon(overlayBackgroundPts)
+//    
     // NDB Needle
     needleNDB = tools.Load2DPolygon([
       // 154 height total
@@ -197,6 +197,10 @@ class HSIIndicator : RPMInstrument {
   
   
   func preRenderCompass() -> Texture {
+    // Get the current framebuffer
+    let preBuffer = drawing.getCurrentFramebuffer()
+    let preProject = drawing.program.projection
+    
     let maxSide = Int(0.75*Double(min(drawing.screenSizePhysical)))
     
     let cfb = drawing.createTextureFramebuffer(
@@ -208,11 +212,14 @@ class HSIIndicator : RPMInstrument {
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     drawing.setOrthProjection(
       left: 320-235, right: 320+235,
-      bottom: 320+235, top: 320-235)
+      bottom: 320-235, top: 320+235)
     drawCompass()
     
     let texture = cfb.texture
+    drawing.bind(preBuffer)
     drawing.deleteFramebuffer(cfb, texture: false)
+    
+    drawing.program.setProjection(preProject)
     return texture
     //    let cfb = tools.createTextureFramebuffer(size: Size2D()
   }
@@ -345,7 +352,9 @@ class HSIIndicator : RPMInstrument {
   override func draw() {
 //    data.BeaconBearing = 30
 //    data.RunwayHeading = data.Heading
-
+//    drawing.deleteTexture(compassTexture!)
+//    compassTexture = preRenderCompass()
+//    
     HandleBeaconSounds()
     
     drawCompassTexture()
@@ -459,13 +468,14 @@ class HSIIndicator : RPMInstrument {
   }
   
   func drawCompass() {
-    let heading = data.Heading
     let inner : GLfloat = 356.0/2
     var offset = GLKMatrix4Identity
     offset = GLKMatrix4Translate(offset, 320, 320, 0)
-    offset = GLKMatrix4Rotate(offset, heading*π/180, 0, 0, 1)
-
+//    offset = GLKMatrix4Rotate(offset, heading*π/180, 0, 0, 1)
+    
+    drawing.program.setUseTexture(false)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
+    drawing.program.setModelView(offset)
     
     for var angle = 0; angle < 360; angle += 5 {
       let rad = GLfloat(angle) * π/180
@@ -498,10 +508,10 @@ class HSIIndicator : RPMInstrument {
   
   func drawGlideSlopeIndicators() {
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(24, 232, 0))
-    drawing.Draw(gsIndicators!)
-    drawing.program.setModelView(GLKMatrix4MakeTranslation(640-24, 232, 0))
-    drawing.Draw(gsIndicators!)
+//    drawing.program.setModelView(GLKMatrix4MakeTranslation(24, 232, 0))
+//    drawing.Draw(gsIndicators!)
+//    drawing.program.setModelView(GLKMatrix4MakeTranslation(640-24, 232, 0))
+//    drawing.Draw(gsIndicators!)
     
     if (!data.GlideSlopeFlag) {
       var glideOffset = -data.GlideslopeDeviation*200

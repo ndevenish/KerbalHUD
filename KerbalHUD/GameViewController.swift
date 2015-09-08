@@ -98,7 +98,7 @@ class GameViewController: GLKViewController {
     panel = InstrumentPanel(tools: drawing!)
     panel?.AddInstrument(NavBall(tools: drawing!))
     panel?.AddInstrument(HSIIndicator(tools: drawing!))
-//    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
+    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
     
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
@@ -173,7 +173,7 @@ class GameViewController: GLKViewController {
       fakeData["navutil.glideslope"] = JSON(5)
       fakeData["navutil.dme"] = JSON(7500+sin(current*0.5)*2000)
 
-      fakeData["n.heading"] = JSON(270 + 5*sin(current) + current*2)
+      fakeData["n.heading"] = JSON(90 + 5*sin(current))
       if Int(floor(current/10)) % 2 == 0 {
         fakeData["navutil.locdeviation"] = JSON(90 - fakeData["n.heading"]!.floatValue)
       } else {
@@ -197,6 +197,12 @@ class GameViewController: GLKViewController {
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
+    
+//    panel = InstrumentPanel(tools: drawing!)
+//    panel?.AddInstrument(NavBall(tools: drawing!))
+//    panel?.AddInstrument(HSIIndicator(tools: drawing!))
+//    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
+//    panel?.connection = telemachus!
     
     if let program = program {
       program.use()

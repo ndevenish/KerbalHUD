@@ -101,8 +101,7 @@ class GameViewController: GLKViewController {
 //    let hud = RPMPlaneHUD(tools: drawing!)
 //    panel?.AddInstrument(hud)
     //    glEnable(GLenum(GL_DEPTH_TEST))
-//    panel?.AddInstrument(NavBall(tools: drawing!))
-//    panel?.AddInstrument(NavBall(tools: drawing!))
+    panel?.AddInstrument(NavBall(tools: drawing!))
     panel?.AddInstrument(NewPlaneHud(tools: drawing!))
     
     glEnable(GLenum(GL_CULL_FACE))

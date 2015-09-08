@@ -32,8 +32,11 @@ class InstrumentPanel
 {
   var connection : TelemachusInterface? {
     didSet {
-      for i in instruments {
-        i.instrument.connect(connection!)
+      for (index, i) in instruments.enumerate() {
+        if !connected.contains(index) {
+          i.instrument.connect(connection!)
+          connected.insert(index)
+        }
       }
     }
   }
@@ -43,6 +46,9 @@ class InstrumentPanel
   private var previousArrangement : (layout: PanelLayout, frame: Double) = (.None, -1)
   private var focus : PanelEntry? = nil
   private var drawOrder : [Int] = []
+  
+  private var connected = Set<Int>()
+  
   
   init(tools : DrawingTools)
   {
@@ -59,8 +65,21 @@ class InstrumentPanel
 
   func update()
   {
-    for i in instruments {
-      i.instrument.update()
+    for (index, i) in instruments.enumerate() {
+      // If it's connected, update the instruments
+      if connected.contains(index) {
+        i.instrument.update()
+      }
+      // If the instrument is not the focus, and has ended
+      // it's animation, then disconnect it
+      if let bound = i.bounds as? BoundsInterpolator,
+         let focus = self.focus
+      where focus !== i && bound.complete {
+        i.bounds = FixedBounds(bounds: bound)
+        i.instrument.disconnect(connection!)
+        connected.remove(index)
+      }
+      
     }
   }
   
@@ -70,7 +89,10 @@ class InstrumentPanel
     if focus == nil { layout() }
 
     // Generate the textures for every instrument
-    for i in instruments {
+    for (index, i) in instruments.enumerate() {
+      if !connected.contains(index) {
+        continue
+      }
       // Bind the framebuffer for this instrument
       drawing.bind(i.framebuffer)
       
@@ -227,6 +249,13 @@ class InstrumentPanel
       }
     } else {
       focus = nil
+      // Make sure everything else is reconnected
+      for (index, i) in instruments.enumerate() {
+        if !connected.contains(index) {
+          i.instrument.connect(connection!)
+          connected.insert(index)
+        }
+      }
     }
   }
 }

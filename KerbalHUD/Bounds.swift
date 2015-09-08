@@ -95,6 +95,8 @@ struct BoundsInterpolator : Bounds {
     end = FixedBounds(bounds: to)
     clock = Clock.createTimer(.Animation, duration: seconds)
   }
+  
+  var complete : Bool { return clock.isDone }
 }
 
 extension Bounds {

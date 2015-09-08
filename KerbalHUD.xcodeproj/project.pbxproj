@@ -27,6 +27,7 @@
 		0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0A1E71791B9881DA00C68683 /* RPMHUD.txt */; settings = {ASSET_TAGS = (); }; };
 		0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717B1B99013A00C68683 /* StringFormat.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1E717E1B99032600C68683 /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717D1B99032600C68683 /* Regex.swift */; settings = {ASSET_TAGS = (); }; };
+		0A21F5721B9ECC8B0046996C /* PlaneHUD_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -99,6 +100,7 @@
 		0A1E71791B9881DA00C68683 /* RPMHUD.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RPMHUD.txt; sourceTree = "<group>"; };
 		0A1E717B1B99013A00C68683 /* StringFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringFormat.swift; sourceTree = "<group>"; };
 		0A1E717D1B99032600C68683 /* Regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Regex.swift; sourceTree = "<group>"; };
+		0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = PlaneHUD_Overlay.svg; sourceTree = "<group>"; };
 		0A3594001B7136B80072CC18 /* KerbalHUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KerbalHUD.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A3594031B7136B80072CC18 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0A3594051B7136B80072CC18 /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
@@ -290,6 +292,7 @@
 			children = (
 				0A1E71791B9881DA00C68683 /* RPMHUD.txt */,
 				0A602F471B8E5A91000AD177 /* test_texture.png */,
+				0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */,
 				0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */,
 				0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */,
 			);
@@ -401,6 +404,7 @@
 				0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */,
 				0A9B97031B9B6E7D00995795 /* RPM_NavBall_Overlay.svg in Resources */,
 				0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */,
+				0A21F5721B9ECC8B0046996C /* PlaneHUD_Overlay.svg in Resources */,
 				0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
 				0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */,

@@ -256,7 +256,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     let counts = (placementFinder.numberOfMatchesInString(fmtPre),
                   placementFinder.numberOfMatchesInString(fmtPost))
     // Make the string to do comparisons on
-    let expanded = String(format: "%0\(counts.0+counts.1+1).\(counts.1)f", value)
+    let expanded = counts.0 > 0 || counts.1 > 0 ? String(format: "%0\(counts.0+counts.1+1).\(counts.1)f", value) : ""
     let (expPre, expPost) = splitOnFirstDecimal(expanded)
     // If we have a longer pre-string than we have pre-placement characters,
     // insert some more so that we know we match

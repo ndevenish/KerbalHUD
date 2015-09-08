@@ -96,13 +96,9 @@ class GameViewController: GLKViewController {
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
     panel = InstrumentPanel(tools: drawing!)
-//    let hsi = HSIIndicator(tools: drawing!)
-//    panel?.AddInstrument(hsi)
-//    let hud = RPMPlaneHUD(tools: drawing!)
-//    panel?.AddInstrument(hud)
-    //    glEnable(GLenum(GL_DEPTH_TEST))
     panel?.AddInstrument(NavBall(tools: drawing!))
-    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
+    panel?.AddInstrument(HSIIndicator(tools: drawing!))
+//    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
     
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))

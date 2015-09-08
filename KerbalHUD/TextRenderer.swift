@@ -236,13 +236,16 @@ class TextRenderer {
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()
     do {
-      let texture = try GLKTextureLoader.textureWithCGImage(image, options: nil)
-
+      let texture = Texture(glk: try GLKTextureLoader.textureWithCGImage(image, options: nil))
+      // Bind this, and generate a mipmap
+      tool.bind(texture)
+      glGenerateMipmap(GLenum(GL_TEXTURE_2D));
+      
       // Use initial calculated values - texture size could be anything, depending on scale
       let uvSize = (width: GLfloat(singleCharacterSize.width)/GLfloat(textureSize.width),
         height: GLfloat(singleCharacterSize.height)/GLfloat(textureSize.height))
       
-      let atlas = TextAtlas(texture: Texture(glk:texture), fontSize: size, widthInCharacters: characterCount.x,
+      let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
         uvSize: uvSize,
         texelSize: (width: GLfloat(ceil(singleCharacterSize.width)), height: GLfloat(ceil(singleCharacterSize.height))),
         text: atlasText, coords: charLookup)

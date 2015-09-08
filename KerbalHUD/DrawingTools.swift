@@ -307,6 +307,14 @@ class DrawingTools
 
   }
   
+  func bind(texture : Texture) {
+    let name = texture.name
+    if name != lastTexture {
+      glBindTexture(texture.target, name)
+    }
+  }
+  
+
   func forceBind(buffer : Framebuffer) {
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
@@ -555,15 +563,6 @@ class DrawingTools
   func UnconstrainDrawing() {
     glDisable(GLenum(GL_STENCIL_TEST))
   }
-  
-  
-  func bind(texture : Texture) {
-    let name = texture.name
-    if name != lastTexture {
-      glBindTexture(texture.target, name)
-    }
-  }
-  
 }
 
 private let _glErrors = [

@@ -55,7 +55,7 @@ class NewPlaneHud : LayeredInstrument {
       t("SPD: {0:SIP6}m/s", "rpm.SURFSPEED", x: 1, y: 16, align: .Left),
       t("EAS: {0:SIP6}m/s", "rpm.EASPEED", x: 1, y: 17, align: .Left),
       t("HRZ: {0:SIP6}m/s", "rpm.HORZVELOCITY", x: 1, y: 18, align: .Left),
-      t("THR: {0,6:00.0%} ({1,6:00.0%})", ["rpm.THROTTLE", "rpm.EFFECTIVETHROTTLE"], exactX: 1.0/40, exactY: 1 - (19.5*1.0/20), align: .Left),
+      t("THR: {0,6:00.0%} ({1,6:00.0%})", [Vars.Vessel.Throttle, "rpm.EFFECTIVETHROTTLE"], exactX: 1.0/40, exactY: 1 - (19.5*1.0/20), align: .Left),
       
       t("P: {0,6:000.0}° R: {1,6:000.0}°", [Vars.Flight.Pitch, Vars.Flight.Roll], exactX: 0.5, exactY: 0.25-0.5/2/20, align: .Center, condition: nil, size: 0.5)
       ])

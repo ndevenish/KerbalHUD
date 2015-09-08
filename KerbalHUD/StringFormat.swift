@@ -107,7 +107,7 @@ extension String {
     var returnString = ""
     var position = 0
     // Attempt to use the built in formatting
-    if formatString.containsString("%") {
+    if !formatString.containsString("{") {
       let argList = args.map { $0 is CVarArgType ? try! downcastToDouble($0) as CVarArgType : 0 }
       formatString = String(format: formatString, arguments: argList)
     }
@@ -168,6 +168,12 @@ enum NumericFormatSpecifier : String {
 
 let numericPrefix = Regex(pattern: "^([CDEFGNPRX])(\\d{0,2})$")
 let conditionalSeparator = Regex(pattern: "(?<!\\\\);")
+let percentCounter = Regex(pattern: "(?<!\\\\)%")
+let decimalFinder = Regex(pattern: "\\.")
+let placementFinder = Regex(pattern: "(?<!\\\\)0|(?<!\\\\)#")
+//let nonEndHashes = Regex(pattern: "^#*0((?!<\\\\)#*.+)0#*$")
+let endHashes = Regex(pattern: "(#*)$")
+let startHashes = Regex(pattern: "^(#*)")
 
 private var formatComplaints = Set<String>()
 
@@ -205,7 +211,7 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     fatalError()
   }
   //Axx
-  let postFormat : String
+//  let postFormat : String
   
   // Look for form AXX e.g. standard numeric formats
   if let match = numericPrefix.firstMatchInString(format.uppercaseString) {
@@ -218,26 +224,126 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
     default:
       fatalError()
     }
-  } else if format.hasPrefix("SIP") {
+  }
+  
+  if format.hasPrefix("SIP") {
     let val = try! downcastToDouble(arg)
-    postFormat = processSIPFormat(val, formatString: format)
+    return processSIPFormat(val, formatString: format)
   } else if format.hasPrefix("DMS") {
     print("Warning: DMS not handled")
-    postFormat = String(arg)
+    return String(arg)
   } else if format.hasPrefix("KDT") || format.hasPrefix("MET") {
     if !formatComplaints.contains(format) {
       print("Warning: KDT/MET not handled: ", format)
       formatComplaints.insert(format)
     }
-    postFormat = String(arg)
-  } else {
-    // Else, not a format we recognised. Until we are sure we
-    // have complete formatting, warn about this
-    if !formatComplaints.contains(format) {
-      print("Unrecognised string format: ", format)
-      formatComplaints.insert(format)
-    }
-    return format
+    return String(arg)
   }
-  return postFormat
+
+  // Attempt to handle a custom numeric format.
+  if var value = Double.coerceTo(arg) {
+    let percents = percentCounter.numberOfMatchesInString(format)
+    value = value * pow(100, Double(percents))
+
+    // Split the string around the first decimal
+    var (fmtPre, fmtPost) = splitOnFirstDecimal(format)
+    // Count the incidents of 0/#
+    let counts = (placementFinder.numberOfMatchesInString(fmtPre),
+                  placementFinder.numberOfMatchesInString(fmtPost))
+    // Make the string to do comparisons on
+    let expanded = String(format: "%0\(counts.0+counts.1+1).\(counts.1)f", value)
+    let (expPre, expPost) = splitOnFirstDecimal(expanded)
+    // If we have a longer pre-string than we have pre-placement characters,
+    // insert some more so that we know we match
+    if expPre.characters.count > counts.0 {
+      // Get rid of hashes - we know we don't use
+      fmtPre = fmtPre.stringByReplacingOccurrencesOfString("#", withString: "0")
+      let extraZeros = String(count: (expPre.characters.count - counts.0), repeatedValue: Character("0"))
+      // Two cases - a) no existing. b) existing
+      if counts.0 == 0 {
+        fmtPre = fmtPre + extraZeros
+      } else {
+        // Replace the first occurence.
+        let index = fmtPre.rangeOfString("0")!.startIndex
+        fmtPre = fmtPre.substringToIndex(index) + extraZeros + fmtPre.substringFromIndex(index)
+      }
+    }
+    // Wind over each of these strings, matching with the format specifiers
+    let woundPre = windOverStrings(fmtPre, value: expPre)
+    let woundPost = windOverStrings(fmtPost.reverse(), value: expPost.reverse()).reverse()
+    
+    // Finally, join the parts (if we have any post)
+    if woundPost.isEmpty {
+      return woundPre
+    } else {
+      return woundPre + "." + woundPost
+    }
+  }
+  
+  
+
+  // Else, not a format we recognised. Until we are sure we
+  // have complete formatting, warn about this
+  if !formatComplaints.contains(format) {
+    print("Unrecognised string format: ", format)
+    formatComplaints.insert(format)
+  }
+  return format
+}
+
+extension String {
+  func reverse() -> String {
+    return self.characters.reverse().map({String($0)}).joinWithSeparator("")
+  }
+}
+private func splitOnFirstDecimal(format : String) -> (pre: String, post: String) {
+  let preDecimal : String
+  let postDecimal : String
+  if let decimalIndex = decimalFinder.firstMatchInString(format) {
+    // Split around this decimal, remove any more from the format
+    let location = format.startIndex.advancedBy(decimalIndex.range.location)
+    preDecimal = format.substringToIndex(location)
+    postDecimal = format.substringFromIndex(location.advancedBy(1)).stringByReplacingOccurrencesOfString(".", withString: "")
+  } else {
+    preDecimal = format
+    postDecimal = ""
+  }
+  return (pre: preDecimal, post: postDecimal)
+}
+
+private func windOverStrings(format : String, value : String) -> String {
+  var iFmt = format.startIndex
+  var iVal = value.startIndex
+  var out : [Character] = []
+  var endedHashes = false
+  while iFmt != format.endIndex && iVal != value.endIndex {
+    let cFmt = format.characters[iFmt]
+    let cVal = value.characters[iVal]
+    if cFmt == "#" && cVal == "0" && !endedHashes {
+      iFmt = iFmt.advancedBy(1)
+      iVal = iVal.advancedBy(1)
+      continue
+    }
+    if cFmt == "0" {
+      endedHashes = true
+    }
+    // if cFmt is #/0 and we have a digit, add it
+    // - we know format never non-digit &&
+    if cFmt == "#" || cFmt == "0" {
+      out.append(cVal)
+      iFmt = iFmt.advancedBy(1)
+      iVal = iVal.advancedBy(1)
+    } else {
+      out.append(cFmt)
+      iFmt = iFmt.advancedBy(1)
+    }
+  }
+  guard iVal == value.endIndex else {
+    fatalError()
+  }
+  while iFmt != format.endIndex {
+    out.append(format.characters[iFmt])
+    iFmt = iFmt.advancedBy(1)
+  }
+  return out.map({String($0)}).joinWithSeparator("")
 }

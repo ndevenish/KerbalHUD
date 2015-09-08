@@ -60,6 +60,10 @@ class Regex {
     }
     return parts
   }
+  func numberOfMatchesInString(string : String) -> Int {
+    let range = NSRange(location: 0, length: (string as NSString).length)
+    return re.numberOfMatchesInString(string, options: NSMatchingOptions(), range: range)
+  }
 }
 
 extension String {

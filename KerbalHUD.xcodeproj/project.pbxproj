@@ -38,6 +38,7 @@
 		0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9021B8E80ED00E85213 /* Textures.swift */; settings = {ASSET_TAGS = (); }; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
 		0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */; };
+		0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9BB1B91D4FA000174C7 /* NavBallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9BF1B92136C000174C7 /* GLKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */; settings = {ASSET_TAGS = (); }; };
@@ -111,6 +112,7 @@
 		0A36D9021B8E80ED00E85213 /* Textures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Textures.swift; sourceTree = "<group>"; };
 		0A41BE091B7F714B0009080F /* ConfigNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigNode.swift; sourceTree = "<group>"; };
 		0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilities.swift; sourceTree = "<group>"; };
+		0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringFormatTests.swift; sourceTree = "<group>"; };
 		0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavBallWidget.swift; sourceTree = "<group>"; };
 		0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SphericalPoint.swift; sourceTree = "<group>"; };
 		0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GLKitExtensions.swift; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				0A5DB9C61B9214F2000174C7 /* KerbalHUDTests.swift */,
 				0A5DB9C81B9214F2000174C7 /* Info.plist */,
 				0A1E71771B98816400C68683 /* RPMTextTests.swift */,
+				0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */,
 			);
 			path = KerbalHUDTests;
 			sourceTree = "<group>";
@@ -470,6 +473,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A5DB9C71B9214F2000174C7 /* KerbalHUDTests.swift in Sources */,
+				0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */,
 				0A1E71781B98816400C68683 /* RPMTextTests.swift in Sources */,
 				0A5DB9CF1B921531000174C7 /* SphericalCoordTests.swift in Sources */,
 			);

@@ -57,7 +57,7 @@ class NewPlaneHud : LayeredInstrument {
       t("HRZ: {0:SIP6}m/s", "rpm.HORZVELOCITY", x: 1, y: 18, align: .Left),
       t("THR: {0,6:00.0%} [{1,6:00.0%}]", [Vars.Vessel.Throttle, "rpm.EFFECTIVETHROTTLE"], exactX: 1.0/40, exactY: 1 - (19.5*1.0/20), align: .Left),
       
-      t("P: {0,6:000.0}° R: {1,6:000.0}°", [Vars.Flight.Pitch, Vars.Flight.Roll], exactX: 0.5, exactY: 0.25-0.5/2/20, align: .Center, condition: nil, size: 0.5)
+      t("P: {0,6:00.0}° R: {1,6:000.0}°", [Vars.Flight.Pitch, Vars.Flight.Roll], exactX: 0.5, exactY: 0.25-0.5/2/20, align: .Center, condition: nil, size: 0.5)
       ])
     
     super.init(tools: tools, config: config)
@@ -84,7 +84,7 @@ class NewPlaneHud : LayeredInstrument {
     widgets.append(ScaledBarWidget(tools: tools,
       bounds: FixedBounds(left: 0.75, bottom: 0.25, right: 1, top: 0.75),
       config: altSettings ))
-    widgets.append(ScaledBarWidget(tools: tools,
+    widgets.append(HeadingBarWidget(tools: tools,
       bounds: FixedBounds(left: 0.25, bottom: 0.75, right: 0.75, top: 1.0),
       config: headingSettings ))
     

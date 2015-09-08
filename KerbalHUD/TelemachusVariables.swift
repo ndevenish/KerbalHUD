@@ -21,6 +21,7 @@ struct Vars {
   static let Vessel = VesselDataVarNames()
   static let RPM = RasterPropMonitorVarNames()
   static let FAR = FARVarNames()
+  static let Aero = AeroNames()
   
   private init() {
     
@@ -76,4 +77,9 @@ extension Vars {
     let Flaps = "rpm.PLUGIN_JSIFAR:GetFlapSetting"
   }
 
+  struct AeroNames {
+    let Sideslip      = "rpm.SIDESLIP"
+    let AngleOfAttack = "rpm.ANGLEOFATTACK"
+    let DynamicPressure = "v.dynamicPressure"
+  }
 }

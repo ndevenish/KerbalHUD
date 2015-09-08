@@ -61,3 +61,31 @@ extension GLKVector3 : CustomStringConvertible {
     return NSStringFromGLKVector3(self)
   }
 }
+
+extension GLKVector2 {
+  var length : GLfloat {
+    return GLKVector2Length(self)
+  }
+  func normalize() -> GLKVector2 {
+    return GLKVector2Normalize(self)
+  }
+  init(x : Float, y: Float) {
+    self = GLKVector2Make(x, y)
+  }
+}
+
+func +(left: GLKVector2, right: GLKVector2) -> GLKVector2 {
+  return GLKVector2Add(left, right)
+}
+func -(left: GLKVector2, right: GLKVector2) -> GLKVector2 {
+  return GLKVector2Subtract(left, right)
+}
+func *(left: GLKVector2, right: GLfloat) -> GLKVector2 {
+  return GLKVector2MultiplyScalar(left, right)
+}
+func *(left: Float, right: GLKVector2) -> GLKVector2 {
+  return GLKVector2MultiplyScalar(right, left)
+}
+func /(left: GLKVector2, right: GLfloat) -> GLKVector2 {
+  return GLKVector2DivideScalar(left, right)
+}

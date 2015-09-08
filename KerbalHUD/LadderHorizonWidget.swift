@@ -38,7 +38,7 @@ class LadderHorizonWidget : Widget {
   
   private var data : FlightData?
   private let settings = LadderHorizonSettings()
-  private let progradeMarker : Drawable?
+  private var progradeMarker : Drawable?
   
   init(tools : DrawingTools, bounds : Bounds) {
     self.drawing = tools
@@ -48,8 +48,7 @@ class LadderHorizonWidget : Widget {
     // Generate a prograde marker if we want one
     if settings.progradeMarker {
       variables.append(Vars.RPM.AngleOfAttack)
-      // Construct the prograde marker
-      progradeMarker = GenerateProgradeMarker(tools)
+      progradeMarker = GenerateProgradeMarker(drawing, size: 0.4)
     } else {
       progradeMarker = nil
     }
@@ -160,8 +159,9 @@ class LadderHorizonWidget : Widget {
 }
 
 
-private func GenerateProgradeMarker(tools: DrawingTools, size : GLfloat = 1) -> Drawable {
-  let scale = size / 64.0
+func GenerateProgradeMarker(tools: DrawingTools, size : GLfloat = 1) -> Drawable {
+  // Calculate scale so that the marker ends up covering -size...size
+  let scale = size / 32
   var tris = GenerateCircleTriangles(11.0 * scale, w: 4.0*scale)
   tris.appendContentsOf(GenerateBoxTriangles(-30*scale, bottom: -1*scale, right: -14*scale, top: 1*scale))
   tris.appendContentsOf(GenerateBoxTriangles(-1*scale, bottom: 14*scale, right: 1*scale, top: 30*scale))

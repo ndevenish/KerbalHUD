@@ -12,7 +12,7 @@
 		0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */; settings = {ASSET_TAGS = (); }; };
 		0A1177961B9DA16600FD8CA8 /* FlapsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1177981B9DB99A00FD8CA8 /* NewPlaneHud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */; settings = {ASSET_TAGS = (); }; };
+		0A1177981B9DB99A00FD8CA8 /* PlaneHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177971B9DB99A00FD8CA8 /* PlaneHUD.swift */; settings = {ASSET_TAGS = (); }; };
 		0A11779A1B9DB9BF00FD8CA8 /* NavBall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */; settings = {ASSET_TAGS = (); }; };
 		0A11779C1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */; settings = {ASSET_TAGS = (); }; };
 		0A11779E1B9DE7BF00FD8CA8 /* ScaledBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */; settings = {ASSET_TAGS = (); }; };
@@ -38,7 +38,7 @@
 		0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3640821B81F53F00F4AA0E /* TextRenderer.swift */; };
 		0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9021B8E80ED00E85213 /* Textures.swift */; settings = {ASSET_TAGS = (); }; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
-		0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */; };
+		0A41BE0C1B7FAFA30009080F /* NavUtilitiesHSI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilitiesHSI.swift */; };
 		0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9BB1B91D4FA000174C7 /* NavBallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */; settings = {ASSET_TAGS = (); }; };
 		0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */; settings = {ASSET_TAGS = (); }; };
@@ -84,7 +84,7 @@
 		0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Coercion.swift; sourceTree = "<group>"; };
 		0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemachusVariables.swift; sourceTree = "<group>"; };
 		0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlapsIndicator.swift; sourceTree = "<group>"; };
-		0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewPlaneHud.swift; sourceTree = "<group>"; };
+		0A1177971B9DB99A00FD8CA8 /* PlaneHUD.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaneHUD.swift; sourceTree = "<group>"; };
 		0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavBall.swift; sourceTree = "<group>"; };
 		0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LadderHorizonWidget.swift; sourceTree = "<group>"; };
 		0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScaledBar.swift; sourceTree = "<group>"; };
@@ -112,7 +112,7 @@
 		0A3640821B81F53F00F4AA0E /* TextRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextRenderer.swift; sourceTree = "<group>"; };
 		0A36D9021B8E80ED00E85213 /* Textures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Textures.swift; sourceTree = "<group>"; };
 		0A41BE091B7F714B0009080F /* ConfigNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigNode.swift; sourceTree = "<group>"; };
-		0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilities.swift; sourceTree = "<group>"; };
+		0A41BE0B1B7FAFA30009080F /* NavUtilitiesHSI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavUtilitiesHSI.swift; sourceTree = "<group>"; };
 		0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringFormatTests.swift; sourceTree = "<group>"; };
 		0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavBallWidget.swift; sourceTree = "<group>"; };
 		0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SphericalPoint.swift; sourceTree = "<group>"; };
@@ -244,9 +244,9 @@
 				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
 				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
 				0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */,
-				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
+				0A41BE0B1B7FAFA30009080F /* NavUtilitiesHSI.swift */,
 				0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */,
-				0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */,
+				0A1177971B9DB99A00FD8CA8 /* PlaneHUD.swift */,
 				0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */,
 			);
 			name = Instruments;
@@ -456,10 +456,10 @@
 				0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */,
 				0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */,
 				0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */,
-				0A1177981B9DB99A00FD8CA8 /* NewPlaneHud.swift in Sources */,
+				0A1177981B9DB99A00FD8CA8 /* PlaneHUD.swift in Sources */,
 				0A1E71701B966F0400C68683 /* Point3D.swift in Sources */,
 				0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */,
-				0A41BE0C1B7FAFA30009080F /* NavUtilities.swift in Sources */,
+				0A41BE0C1B7FAFA30009080F /* NavUtilitiesHSI.swift in Sources */,
 				0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */,
 				0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */,
 				0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */,

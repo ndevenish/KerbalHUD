@@ -65,13 +65,39 @@ class ScaledBarWidget : Widget {
   
   private var data : Float?
   
+  /// Where the axis line begins
+  private(set) var axisOrigin : GLKVector2
+  /// The direction of the axis line, increasing. Length of the axis.
+  private(set) var axisVec : GLKVector2
+  /// The pointing direction of the ticks
+  private(set) var tickVec : GLKVector2
+  
   init(tools : DrawingTools, bounds : Bounds, config : ScaledBarSettings) {
     self.drawing = tools
     self.bounds = bounds
     self.config = config
     self.text = tools.defaultTextRenderer
-    
     self.variables = [config.variable]
+    
+    // Handle the vector calculations now
+    switch config.direction {
+    case .Left:
+      axisOrigin = GLKVector2(x: bounds.right, y: bounds.bottom)
+      axisVec    = GLKVector2(x: 0, y: bounds.height)
+      tickVec    = GLKVector2(x: -1, y: 0)
+    case .Right:
+      axisOrigin = GLKVector2(x: bounds.left, y: bounds.bottom)
+      axisVec    = GLKVector2(x: 0, y: bounds.height)
+      tickVec    = GLKVector2(x: 1, y: 0)
+    case .Up:
+      axisOrigin = GLKVector2(x: bounds.left, y: bounds.bottom)
+      axisVec    = GLKVector2(x: bounds.width, y: 0)
+      tickVec    = GLKVector2(x: 0, y: 1)
+    case .Down:
+      axisOrigin = GLKVector2(x: bounds.left, y: bounds.top)
+      axisVec    = GLKVector2(x: bounds.width, y: 0)
+      tickVec    = GLKVector2(x: 0, y: -1)
+    }
   }
   
   func update(data : [String : JSON]) {
@@ -80,6 +106,10 @@ class ScaledBarWidget : Widget {
     } else {
       self.data = nil
     }
+  }
+  
+  func drawDecorations(transform : (Float) -> Float) {
+    
   }
   
   func draw() {
@@ -155,23 +185,24 @@ class ScaledBarWidget : Widget {
       }
     }
     
+    // Do any subclass entries
+    // Build a function to convert a data value into a linear position
+    let dataToDisplayFraction = { (val : Float) -> Float in
+      return (toLin(val)-linearRange.min)/(linearRange.max-linearRange.min)
+    }
+    drawDecorations(dataToDisplayFraction)
+    
     
     // Draw the marker edge
     if config.markerEdgeLineThickness > 0 {
-      switch config.direction {
-      case .Left:
-        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.x
-        drawing.DrawLine(from: (bounds.right-w/2, bounds.bottom), to: (bounds.right-w/2, bounds.top), width: w)
-      case .Right:
-        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.x
-        drawing.DrawLine(from: (bounds.left+w/2, bounds.bottom), to: (bounds.left+w/2, bounds.top), width: w)
-      case .Up:
-        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.y
-        drawing.DrawLine(from: (bounds.left, bounds.bottom+w/2), to: (bounds.right, bounds.bottom+w/2), width: w)
-      case .Down:
-        let w = config.markerEdgeLineThickness / drawing.scaleToPoints.y
-        drawing.DrawLine(from: (bounds.left, bounds.top-w/2), to: (bounds.right, bounds.top-w/2), width: w)
-      }
+      let scale = config.direction == .Left || config.direction == .Right ? drawing.scaleToPoints.x : drawing.scaleToPoints.y
+      let w = config.markerEdgeLineThickness / scale
+
+      let start = axisOrigin + tickVec*w/2
+      let end = axisOrigin + axisVec + tickVec*w/2
+      drawing.DrawLine(from: (x: start.x, y: start.y),
+                         to: (x: end.x, y: end.y),
+                      width: w)
     }
     
     drawing.UnconstrainDrawing()
@@ -242,10 +273,44 @@ class ScaledBarWidget : Widget {
       text.draw(markText, size: textSize, position: (x: pAP, y: bounds.top-textOffset-textSize/2), align: .Center)
     }
   }
-  
-
 }
 
+/// A specialised subclass of ScaledBar that shows heading and sideslip
+class HeadingBarWidget : ScaledBarWidget {
+  
+  private(set) var sideSlip : Float? = nil
+  private var prograde : Drawable?
+  
+  override init(tools: DrawingTools, bounds: Bounds, var config: ScaledBarSettings) {
+    config.variable = Vars.Flight.Heading
+    super.init(tools: tools, bounds: bounds, config: config)
+    self.variables = [Vars.Flight.Heading, Vars.Aero.Sideslip]
+  }
+  
+  override func update(data: [String : JSON]) {
+    super.update(data)
+    if let ss = data[Vars.Aero.Sideslip]?.float {
+      sideSlip = ss
+    }
+  }
+  
+  override func drawDecorations(transform: (Float) -> Float) {
+    if let heading = data,
+       let slip = sideSlip {
+        let progradeSize = 32/drawing.scaleToPoints.x
+        if prograde == nil {
+          prograde = GenerateProgradeMarker(drawing, size: progradeSize)
+        }
+        let angle = heading - slip
+        let position = transform(angle)
+        let point = axisOrigin + position * axisVec
+                               + progradeSize/2 * tickVec * 0.8
+        drawing.program.setModelView(GLKMatrix4MakeTranslation(point.x, point.y, 0))
+        drawing.program.setColor(Color4(0.84, 0.98, 0, 1))
+        drawing.Draw(prograde!)
+    }
+  }
+}
 
 func PseudoLog10(x : Float) -> Float
 {

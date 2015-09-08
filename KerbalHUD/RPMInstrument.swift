@@ -7,6 +7,17 @@
 //
 
 import Foundation
+import GLKit
+
+struct RPMPageSettings
+{
+  var textSize : (width: GLfloat, height: GLfloat) = (32, 8)
+  var screenSize = Size2D<Float>(w: 512, h: 256)
+  
+  var backgroundColor : Color4 = Color4.Black
+  var fontName : String = "Menlo"
+  var fontColor : Color4 = Color4.White
+}
 
 class RPMInstrument : Instrument
 {

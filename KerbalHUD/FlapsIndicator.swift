@@ -67,7 +67,11 @@ class FlapsIndicatorWidget : Widget {
       self.fontSize = (bounds.width / numChars) / text.aspect
     }
 
-    fontColor = Color4.coerceTo(configuration["fontcolor"]) ?? Color4.White
+    if let color = configuration["fontcolor"] {
+      fontColor = Color4.coerceTo(color) ?? Color4.White
+    } else {
+      fontColor = Color4.White
+    }
   }
   
   func update(data  : [String : JSON]) {

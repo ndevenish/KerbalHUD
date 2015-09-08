@@ -54,7 +54,6 @@
 		0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */; settings = {ASSET_TAGS = (); }; };
 		0A6724541B8DEDCA00A38BE5 /* Timers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724531B8DEDCA00A38BE5 /* Timers.swift */; settings = {ASSET_TAGS = (); }; };
 		0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F71F1B7CBFF9002A760F /* Instrument.swift */; };
-		0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */; };
 		0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7231B7CCC40002A760F /* DrawingTools.swift */; };
 		0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7251B7D6282002A760F /* ShaderProgram.swift */; };
 		0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */; settings = {ASSET_TAGS = (); }; };
@@ -132,7 +131,6 @@
 		0A6724531B8DEDCA00A38BE5 /* Timers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
 		0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RPMInstrument.swift; sourceTree = "<group>"; };
 		0A77F71F1B7CBFF9002A760F /* Instrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Instrument.swift; sourceTree = "<group>"; };
-		0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSIHeadsUpDisplay.swift; sourceTree = "<group>"; };
 		0A77F7231B7CCC40002A760F /* DrawingTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DrawingTools.swift; sourceTree = "<group>"; };
 		0A77F7251B7D6282002A760F /* ShaderProgram.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShaderProgram.swift; sourceTree = "<group>"; };
 		0A7C02D81B909AF500790764 /* Bounds.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bounds.swift; sourceTree = "<group>"; };
@@ -246,7 +244,6 @@
 				0A77F71F1B7CBFF9002A760F /* Instrument.swift */,
 				0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */,
 				0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */,
-				0A77F7211B7CC0F9002A760F /* JSIHeadsUpDisplay.swift */,
 				0A41BE0B1B7FAFA30009080F /* NavUtilities.swift */,
 				0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */,
 				0A1177971B9DB99A00FD8CA8 /* NewPlaneHud.swift */,
@@ -448,7 +445,6 @@
 				0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */,
 				0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */,
 				0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */,
-				0A77F7221B7CC0F9002A760F /* JSIHeadsUpDisplay.swift in Sources */,
 				0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */,
 				0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */,
 				0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */,

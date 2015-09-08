@@ -247,6 +247,11 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
 
     // Split the string around the first decimal
     var (fmtPre, fmtPost) = splitOnFirstDecimal(format)
+    // Handle the 1000 divider
+    if fmtPre.hasSuffix(",") {
+      value = value / 1000
+      fmtPre = fmtPre.substringToIndex(fmtPre.endIndex.advancedBy(-1))
+    }
     // Count the incidents of 0/#
     let counts = (placementFinder.numberOfMatchesInString(fmtPre),
                   placementFinder.numberOfMatchesInString(fmtPost))

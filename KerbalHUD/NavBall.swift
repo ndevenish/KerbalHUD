@@ -93,6 +93,10 @@ class NavBall : LayeredInstrument {
     // Add the navball
     widgets.append(NavBallWidget(tools: tools,
       bounds: FixedBounds(centerX: 320, centerY: 338, width: 430, height: 430)))
+    
+    // 167 - 473 x 50
+    let s = ScaledBarSettings(variable: Vars.Flight.Heading, scale: .LinearWrapped, ticks: .Up, range: 90)
+    widgets.append(ScaledBarWidget(tools: tools, bounds: FixedBounds(left: 167, bottom: 590, right: 473, top: 640), config: s))
   }
 }
 

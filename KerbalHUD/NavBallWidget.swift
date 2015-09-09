@@ -27,9 +27,15 @@ class NavBallWidget : Widget {
   
   init(tools : DrawingTools, bounds : Bounds) {
     drawing = tools
-    variables = [Vars.Flight.Roll,
-      Vars.Flight.Pitch,
-      Vars.Flight.Heading]
+
+    var varList = [Vars.Flight.Roll,
+                   Vars.Flight.Pitch,
+                   Vars.Flight.Heading]
+    varList.appendContentsOf(Vars.RPM.Direction.allCardinal)
+    varList.appendContentsOf(Vars.RPM.Direction.Node.all)
+    varList.appendContentsOf(Vars.RPM.Direction.Target.all)
+    variables = varList
+    
     self.bounds = bounds
     
     sphere = tools.LoadTriangles(generateSphereTriangles(1, latSteps: 50, longSteps: 100))

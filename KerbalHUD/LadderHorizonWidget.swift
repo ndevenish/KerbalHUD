@@ -47,7 +47,7 @@ class LadderHorizonWidget : Widget {
     
     // Generate a prograde marker if we want one
     if settings.progradeMarker {
-      variables.append(Vars.RPM.AngleOfAttack)
+      variables.append(Vars.Aero.AngleOfAttack)
       progradeMarker = GenerateProgradeMarker(drawing, size: 0.4)
     } else {
       progradeMarker = nil
@@ -57,7 +57,7 @@ class LadderHorizonWidget : Widget {
   func update(data : [String : JSON]) {
     if let pitch = data[Vars.Flight.Pitch]?.float,
       let roll = data[Vars.Flight.Roll]?.float {
-        let aOa = data[Vars.RPM.AngleOfAttack]?.float
+        let aOa = data[Vars.Aero.AngleOfAttack]?.float
         self.data = FlightData(Pitch: pitch, Roll: roll, AngleOfAttack: aOa)
     } else {
       self.data = nil

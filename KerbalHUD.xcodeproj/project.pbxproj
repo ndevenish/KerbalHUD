@@ -8,26 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		0A0514901B7682F0000C6DE2 /* Websocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A05148F1B7682F0000C6DE2 /* Websocket.swift */; };
-		0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1177961B9DA16600FD8CA8 /* FlapsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1177981B9DB99A00FD8CA8 /* PlaneHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177971B9DB99A00FD8CA8 /* PlaneHUD.swift */; settings = {ASSET_TAGS = (); }; };
-		0A11779A1B9DB9BF00FD8CA8 /* NavBall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */; settings = {ASSET_TAGS = (); }; };
-		0A11779C1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */; settings = {ASSET_TAGS = (); }; };
-		0A11779E1B9DE7BF00FD8CA8 /* ScaledBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */; settings = {ASSET_TAGS = (); }; };
+		0A11778F1B9C9ABF00FD8CA8 /* BasicExpressions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11778E1B9C9ABF00FD8CA8 /* BasicExpressions.swift */; };
+		0A1177911B9CFD1D00FD8CA8 /* Coercion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */; };
+		0A1177931B9D096900FD8CA8 /* TelemachusVariables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */; };
+		0A1177961B9DA16600FD8CA8 /* FlapsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177951B9DA16600FD8CA8 /* FlapsIndicator.swift */; };
+		0A1177981B9DB99A00FD8CA8 /* PlaneHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177971B9DB99A00FD8CA8 /* PlaneHUD.swift */; };
+		0A11779A1B9DB9BF00FD8CA8 /* NavBall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1177991B9DB9BF00FD8CA8 /* NavBall.swift */; };
+		0A11779C1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779B1B9DBA6300FD8CA8 /* LadderHorizonWidget.swift */; };
+		0A11779E1B9DE7BF00FD8CA8 /* ScaledBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A11779D1B9DE7BF00FD8CA8 /* ScaledBar.swift */; };
 		0A1B0A001B76BCFC00381CC7 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B09FF1B76BCFC00381CC7 /* SwiftyJSON.swift */; };
 		0A1B0A021B76BE1000381CC7 /* Security.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B0A011B76BE1000381CC7 /* Security.swift */; };
-		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E71701B966F0400C68683 /* Point3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716F1B966F0400C68683 /* Point3D.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71711B966F8A00C68683 /* Triangle.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E71741B97BD3900C68683 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71731B97BD3900C68683 /* Colors.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71751B9869B900C68683 /* RPMTextFile.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E71781B98816400C68683 /* RPMTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71771B98816400C68683 /* RPMTextTests.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0A1E71791B9881DA00C68683 /* RPMHUD.txt */; settings = {ASSET_TAGS = (); }; };
-		0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717B1B99013A00C68683 /* StringFormat.swift */; settings = {ASSET_TAGS = (); }; };
-		0A1E717E1B99032600C68683 /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717D1B99032600C68683 /* Regex.swift */; settings = {ASSET_TAGS = (); }; };
-		0A21F5721B9ECC8B0046996C /* PlaneHUD_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
+		0A1E716E1B966ECD00C68683 /* GeometryGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716D1B966ECD00C68683 /* GeometryGeneration.swift */; };
+		0A1E71701B966F0400C68683 /* Point3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E716F1B966F0400C68683 /* Point3D.swift */; };
+		0A1E71721B966F8A00C68683 /* Triangle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71711B966F8A00C68683 /* Triangle.swift */; };
+		0A1E71741B97BD3900C68683 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71731B97BD3900C68683 /* Colors.swift */; };
+		0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71751B9869B900C68683 /* RPMTextFile.swift */; };
+		0A1E71781B98816400C68683 /* RPMTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E71771B98816400C68683 /* RPMTextTests.swift */; };
+		0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0A1E71791B9881DA00C68683 /* RPMHUD.txt */; };
+		0A1E717C1B99013A00C68683 /* StringFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717B1B99013A00C68683 /* StringFormat.swift */; };
+		0A1E717E1B99032600C68683 /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1E717D1B99032600C68683 /* Regex.swift */; };
+		0A21F5721B9ECC8B0046996C /* PlaneHUD_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */; };
 		0A3594041B7136B80072CC18 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3594031B7136B80072CC18 /* AppDelegate.swift */; };
 		0A3594061B7136B80072CC18 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594051B7136B80072CC18 /* Shader.fsh */; };
 		0A3594081B7136B80072CC18 /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594071B7136B80072CC18 /* Shader.vsh */; };
@@ -36,36 +36,36 @@
 		0A35940F1B7136B80072CC18 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A35940E1B7136B80072CC18 /* Assets.xcassets */; };
 		0A3594121B7136B80072CC18 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0A3594101B7136B80072CC18 /* LaunchScreen.storyboard */; };
 		0A3640831B81F53F00F4AA0E /* TextRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A3640821B81F53F00F4AA0E /* TextRenderer.swift */; };
-		0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9021B8E80ED00E85213 /* Textures.swift */; settings = {ASSET_TAGS = (); }; };
+		0A36D9031B8E80ED00E85213 /* Textures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36D9021B8E80ED00E85213 /* Textures.swift */; };
 		0A41BE0A1B7F714B0009080F /* ConfigNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE091B7F714B0009080F /* ConfigNode.swift */; };
 		0A41BE0C1B7FAFA30009080F /* NavUtilitiesHSI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A41BE0B1B7FAFA30009080F /* NavUtilitiesHSI.swift */; };
-		0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */; settings = {ASSET_TAGS = (); }; };
-		0A5DB9BB1B91D4FA000174C7 /* NavBallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */; settings = {ASSET_TAGS = (); }; };
-		0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */; settings = {ASSET_TAGS = (); }; };
-		0A5DB9BF1B92136C000174C7 /* GLKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */; settings = {ASSET_TAGS = (); }; };
+		0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */; };
+		0A5DB9BB1B91D4FA000174C7 /* NavBallWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BA1B91D4FA000174C7 /* NavBallWidget.swift */; };
+		0A5DB9BD1B9211DD000174C7 /* SphericalPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BC1B9211DD000174C7 /* SphericalPoint.swift */; };
+		0A5DB9BF1B92136C000174C7 /* GLKitExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9BE1B92136C000174C7 /* GLKitExtensions.swift */; };
 		0A5DB9C71B9214F2000174C7 /* KerbalHUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9C61B9214F2000174C7 /* KerbalHUDTests.swift */; };
-		0A5DB9CF1B921531000174C7 /* SphericalCoordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9CE1B921531000174C7 /* SphericalCoordTests.swift */; settings = {ASSET_TAGS = (); }; };
-		0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */; settings = {ASSET_TAGS = (); }; };
-		0A602F481B8E5A91000AD177 /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A602F471B8E5A91000AD177 /* test_texture.png */; settings = {ASSET_TAGS = (); }; };
-		0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A6724491B8CE5B800A38BE5 /* inner.wav */; settings = {ASSET_TAGS = (); }; };
-		0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244A1B8CE5B800A38BE5 /* middle.wav */; settings = {ASSET_TAGS = (); }; };
-		0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244B1B8CE5B800A38BE5 /* outer.wav */; settings = {ASSET_TAGS = (); }; };
-		0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */; settings = {ASSET_TAGS = (); }; };
-		0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */; settings = {ASSET_TAGS = (); }; };
-		0A6724541B8DEDCA00A38BE5 /* Timers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724531B8DEDCA00A38BE5 /* Timers.swift */; settings = {ASSET_TAGS = (); }; };
+		0A5DB9CF1B921531000174C7 /* SphericalCoordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9CE1B921531000174C7 /* SphericalCoordTests.swift */; };
+		0A5DB9D31B92D50A000174C7 /* VertexArrays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A5DB9D21B92D50A000174C7 /* VertexArrays.swift */; };
+		0A602F481B8E5A91000AD177 /* test_texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 0A602F471B8E5A91000AD177 /* test_texture.png */; };
+		0A67244C1B8CE5B800A38BE5 /* inner.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A6724491B8CE5B800A38BE5 /* inner.wav */; };
+		0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244A1B8CE5B800A38BE5 /* middle.wav */; };
+		0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */ = {isa = PBXBuildFile; fileRef = 0A67244B1B8CE5B800A38BE5 /* outer.wav */; };
+		0A6724501B8D055900A38BE5 /* TelemachusInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A67244F1B8D055900A38BE5 /* TelemachusInterface.swift */; };
+		0A6724521B8DE7EB00A38BE5 /* InstrumentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724511B8DE7EB00A38BE5 /* InstrumentPanel.swift */; };
+		0A6724541B8DEDCA00A38BE5 /* Timers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6724531B8DEDCA00A38BE5 /* Timers.swift */; };
 		0A77F7201B7CBFF9002A760F /* Instrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F71F1B7CBFF9002A760F /* Instrument.swift */; };
 		0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7231B7CCC40002A760F /* DrawingTools.swift */; };
 		0A77F7261B7D6282002A760F /* ShaderProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A77F7251B7D6282002A760F /* ShaderProgram.swift */; };
-		0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */; settings = {ASSET_TAGS = (); }; };
-		0A7C02D91B909AF500790764 /* Bounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02D81B909AF500790764 /* Bounds.swift */; settings = {ASSET_TAGS = (); }; };
-		0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02DA1B909B0700790764 /* Size2D.swift */; settings = {ASSET_TAGS = (); }; };
-		0A9B97031B9B6E7D00995795 /* RPM_NavBall_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
-		0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */; settings = {ASSET_TAGS = (); }; };
-		0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97061B9B6F5500995795 /* SVGExtensions.swift */; settings = {ASSET_TAGS = (); }; };
-		0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */; settings = {ASSET_TAGS = (); }; };
-		0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */; settings = {ASSET_TAGS = (); }; };
-		0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAE62E71B90E3A9001060F0 /* Point2D.swift */; settings = {ASSET_TAGS = (); }; };
-		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; settings = {ASSET_TAGS = (); }; };
+		0A7C02D61B907B6C00790764 /* RPMInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6C7B6B1B90778D00854F2E /* RPMInstrument.swift */; };
+		0A7C02D91B909AF500790764 /* Bounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02D81B909AF500790764 /* Bounds.swift */; };
+		0A7C02DB1B909B0700790764 /* Size2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7C02DA1B909B0700790764 /* Size2D.swift */; };
+		0A9B97031B9B6E7D00995795 /* RPM_NavBall_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */; };
+		0A9B97051B9B6E8D00995795 /* SimpleSVG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97041B9B6E8D00995795 /* SimpleSVG.swift */; };
+		0A9B97071B9B6F5500995795 /* SVGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B97061B9B6F5500995795 /* SVGExtensions.swift */; };
+		0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */; };
+		0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */; };
+		0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAE62E71B90E3A9001060F0 /* Point2D.swift */; };
+		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -355,7 +355,8 @@
 		0A3593F81B7136B80072CC18 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftMigration = 0700;
+				LastSwiftMigration = 0710;
+				LastSwiftUpdateCheck = 0710;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Nicholas Devenish";
 				TargetAttributes = {

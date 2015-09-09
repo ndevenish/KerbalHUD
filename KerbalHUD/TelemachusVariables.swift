@@ -64,14 +64,15 @@ extension Vars {
       let TimeTo = "rpm.MNODETIMESECS"
       let DeltaV = "rpm.MNODEDV"
     }
+    
     let Node = RPMNode()
-    
-    let AngleOfAttack = "rpm.ANGLEOFATTACK"
-    
+    let Direction = Vars.Direction()
+
     private init() {
       
     }
   }
+  
   
   struct FARVarNames {
     let Flaps = "rpm.PLUGIN_JSIFAR:GetFlapSetting"
@@ -81,5 +82,34 @@ extension Vars {
     let Sideslip      = "rpm.SIDESLIP"
     let AngleOfAttack = "rpm.ANGLEOFATTACK"
     let DynamicPressure = "v.dynamicPressure"
+  }
+  
+  struct RelativeOrientation {
+    let Pitch : String
+    let Yaw : String
+    var all : [String] { return [Pitch, Yaw] }
+  }
+  
+  struct Direction {
+    let Prograde = RelativeOrientation(  Pitch: "rpm.PITCHPROGRADE",
+                                           Yaw: "rpm.YAWPROGRADE")
+    let Retrograde = RelativeOrientation(Pitch: "rpm.PITCHRETROGRADE",
+                                           Yaw: "rpm.YAWRETROGRADE")
+    let RadialIn = RelativeOrientation(  Pitch: "rpm.PITCHRADIALIN",
+                                           Yaw: "rpm.YAWRADIALIN")
+    let RadialOut = RelativeOrientation( Pitch: "rpm.PITCHRADIALOUT",
+                                           Yaw: "rpm.YAWRADIALOUT")
+    let NormalPlus = RelativeOrientation(Pitch: "rpm.PITCHNORMALPLUS",
+                                           Yaw: "rpm.YAWNORMALPLUS")
+    let NormalMinus = RelativeOrientation(Pitch: "rpm.PITCHNORMALMINUS",
+                                            Yaw: "rpm.YAWNORMALMINUS")
+    let Node = RelativeOrientation(      Pitch: "rpm.PITCHNODE",
+                                           Yaw: "rpm.YAWNODE")
+    let Target = RelativeOrientation(    Pitch: "rpm.PITCHTARGET",
+                                           Yaw: "rpm.YAWTARGET")
+    var allRadial : [String] { return Array([RadialIn.all, RadialOut.all].flatten()) }
+    var allNormal : [String] { return Array([NormalPlus.all, NormalMinus.all].flatten()) }
+    var allProAxis : [String] { return Array([Prograde.all, Retrograde.all].flatten()) }
+    var allCardinal : [String] { return Array([allRadial, allNormal, allProAxis].flatten()) }
   }
 }

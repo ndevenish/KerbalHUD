@@ -18,8 +18,7 @@ class ShaderProgram {
   var program : GLuint { return _program }
 
   var attributes : (position : GLuint, texture : GLuint)
-  private var uniforms : (mvp : Int32, color : Int32, useTex : Int32, uvOffset: Int32, uvScale: Int32)
-  private var currentUseTex = false
+  private var uniforms : (mvp : Int32, color : Int32, uvOffset: Int32, uvScale: Int32)
   
   private(set) var projection : GLKMatrix4 = GLKMatrix4Identity
   
@@ -34,11 +33,10 @@ class ShaderProgram {
 
     let uMVP = glGetUniformLocation(_program, "modelViewProjectionMatrix")
     let uCol = glGetUniformLocation(_program, "color")
-    let uTex = glGetUniformLocation(_program, "useTex")
     let uOff = glGetUniformLocation(_program, "uvOffset")
     let uSca = glGetUniformLocation(_program, "uvScale")
     
-    uniforms = (uMVP, uCol, uTex, uOff, uSca)
+    uniforms = (uMVP, uCol, uOff, uSca)
   }
   
   func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat) {
@@ -47,17 +45,10 @@ class ShaderProgram {
   func setColor(color : Color4) {
       glUniform3f(uniforms.color, color.r, color.g, color.b)
   }
-  func setUseTexture(use : Bool) {
-    if use != currentUseTex {
-      glUniform1i(uniforms.useTex, use ? 1 : 0)
-      currentUseTex = use
-    }
-  }
-  
   var lastOffset : (GLfloat, GLfloat) = (0,0)
   var lastScale : (GLfloat, GLfloat) = (0,0)
   
-  func setUVProperties(xOffset xOffset : GLfloat, yOffset : GLfloat, xScale : GLfloat, yScale : GLfloat)
+  func setUVProperties(xOffset xOffset : GLfloat = 0, yOffset : GLfloat = 0, xScale : GLfloat = 1, yScale : GLfloat = 1)
   {
     if xOffset != lastOffset.0 || yOffset != lastOffset.1 {
       glUniform2f(uniforms.uvOffset, xOffset, yOffset)
@@ -93,7 +84,6 @@ class ShaderProgram {
   func use() {
     glUseProgram(_program)
     ShaderProgram.activeProgram = self
-    setUseTexture(false)
     setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
 
   }

@@ -38,8 +38,8 @@ class NavBallWidget : Widget {
     
     self.bounds = bounds
     
-    sphere = tools.LoadTriangles(generateSphereTriangles(1, latSteps: 50, longSteps: 100))
     sphereTexture = NavBallTextureRendering(tools: drawing).generate()
+    sphere = tools.LoadTriangles(generateSphereTriangles(1, latSteps: 50, longSteps: 100), texture: sphereTexture)
   }
   
   func update(data : [String : JSON]) {
@@ -70,9 +70,7 @@ class NavBallWidget : Widget {
     sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
     drawing.program.setModelView(sphMat)
     
-    drawing.program.setUseTexture(true)
-    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
-    drawing.Draw(sphere)
+    drawing.draw(sphere)
   }
 }
 
@@ -110,8 +108,6 @@ class NavBallTextureRendering {
   }
   
   func drawTextStrip(longitude: Float, upper : Bool) {
-    drawing.program.setUseTexture(true)
-    
     let range : (Int, Int) = upper ? (10, 80) : (-80, -10)
     for var angle = range.0; angle <= range.1; angle += 10 {
       // Don't render the central signs
@@ -142,7 +138,6 @@ class NavBallTextureRendering {
         left: -textOffset-size.w, bottom: -size.h/2, right: -textOffset, top: size.h/2,
         xSteps: 10, ySteps: 5, slicePoint: 0)
     }
-    drawing.program.setUseTexture(false)
   }
 
   func generate() -> Texture {
@@ -150,7 +145,6 @@ class NavBallTextureRendering {
     drawing.bind(texture)
     drawing.setOrthProjection(left: -180, right: 180, bottom: -90, top: 90)
     drawing.program.setModelView(GLKMatrix4Identity)
-    drawing.program.setUseTexture(false)
     
     let upperBackground = Color4(r: 93.0/255, g: 177.0/255, b: 228.0/225, a: 1)
     let lowerBackground = Color4(r: 4.0/255, g: 80.0/255, b: 117.0/255, a: 1)
@@ -259,14 +253,11 @@ class NavBallTextureRendering {
     fillBackground : Color4? = nil, foregroundColor: Color4? = nil)
   {
     let tex = textures[angle]!
-    drawing.bind(tex)
-    
-    if angle == -180 {
-      print ("Handling")
-    }
+
     let size = Size2D(w: tex.size!.aspect*size, h: size)
     if let color = fillBackground {
       drawing.program.setColor(color)
+      drawing.bind(Texture.None)
       drawing.drawProjectedGridOntoSphere(
         position: position,
         left: -size.w/2, bottom: -size.h/2,
@@ -275,13 +266,12 @@ class NavBallTextureRendering {
       drawing.program.setColor(foregroundColor!)
     }
     
-    drawing.program.setUseTexture(true)
+    drawing.bind(tex)
     drawing.drawProjectedGridOntoSphere(
       position: position,
       left: -size.w/2, bottom: -size.h/2,
       right: size.w/2, top: size.h/2,
       xSteps: 10, ySteps: 5, slicePoint: 0)
-    drawing.program.setUseTexture(false)
   }
   
   private enum BulkSpherePosition {
@@ -302,6 +292,7 @@ class NavBallTextureRendering {
       points = ((-50, 0), (-58.9, -50))
     }
     // Draw in two portions as it stretches out at high points
+    drawing.bind(Texture.None)
     drawing.drawProjectedGridOntoSphere(
       position: SphericalPoint(lat: 0, long: longitude, r: 0),
       left: -width/2, bottom: points.0.0, right: width/2, top: points.0.1,

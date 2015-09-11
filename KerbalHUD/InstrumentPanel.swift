@@ -105,8 +105,6 @@ class InstrumentPanel
     drawing.bind(Framebuffer.Default)
     
     drawing.setOrthProjection(left: 0, right: drawing.screenSizePhysical.aspect, bottom: 0, top: 1)
-    drawing.program.setUseTexture(true)
-    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
     
     for instrument in drawOrder.map({instruments[$0]}) {

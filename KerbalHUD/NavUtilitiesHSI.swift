@@ -363,7 +363,6 @@ class HSIIndicator : RPMInstrument {
     
     // Draw the overlay texture now
     drawing.bind(overlayTexture)
-    drawing.program.setUseTexture(true)
     drawing.DrawTexturedSquare(0, bottom: 0, right: 640, top: 640)
 //
 //    // Draw the background overlay
@@ -460,11 +459,8 @@ class HSIIndicator : RPMInstrument {
   
   func drawCompassTexture() {
     drawing.bind(compassTexture!)
-    drawing.program.setUseTexture(true)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
-    drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.DrawTexturedSquare(320-235, bottom: 320-235, right: 320+235, top: 320+235, rotation: data.Heading*π/180)
-    drawing.program.setUseTexture(false)
   }
   
   func drawCompass() {
@@ -472,8 +468,6 @@ class HSIIndicator : RPMInstrument {
     var offset = GLKMatrix4Identity
     offset = GLKMatrix4Translate(offset, 320, 320, 0)
 //    offset = GLKMatrix4Rotate(offset, heading*π/180, 0, 0, 1)
-    
-    drawing.program.setUseTexture(false)
     drawing.program.setColor(red: 1,green: 1,blue: 1)
     drawing.program.setModelView(offset)
     

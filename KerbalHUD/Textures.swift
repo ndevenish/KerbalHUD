@@ -29,6 +29,14 @@ extension Texture {
     self.target = glk.target
     self.size = Size2D(w: Int(glk.width), h: Int(glk.height))
   }
+  init (name: GLuint, width: UInt, height: UInt, target: GLenum = GLenum(GL_TEXTURE_2D)) {
+    self.glk = nil
+    self.name = name
+    self.target = target
+    
+    self.size = Size2D(w: Int(width), h: Int(height))
+  }
+  
 }
 
 extension DrawingTools {

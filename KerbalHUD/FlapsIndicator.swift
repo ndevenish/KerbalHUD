@@ -83,10 +83,6 @@ class FlapsIndicatorWidget : Widget {
       return
     }
     
-//    drawing.program.setColor(Color4.Red)
-    drawing.program.setUseTexture(false)
-//    drawing.DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
-    
     let foilPosition = Point2D(
       x: bounds.center.x,
       y: (bounds.height - fontSize)/2 + bounds.bottom)

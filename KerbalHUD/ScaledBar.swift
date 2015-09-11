@@ -299,9 +299,6 @@ class HeadingBarWidget : ScaledBarWidget {
     if let heading = data,
        let slip = sideSlip {
         let progradeSize = 64/drawing.scaleToPoints.x
-//        if prograde == nil {
-//          prograde = GenerateProgradeMarker(drawing, size: progradeSize)
-//        }
         
         let angle = heading - slip
         let position = transform(angle)
@@ -310,12 +307,10 @@ class HeadingBarWidget : ScaledBarWidget {
         var xf = GLKMatrix4MakeTranslation(point.x, point.y, 0)
         xf = GLKMatrix4Scale(xf, progradeSize, progradeSize, 1)
         drawing.program.setModelView(xf)
-        drawing.program.setColor(Color4(0.84, 0.98, 0, 1))
-        drawing.program.setUseTexture(true)
+
+        drawing.program.setColor(Color4.White)
         drawing.bind(progradeTex)
-        drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
         drawing.draw(drawing.texturedCenterSquare!)
-        drawing.program.setUseTexture(false)
     }
   }
 }

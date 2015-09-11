@@ -154,7 +154,6 @@ class LayeredInstrument : Instrument {
       return
     }
     drawing.bind(texture)
-    drawing.program.setUseTexture(true)
     drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
     drawing.DrawTexturedSquare(0, bottom: 0, right: screenSize.w, top: screenSize.h)
   }

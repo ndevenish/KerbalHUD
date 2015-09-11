@@ -124,10 +124,7 @@ class TextRenderer {
       baseMatrix = GLKMatrix4Scale(baseMatrix, squareWidth, size, 1)
       baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
       tool.program.setModelView(baseMatrix)
-      tool.program.setUseTexture(true)
-//      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
       tool.draw(tool.texturedSquare!)
-      tool.program.setUseTexture(false)
   }
   
   
@@ -281,7 +278,6 @@ class TextRenderer {
         return false
       }
       if let atlas = getAtlas(fontSize) {
-        tool.program.setUseTexture(true)
         tool.bind(atlas.texture)
 //        tool.bind(tool.texturedArray!)
 
@@ -338,7 +334,6 @@ class TextRenderer {
             glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
           }
         }
-        tool.program.setUseTexture(false)
       } else {
         // Couldn't get an atlas
         return false

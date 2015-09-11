@@ -152,11 +152,7 @@ class LadderHorizonWidget : Widget {
       
       drawing.program.setModelView(progradeFrame)
       drawing.bind(pgm)
-
-      drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
-      drawing.program.setUseTexture(true)
       drawing.draw(drawing.texturedCenterSquare!)
-      drawing.program.setUseTexture(false)
     }
     
     // Remove the stencil constraints

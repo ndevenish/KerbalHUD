@@ -38,7 +38,8 @@ class LadderHorizonWidget : Widget {
   
   private var data : FlightData?
   private let settings = LadderHorizonSettings()
-  private var progradeMarker : Drawable?
+//  private var progradeMarker : Drawable?
+  private let progradeMarker : Texture?
   
   init(tools : DrawingTools, bounds : Bounds) {
     self.drawing = tools
@@ -48,7 +49,7 @@ class LadderHorizonWidget : Widget {
     // Generate a prograde marker if we want one
     if settings.progradeMarker {
       variables.append(Vars.Aero.AngleOfAttack)
-      progradeMarker = GenerateProgradeMarker(drawing, size: 0.4)
+      progradeMarker = tools.images["Prograde"]
     } else {
       progradeMarker = nil
     }
@@ -137,7 +138,7 @@ class LadderHorizonWidget : Widget {
        let pgm = progradeMarker
     {
       // Set the color and start building the transformation
-      drawing.program.setColor(settings.progradeColor)
+      drawing.program.setColor(Color4.White)
       var progradeFrame = preScaleFrame
       // Re-apply the scaling, but in an equal-aspect way
       progradeFrame = GLKMatrix4Scale(progradeFrame, 1/heightScale, 1/heightScale, 1)
@@ -150,7 +151,12 @@ class LadderHorizonWidget : Widget {
       progradeFrame = GLKMatrix4Rotate(progradeFrame, -data.Roll*π/180, 0, 0, -1)
       
       drawing.program.setModelView(progradeFrame)
-      drawing.Draw(pgm)
+      drawing.bind(pgm)
+
+      drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+      drawing.program.setUseTexture(true)
+      drawing.draw(drawing.texturedCenterSquare!)
+      drawing.program.setUseTexture(false)
     }
     
     // Remove the stencil constraints

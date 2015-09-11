@@ -102,7 +102,7 @@ class TextRenderer {
       let entry = getTextEntry(text, size: fontSize)
       
       let texture = entry.texture
-      tool.bind(tool.texturedArray!)
+//      tool.bind(tool.texturedArray!)
 //      tool.bindArray(tool.vertexArrayTextured)
       glBindTexture(texture.target, texture.name)
       
@@ -125,7 +125,8 @@ class TextRenderer {
       baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
       tool.program.setModelView(baseMatrix)
       tool.program.setUseTexture(true)
-      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+//      glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+      tool.draw(tool.texturedSquare!)
       tool.program.setUseTexture(false)
   }
   
@@ -282,7 +283,7 @@ class TextRenderer {
       if let atlas = getAtlas(fontSize) {
         tool.program.setUseTexture(true)
         tool.bind(atlas.texture)
-        tool.bind(tool.texturedArray!)
+//        tool.bind(tool.texturedArray!)
 
         // Calculate the total end size, for things like alignment
         let aspect = atlas.texelSize.width / atlas.texelSize.height
@@ -326,6 +327,7 @@ class TextRenderer {
                 xScale:  atlas.uvSize.width,
                 yScale:  -atlas.uvSize.height)
             glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+            tool.draw(tool.texturedSquare!)
           } else {
             // We don't recognise this character. This is a problem.
             // Use the old text drawing to render it

@@ -84,6 +84,9 @@ class GameViewController: GLKViewController {
     drawing = DrawingTools(shaderProgram: program!)
     program!.use()
     
+    let markers = SVGImage(fromBundleFile: "Markers.svg")
+    markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
+    
     // Extract the default FBO so we can bind back
     (self.view as! GLKView).bindDrawable()
     var defaultFBO : GLint = 0

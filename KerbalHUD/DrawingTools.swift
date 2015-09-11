@@ -31,6 +31,32 @@ func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
 //  var vertexType : GLenum = GLenum(GL_INVALID_ENUM)
 //}
 
+func generateCenteredTextureSquare(tools: DrawingTools) -> Drawable {
+  let centerTA = tools.createVertexArray(positions: 2, textures: 2)
+  var texturedSquareO : [GLfloat] = [
+    -0.5,-0.5,0,0,
+    -0.5, 0.5,0,1,
+    0.5,-0.5,1,0,
+    0.5, 0.5,1,1
+  ]
+  glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquareO.count, &texturedSquareO, GLenum(GL_STATIC_DRAW))
+  tools.bind(VertexArray.Empty)
+  return SimpleMesh(array: centerTA, texture: nil, vertexType: .TriangleStrip, bufferOffset: 0, bufferCount: 4, color: nil)
+}
+
+func generateOriginTextureSquare(tools: DrawingTools) -> Drawable {
+  let texturedArray = tools.createVertexArray(positions: 2, textures: 2)
+  // Now copy the data into the buffer
+  var texturedSquare : [GLfloat] = [
+    0,0,0,0,
+    0,1,0,1,
+    1,0,1,0,
+    1,1,1,1
+  ]
+  glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
+  tools.bind(VertexArray.Empty)
+  return SimpleMesh(array: texturedArray, texture: nil, vertexType: .TriangleStrip, bufferOffset: 0, bufferCount: 4, color: nil)
+}
 protocol Mesh : Drawable {
   
 }
@@ -50,11 +76,11 @@ struct MultiDrawable : Drawable {
 
 enum VertexRepresentation : GLenum {
   case Points
-  case Line_Strip
-  case Line_Loop
+  case LineStrip
+  case LineLoop
   case Lines
-  case Triangle_Strip
-  case Triangle_Fan
+  case TriangleStrip
+  case TriangleFan
   case Triangles
 }
 
@@ -63,15 +89,15 @@ extension VertexRepresentation {
     switch self {
     case .Points:
       return GLKit.GLenum(GL_POINTS)
-    case Line_Strip:
+    case LineStrip:
       return GLKit.GLenum(GL_LINE_STRIP)
-    case Line_Loop:
+    case LineLoop:
       return GLKit.GLenum(GL_LINE_LOOP)
     case Lines:
       return GLKit.GLenum(GL_LINES)
-    case Triangle_Strip:
+    case TriangleStrip:
       return GLKit.GLenum(GL_TRIANGLE_STRIP)
-    case Triangle_Fan:
+    case TriangleFan:
       return GLKit.GLenum(GL_TRIANGLE_FAN)
     case Triangles:
       return GLKit.GLenum(GL_TRIANGLES)
@@ -182,9 +208,14 @@ class DrawingTools
   /// The physical size (in pixels) of the currently bound render target
   var renderTargetPixels : Size2D<Int>
   
+  var images : ImageLibrary { return _images! }
+  private var _images : ImageLibrary? = nil
+  
   // For textured squares
-  var texturedArray : VertexArray? = nil
+  var texturedSquare : Drawable? = nil
 
+  private(set) var texturedCenterSquare : Drawable? = nil
+  
   private var buffers : [GLuint : BufferInfo] = [:]
   private var textRenderers : [String : TextRenderer] = [:]
   
@@ -226,6 +257,8 @@ class DrawingTools
       h: Int(UIScreen.mainScreen().bounds.height))
     renderTargetPixels = screenSizePhysical
     
+    _images = ImageLibrary(tools: self)
+    
     // Create an initial buffer
     generate_buffer()
     
@@ -233,22 +266,15 @@ class DrawingTools
     let sqVpoints : [Point2D] = [
       (0,0),(0,1),(1,0),(1,1)
     ].map { Point2D(x: $0.0, y: $0.1) }
-    meshSquare = LoadVertices(VertexRepresentation.Triangle_Strip, vertices: sqVpoints) as! SimpleMesh
-    
-    
-    texturedArray = createVertexArray(positions: 2, textures: 2)
-    // Now copy the data into the buffer
-    var texturedSquare : [GLfloat] = [
-      0,0,0,0,
-      0,1,0,1,
-      1,0,1,0,
-      1,1,1,1
-    ]
-    print("Textured square data loaded into \(texturedArray!.name)")
-    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
+    meshSquare = LoadVertices(VertexRepresentation.TriangleStrip, vertices: sqVpoints) as! SimpleMesh
     bind(VertexArray.Empty)
+    
+    
+    texturedSquare = generateOriginTextureSquare(self)
+    texturedCenterSquare = generateCenteredTextureSquare(self)
+    
   }
-
+  
   func setOrthProjection(left left: Float, right: Float, bottom: Float, top: Float) {
     program.setProjection(GLKMatrix4MakeOrtho(left, right, bottom, top, -abs(top-bottom)/2, abs(top-bottom)))
     let mss = Float(UIScreen.mainScreen().scale)
@@ -446,8 +472,12 @@ class DrawingTools
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
     return SimpleMesh(array: array, texture: nil, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3), color:color)
   }
-  
+
   func Draw(item : Drawable) {
+    draw(item)
+  }
+  
+  func draw(item : Drawable) {
     if let mesh = item as? SimpleMesh {
       bind(mesh.array)
       if let texture = mesh.texture {
@@ -512,9 +542,11 @@ class DrawingTools
     }
     let mvp = GLKMatrix4Multiply(program.projection, baseMatrix)
     program.setModelViewProjection(mvp)
-    bind(texturedArray!)
+//    bind(texturedArray!)
+    
     program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
-    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+//    glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+    draw(texturedSquare!)
   }
 
   

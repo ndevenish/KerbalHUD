@@ -32,11 +32,14 @@ enum SVGErrors : ErrorType {
 public class SVGImage {
   private let svg : SVGContainer
   
+  private(set) public var namedElements : [String] = []
+  
   public init(withContentsOfFile file : NSURL) {
     // Read the file
     let data = NSData(contentsOfURL: file)!
     let parser = SVGParser(data: data)
     svg = parser.parse() as! SVGContainer
+    namedElements = Array(svg.idMap.keys)
   }
   
   public func drawToContext(context : CGContextRef, subId: String = "") throws {

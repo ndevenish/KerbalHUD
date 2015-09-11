@@ -279,10 +279,11 @@ class ScaledBarWidget : Widget {
 class HeadingBarWidget : ScaledBarWidget {
   
   private(set) var sideSlip : Float? = nil
-  private var prograde : Drawable?
+  private var progradeTex : Texture
   
   override init(tools: DrawingTools, bounds: Bounds, var config: ScaledBarSettings) {
     config.variable = Vars.Flight.Heading
+    progradeTex = tools.images["Prograde"]!
     super.init(tools: tools, bounds: bounds, config: config)
     self.variables = [Vars.Flight.Heading, Vars.Aero.Sideslip]
   }
@@ -297,17 +298,24 @@ class HeadingBarWidget : ScaledBarWidget {
   override func drawDecorations(transform: (Float) -> Float) {
     if let heading = data,
        let slip = sideSlip {
-        let progradeSize = 32/drawing.scaleToPoints.x
-        if prograde == nil {
-          prograde = GenerateProgradeMarker(drawing, size: progradeSize)
-        }
+        let progradeSize = 64/drawing.scaleToPoints.x
+//        if prograde == nil {
+//          prograde = GenerateProgradeMarker(drawing, size: progradeSize)
+//        }
+        
         let angle = heading - slip
         let position = transform(angle)
         let point = axisOrigin + position * axisVec
                                + progradeSize/2 * tickVec * 0.8
-        drawing.program.setModelView(GLKMatrix4MakeTranslation(point.x, point.y, 0))
+        var xf = GLKMatrix4MakeTranslation(point.x, point.y, 0)
+        xf = GLKMatrix4Scale(xf, progradeSize, progradeSize, 1)
+        drawing.program.setModelView(xf)
         drawing.program.setColor(Color4(0.84, 0.98, 0, 1))
-        drawing.Draw(prograde!)
+        drawing.program.setUseTexture(true)
+        drawing.bind(progradeTex)
+        drawing.program.setUVProperties(xOffset: 0, yOffset: 0, xScale: 1, yScale: 1)
+        drawing.draw(drawing.texturedCenterSquare!)
+        drawing.program.setUseTexture(false)
     }
   }
 }

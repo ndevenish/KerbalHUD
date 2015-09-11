@@ -65,6 +65,7 @@
 		0A9B970B1B9B7BF600995795 /* Navutils_Overlay.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */; };
 		0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */; };
 		0AAE62E81B90E3A9001060F0 /* Point2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AAE62E71B90E3A9001060F0 /* Point2D.swift */; };
+		0ADA5C371BA3363F0093049A /* Markers.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0ADA5C361BA3363F0093049A /* Markers.svg */; };
 		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; };
 /* End PBXBuildFile section */
 
@@ -141,6 +142,7 @@
 		0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Navutils_Overlay.svg; sourceTree = "<group>"; };
 		0A9B970C1B9B99E700995795 /* LayeredInstrument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayeredInstrument.swift; sourceTree = "<group>"; };
 		0AAE62E71B90E3A9001060F0 /* Point2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Point2D.swift; sourceTree = "<group>"; };
+		0ADA5C361BA3363F0093049A /* Markers.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Markers.svg; path = ../../../SimpleSVG/TestApplication/Markers.svg; sourceTree = "<group>"; };
 		0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -289,6 +291,7 @@
 			children = (
 				0A1E71791B9881DA00C68683 /* RPMHUD.txt */,
 				0A602F471B8E5A91000AD177 /* test_texture.png */,
+				0ADA5C361BA3363F0093049A /* Markers.svg */,
 				0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */,
 				0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */,
 				0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */,
@@ -406,6 +409,7 @@
 				0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
 				0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */,
+				0ADA5C371BA3363F0093049A /* Markers.svg in Resources */,
 				0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

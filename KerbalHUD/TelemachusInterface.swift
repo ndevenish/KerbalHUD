@@ -97,10 +97,8 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
-    if let timer = _dumpTimer where timer.elapsed > 10 {
+    if (_dumpTimer?.elapsed ?? 20) > 10 {
       print(_connectionTime!.elapsed, ":  ", text)
-      _dumpTimer = Clock.createTimer()
-    } else {
       _dumpTimer = Clock.createTimer()
     }
     guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {

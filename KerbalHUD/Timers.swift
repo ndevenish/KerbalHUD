@@ -84,8 +84,8 @@ private struct TimerImpl : Timer {
   let clock : TimerClock
   let baseTime : Double
   let duration : Double
-  var scale : Double
-  var category : TimerCategory
+  let scale : Double
+  let category : TimerCategory
   
   var elapsed : Double {
     return scale*(clock.timeBases[category]!-baseTime)

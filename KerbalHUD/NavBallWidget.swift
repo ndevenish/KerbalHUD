@@ -14,7 +14,32 @@ class NavBallWidget : Widget {
     var Roll : Float = 0
     var Pitch : Float = 0
     var Heading : Float = 0
+    
+    private struct Ends {
+      var Pro : Direction
+      var Retro : Direction
+      
+      init(data : [String:JSON], pro: String, ret: String) {
+        Pro = Direction(data: data, name: pro)
+        Retro = Direction(data: data, name: ret)
+      }
+    }
+    private struct Direction {
+      var Pitch : Float
+      var Yaw : Float
+      init(data : [String:JSON], name: String) {
+        Pitch = data["rpm.PITCH" + name]?.floatValue ?? 0
+        Yaw = data["rpm.YAW" + name]?.floatValue ?? 0
+      }
+      init(p: Float, y: Float) {
+        Pitch = p
+        Yaw = y
+      }
+    }
+    
+    var markers : [String:Direction] = [:]
   }
+  
   private(set) var bounds : Bounds
   let variables : [String]
   private(set) var configuration : [String : Any] = [:]
@@ -30,10 +55,13 @@ class NavBallWidget : Widget {
 
     var varList = [Vars.Flight.Roll,
                    Vars.Flight.Pitch,
-                   Vars.Flight.Heading]
+                   Vars.Flight.Heading,
+                   Vars.Node.Exists,
+                   Vars.Target.Exists]
     varList.appendContentsOf(Vars.RPM.Direction.allCardinal)
     varList.appendContentsOf(Vars.RPM.Direction.Node.all)
     varList.appendContentsOf(Vars.RPM.Direction.Target.all)
+    
     variables = varList
     
     self.bounds = bounds
@@ -43,10 +71,38 @@ class NavBallWidget : Widget {
   }
   
   func update(data : [String : JSON]) {
-    self.data = FlightData(
-      Roll: data[Vars.Flight.Roll]?.floatValue ?? 0,
-      Pitch: data[Vars.Flight.Pitch]?.floatValue ?? 0,
-      Heading: data[Vars.Flight.Heading]?.floatValue ?? 0)
+    var out = FlightData()
+    out.Roll = data[Vars.Flight.Roll]?.floatValue ?? 0
+    out.Pitch = data[Vars.Flight.Pitch]?.floatValue ?? 0
+    out.Heading = data[Vars.Flight.Heading]?.floatValue ?? 0
+    
+    
+    
+    let primary = FlightData.Ends(data: data, pro: "PROGRADE", ret: "RETROGRADE")
+    let normal =  FlightData.Ends(data: data, pro: "NORMALPLUS", ret: "NORMALMINUS")
+    let radial =  FlightData.Ends(data: data, pro: "RADIALIN", ret: "RADIALOUT")
+    var markers : [String: FlightData.Direction] = [
+      "Prograde": primary.Pro,
+      "Retrograde": primary.Retro,
+      "RadialIn": radial.Pro,
+      "RadialOut": radial.Retro,
+      "Normal": normal.Pro,
+      "AntiNormal": normal.Retro
+    ]
+    if data[Vars.Node.Exists]?.boolValue ?? false {
+      markers["Maneuver"] = FlightData.Direction(data: data, name: "NODE")
+    }
+    if data[Vars.Target.Exists]?.boolValue ?? false {
+      markers["TargetPrograde"] = FlightData.Direction(data: data, name: "TARGET")
+    }
+//    markers = [
+//      "Prograde": FlightData.Direction(p: out.Pitch, y: out.Heading),
+//      "Retrograde": FlightData.Direction(p: 45-out.Pitch, y: 45-out.Heading),
+//      "RadialIn": FlightData.Direction(p: 0, y: 45),
+//    ]
+    
+    out.markers = markers
+    self.data = out
   }
   
   func draw() {
@@ -69,8 +125,34 @@ class NavBallWidget : Widget {
     sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 0, 1)
     sphMat = GLKMatrix4Rotate(sphMat, π/2, 0, 1, 0)
     drawing.program.setModelView(sphMat)
-    
     drawing.draw(sphere)
+    
+    var mkMat = GLKMatrix4Identity
+    // Middle of the screen, forwards
+    mkMat = GLKMatrix4Translate(mkMat, bounds.center.x, bounds.center.y, 1)
+    mkMat = GLKMatrix4Scale(mkMat, bounds.width/2, bounds.height/2, 1)
+//    sphMat = GLKMatrix4Scale(sphMat, bounds.width/2, bounds.height/2, 1)
+
+    drawing.program.setModelView(mkMat)
+    // Draw all the nav markers
+    for (name, dir) in data.markers {
+      guard let tex = drawing.images[name] else {
+        continue
+      }
+      drawing.bind(tex)
+      // Work out where to draw this....
+      var spec = mkMat
+      // Now rotate off-center
+      spec = GLKMatrix4Rotate(spec, (-dir.Pitch) * π/180, 1, 0, 0)
+      spec = GLKMatrix4Rotate(spec, (-dir.Yaw  ) * π/180, 0, -1, 0)
+      spec = GLKMatrix4Translate(spec, 0,0,1)
+      spec = GLKMatrix4Rotate(spec, (dir.Pitch) * π/180, 1, 0, 0)
+      spec = GLKMatrix4Rotate(spec, (dir.Yaw  ) * π/180, 0, -1, 0)
+      spec = GLKMatrix4Scale(spec, 0.3, 0.3, 1)
+      drawing.program.setModelView(spec)
+      
+      drawing.draw(drawing.texturedCenterSquare!)
+    }
   }
 }
 

@@ -322,7 +322,7 @@ class TextRenderer {
                 yOffset: atlas.uvSize.height*GLfloat(coords.y+1),
                 xScale:  atlas.uvSize.width,
                 yScale:  -atlas.uvSize.height)
-            glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+            //glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
             tool.draw(tool.texturedSquare!)
           } else {
             // We don't recognise this character. This is a problem.

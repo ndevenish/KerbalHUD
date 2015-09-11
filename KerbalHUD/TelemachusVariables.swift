@@ -22,6 +22,8 @@ struct Vars {
   static let RPM = RasterPropMonitorVarNames()
   static let FAR = FARVarNames()
   static let Aero = AeroNames()
+  static let Target = TargetNames()
+  static let Node = NodeNames()
   
   private init() {
     
@@ -111,5 +113,13 @@ extension Vars {
     var allNormal : [String] { return Array([NormalPlus.all, NormalMinus.all].flatten()) }
     var allProAxis : [String] { return Array([Prograde.all, Retrograde.all].flatten()) }
     var allCardinal : [String] { return Array([allRadial, allNormal, allProAxis].flatten()) }
+  }
+  
+  struct TargetNames {
+    let Exists = "rpm.TARGETEXISTS"
+  }
+  
+  struct NodeNames {
+    let Exists = "rpm.MNODEEXISTS"
   }
 }

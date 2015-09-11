@@ -9,7 +9,7 @@
 import Foundation
 import GLKit
 
-infix operator • {}
+//infix operator • {}
 infix operator ± {}
 
 prefix func -(of: GLKVector3) -> GLKVector3 {

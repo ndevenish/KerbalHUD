@@ -292,7 +292,13 @@ private extension SVGPresentationElement {
 }
 
 private extension SVGContainerElement {
+  var display : String {
+    return (attributes["display"] ?? "") as? String ?? "inline"
+  }
   var boundingBox : CGRect? {
+    if display == "none" {
+      return nil
+    }
     // Unify all the child bounding boxes
     var boundingBox : CGRect? = nil
     for child in children.filter({ $0 is SVGDrawable }).map({ $0 as! SVGDrawable }) {
@@ -306,7 +312,7 @@ private extension SVGContainerElement {
   }
   
   func drawToContext(context: CGContextRef) {
-    if let drawable = self as? SVGPresentationElement where drawable.display == "none" {
+    if display == "none" {
       return
     }
     // Loop over all children and draw

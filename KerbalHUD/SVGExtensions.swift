@@ -15,8 +15,8 @@ extension SVGImage
   func renderToTexture(size: Size2D<Float>, flip: Bool = true) -> Texture {
     let size = CGSize(width: CGFloat(size.w), height: CGFloat(size.h))
     // Scale the SVG size to the full area
-    let svgSize = Size2D(w: self.svg.width.value, h: self.svg.height.value)
-    let svgScale = Size2D(w: Float(size.width) / svgSize.w, h: Float(size.height) / svgSize.h)
+    let svgSize = try! self.bounds().size //Size2D(w: self.svg.width.value, h: self.svg.height.value)
+    let svgScale = Size2D(w: Float(size.width) / Float(svgSize.width), h: Float(size.height) / Float(svgSize.height))
     
     UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
     let context = UIGraphicsGetCurrentContext()
@@ -27,7 +27,7 @@ extension SVGImage
       CGContextScaleCTM(context, CGFloat(svgScale.w), CGFloat(svgScale.h))
     }
     
-    drawToContext(context!)
+    try! drawToContext(context!)
     
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()

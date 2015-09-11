@@ -15,11 +15,16 @@ enum StringFormatError : ErrorType {
   case InvalidIndex
   case InvalidAlignment
   case CannotCastToDouble
+  case NaNOrInvalidDouble
 }
 
 func downcastToDouble(val : Any) throws -> Double {
   guard let dbl = val as? DoubleCoercible else {
-    fatalError()
+    if let v = val as? String where v == "NaN" {
+      throw StringFormatError.NaNOrInvalidDouble
+    }
+    print("Cannot convert '\(val)' to double!")
+    throw StringFormatError.CannotCastToDouble
   }
   return dbl.asDoubleValue
 
@@ -227,8 +232,14 @@ private func ExpandSingleFormat(format : String, arg: Any) -> String {
   }
   
   if format.hasPrefix("SIP") {
-    let val = try! downcastToDouble(arg)
-    return processSIPFormat(val, formatString: format)
+    do {
+      let val = try downcastToDouble(arg)
+      return processSIPFormat(val, formatString: format)
+    } catch StringFormatError.NaNOrInvalidDouble {
+      return String(arg)
+    } catch {
+      fatalError()
+    }
   } else if format.hasPrefix("DMS") {
     print("Warning: DMS not handled")
     return String(arg)

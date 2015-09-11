@@ -46,7 +46,7 @@ class GameViewController: GLKViewController {
     view.drawableStencilFormat = .Format8
     
     self.setupGL()
-    telemachus = try! TelemachusInterface(hostname: "192.168.1.73", port: 8085)
+    telemachus = try! TelemachusInterface(hostname: "192.168.1.197", port: 8085)
     panel?.connection = telemachus!
     
     tapRec.addTarget(self, action: "registerTap")

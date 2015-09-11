@@ -303,7 +303,7 @@ class HeadingBarWidget : ScaledBarWidget {
         let angle = heading - slip
         let position = transform(angle)
         let point = axisOrigin + position * axisVec
-                               + progradeSize/2 * tickVec * 0.8
+                               + progradeSize/2 * tickVec * 0.5
         var xf = GLKMatrix4MakeTranslation(point.x, point.y, 0)
         xf = GLKMatrix4Scale(xf, progradeSize, progradeSize, 1)
         drawing.program.setModelView(xf)

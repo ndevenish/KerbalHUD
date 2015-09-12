@@ -72,7 +72,7 @@ class NavBallWidget : Widget {
   
   func update(data : [String : JSON]) {
     var out = FlightData()
-    out.Roll = data[Vars.Flight.Roll]?.floatValue ?? 0
+    out.Roll = -(data[Vars.Flight.Roll]?.floatValue ?? 0)
     out.Pitch = data[Vars.Flight.Pitch]?.floatValue ?? 0
     out.Heading = data[Vars.Flight.Heading]?.floatValue ?? 0
     

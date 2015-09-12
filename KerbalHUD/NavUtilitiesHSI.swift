@@ -76,8 +76,7 @@ class HSIIndicator : RPMInstrument {
 //        "n.heading", "navutil.glideslope", "navutil.bearing",
 //        "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
 //        "navutil.runwayheading", "navutil.runway"])
-//      dataProvider?.oneshot("navutil.runways")
-//    }
+//        }
 //  }
 //  
   override func connect(to : IKerbalDataStore) {
@@ -86,7 +85,7 @@ class HSIIndicator : RPMInstrument {
               "n.heading", "navutil.glideslope", "navutil.bearing",
               "navutil.dme", "navutil.locdeviation", "navutil.gsdeviation",
               "navutil.runwayheading", "navutil.runway"])
-    to.oneshot("navutil.runways")
+    to.subscribeOnce("navutil.runways")
   }
   
   override func disconnect(from: IKerbalDataStore) {

@@ -19,6 +19,17 @@ protocol IKerbalDataStore {
   func subscribe(apiNames : [String])
   func unsubscribe(apiNames : [String])
   func oneshot(name : String)
+  
+  /** 
+  Subscribe to a variable such that we only need it once, rather than continuously.
+  
+  May still retrieve the value more than once, but will
+  automatically unsubscribe once the value has been successfully
+  retrieved.
+  
+  - parameter name  The name of the API variable to retrieve
+  */
+  func subscribeOnce(name : String)
 }
 
 
@@ -43,15 +54,18 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _latestData : [String: (time: Double, data: JSON)] = [:]
   private var _pendingSubscriptions : [String] = []
   private var _pendingOneshots : [String] = []
-  /// Oneshots we are waiting for and the wait time
-  private var _awaitingOneShotResults : [String : Double] = [:]
+  
+  /// Temporary subscriptions, that we only need the data once
+  private var _temporarySubscriptions = Set<String>()
   
   private var _connectionTime : Timer?
   private var _dumpTimer : Timer?
   
   private var _subscriptions : [String : Int ] = [:]
-  
   private var _parseQueue : dispatch_queue_t
+  private var dropped : Int = 0
+  private var reading : Int = 0
+  private var errored = Set<String>()
   
   init (hostname : String, port : UInt) throws {
     _parseQueue = dispatch_queue_create("kerbalhud_queue", DISPATCH_QUEUE_SERIAL)
@@ -81,10 +95,6 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       _pendingSubscriptions.removeAll()
     }
     if _pendingOneshots.count > 0 {
-      // Wait for all the one-shot results
-      for oneShot in _pendingOneshots {
-        _awaitingOneShotResults[oneShot] = _connectionTime!.elapsed
-      }
       // Send off all the oneshots
       let list = _pendingOneshots.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"run\": [\(list)]")
@@ -104,8 +114,6 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     }
     print ("Attempting connection again..")
     _pendingSubscriptions.appendContentsOf(_subscriptions.keys)
-    _pendingOneshots.appendContentsOf(_awaitingOneShotResults.keys)
-    _awaitingOneShotResults.removeAll()
     socket.connect()
   }
   
@@ -120,40 +128,31 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     if reading < 0 {
       fatalError()
     }
-    
-    // If we are awaiting oneshots, then we need to process every message. Otherwise, drop
-    // the message as we are still processing
-    guard reading == 0 || _awaitingOneShotResults.count > 0 else {
+    // Discard any messages that arrive whilst parsing the last once
+    guard reading == 0 else {
       dropped += 1
       return
     }
     
+    // Read this message asynchronously
     reading += 1
     dispatch_async(_parseQueue) { () -> Void in
       defer {
         self.reading -= 1
       }
-      // If we have several tasks, but no oneshots remaining, cancel this instance
-      if self.reading > 1 && self._awaitingOneShotResults.count == 0 {
-        return
-      }
-      let timer = Clock.createTimer()
+//      let timer = Clock.createTimer()
       guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
         print("Got message could not decode as JSON: ", text)
         return
       }
       self.processJSONMessage(json)
-      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
-      print("Reading: ", self.reading, ", awaiting: ", self._awaitingOneShotResults.count)
+//      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
       if self.dropped > 0 {
-        print("Dropped: ", self.dropped)
+//        print("Dropped: ", self.dropped)
         self.dropped = 0
       }
     }
   }
-  private var dropped : Int = 0
-  private var reading : Int = 0
-  private var errored = Set<String>()
   
   func processJSONMessage(json : [String : JSON]) {
     let time = CACurrentMediaTime()
@@ -163,22 +162,24 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
         print("Error processing API: ", api, ";\n", error.stringValue, "\nUnsubscribing from ", api)
         errored.insert(api)
       }
-      unsubscribe(Array(errors.keys))
     }
     if let unknowns = json["unknown"]?.array {
-      let strApis = unknowns.map({ $0.stringValue })
-      print("Unknown APIs: ", strApis.joinWithSeparator(", "))
-      unsubscribe(Array(strApis))
+      let strApis = unknowns.map({ $0.stringValue }).filter({!errored.contains($0)})
+      if !strApis.isEmpty {
+        print("Unknown APIs: ", strApis.joinWithSeparator(", "))
+        errored.unionInPlace(strApis)
+      }
     }
     
     
-    for entry in json
+    for (api, entry) in json
     {
-      _latestData[entry.0] = (time,
-        coerceTelemachusVariable(entry.0,
-                          value: entry.1))
-      if _awaitingOneShotResults.keys.contains(entry.0) {
-        _awaitingOneShotResults.removeValueForKey(entry.0)
+      _latestData[api] = (time,
+        coerceTelemachusVariable(api,
+                          value: entry))
+      if _temporarySubscriptions.contains(api) {
+        _temporarySubscriptions.remove(api)
+        unsubscribe(api)
       }
     }
   }
@@ -221,10 +222,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   func unsubscribe(apiNames : [String]) {
     if (!isConnected) { return }
     for name in apiNames {
-      if _awaitingOneShotResults.keys.contains(name) {
-        _awaitingOneShotResults.removeValueForKey(name)
-      }
-      
+      _temporarySubscriptions.remove(name)
       let count = _subscriptions[name] ?? 0
       if count == 0 {
         print("Warning: Count mismatch for variable ", name)
@@ -236,6 +234,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     let api = "\"-\": [\(list)]"
     _socket?.writeString("{\(api)}")
   }
+  
   func oneshot(name : String) {
     guard isConnected else {
       _pendingOneshots.append(name)
@@ -243,5 +242,10 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     }
     let api = "\"run\": [\"\(name)\"]"
     _socket?.writeString("{\(api)}")
+  }
+  
+  func subscribeOnce(name: String) {
+    _temporarySubscriptions.insert(name)
+    subscribe(name)
   }
 }

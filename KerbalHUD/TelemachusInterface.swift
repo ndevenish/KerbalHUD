@@ -89,6 +89,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _connectionTime = Clock.createTimer()
     // Form an initial subscription packet
     var apiParts : [String] = ["\"rate\": 0"]
+    _pendingSubscriptions.append("p.paused")
     if _pendingSubscriptions.count > 0 {
       let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"+\": [\(list)]")
@@ -159,7 +160,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     
     if let errors = json["errors"]?.dictionary {
       for (api, error) in errors.filter({(a,b) in return !errored.contains(a)}) {
-        print("Error processing API: ", api, ";\n", error.stringValue, "\nUnsubscribing from ", api)
+        print("Error processing API: ", api, ";\n", error.stringValue)
         errored.insert(api)
       }
     }

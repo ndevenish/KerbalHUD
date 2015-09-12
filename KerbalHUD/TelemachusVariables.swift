@@ -123,3 +123,13 @@ extension Vars {
     let Exists = "rpm.MNODEEXISTS"
   }
 }
+
+func coerceTelemachusVariable(api: String, value: JSON) -> JSON
+{
+  let badBooleans = [
+    Vars.Node.Exists, Vars.Target.Exists]
+  if badBooleans.contains(api) {
+    return JSON(value.int ?? -1 == 1)
+  }
+  return value
+}

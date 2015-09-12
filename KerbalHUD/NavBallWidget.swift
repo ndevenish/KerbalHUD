@@ -105,6 +105,7 @@ class NavBallWidget : Widget {
     self.data = out
   }
   
+  /// Draw something
   func draw() {
     drawing.bind(sphereTexture)
     drawing.program.setColor(red: 1, green: 1, blue: 1)
@@ -143,10 +144,10 @@ class NavBallWidget : Widget {
       // Work out where to draw this....
       var spec = mkMat
       // Now rotate off-center
-      spec = GLKMatrix4Rotate(spec, (-dir.Pitch) * π/180, 1, 0, 0)
+      spec = GLKMatrix4Rotate(spec, (dir.Pitch) * π/180, 1, 0, 0)
       spec = GLKMatrix4Rotate(spec, (-dir.Yaw  ) * π/180, 0, -1, 0)
       spec = GLKMatrix4Translate(spec, 0,0,1)
-      spec = GLKMatrix4Rotate(spec, (dir.Pitch) * π/180, 1, 0, 0)
+      spec = GLKMatrix4Rotate(spec, (-dir.Pitch) * π/180, 1, 0, 0)
       spec = GLKMatrix4Rotate(spec, (dir.Yaw  ) * π/180, 0, -1, 0)
       spec = GLKMatrix4Scale(spec, 0.3, 0.3, 1)
       drawing.program.setModelView(spec)

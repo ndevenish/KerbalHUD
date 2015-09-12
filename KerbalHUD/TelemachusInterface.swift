@@ -43,19 +43,26 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var _latestData : [String: (time: Double, data: JSON)] = [:]
   private var _pendingSubscriptions : [String] = []
   private var _pendingOneshots : [String] = []
+  /// Oneshots we are waiting for and the wait time
+  private var _awaitingOneShotResults : [String : Double] = [:]
   
   private var _connectionTime : Timer?
   private var _dumpTimer : Timer?
   
   private var _subscriptions : [String : Int ] = [:]
   
+  private var _parseQueue : dispatch_queue_t
+  
   init (hostname : String, port : UInt) throws {
+    _parseQueue = dispatch_queue_create("kerbalhud_queue", DISPATCH_QUEUE_SERIAL)
+    
     // Parse the URL
     guard let url = NSURL(scheme: "ws", host: hostname + ":" + String(port), path: "/datalink") else {
       _url = NSURL()
       throw CommsError.InvalidURL
     }
     _url = url
+    
     _socket = WebSocket(url: _url)
     _socket!.delegate = self
     print("Starting connection to ", _url)
@@ -74,6 +81,11 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       _pendingSubscriptions.removeAll()
     }
     if _pendingOneshots.count > 0 {
+      // Wait for all the one-shot results
+      for oneShot in _pendingOneshots {
+        _awaitingOneShotResults[oneShot] = _connectionTime!.elapsed
+      }
+      // Send off all the oneshots
       let list = _pendingOneshots.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"run\": [\(list)]")
       _pendingOneshots.removeAll()
@@ -92,30 +104,85 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     }
     print ("Attempting connection again..")
     _pendingSubscriptions.appendContentsOf(_subscriptions.keys)
+    _pendingOneshots.appendContentsOf(_awaitingOneShotResults.keys)
+    _awaitingOneShotResults.removeAll()
     socket.connect()
   }
   
   func websocketDidReceiveMessage(socket: WebSocket, text: String)
   {
     if (_dumpTimer?.elapsed ?? 20) > 10 {
-      print(_connectionTime!.elapsed, ":  ", text)
+      print("\n", _connectionTime!.elapsed, ":  ", text)
       _dumpTimer = Clock.createTimer()
     }
-    guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
-      print("Got message could not decode as JSON: ", text)
+    
+
+    if reading < 0 {
+      fatalError()
+    }
+    
+    // If we are awaiting oneshots, then we need to process every message. Otherwise, drop
+    // the message as we are still processing
+    guard reading == 0 || _awaitingOneShotResults.count > 0 else {
+      dropped += 1
       return
     }
-    processJSONMessage(json)
+    
+    reading += 1
+    dispatch_async(_parseQueue) { () -> Void in
+      defer {
+        self.reading -= 1
+      }
+      // If we have several tasks, but no oneshots remaining, cancel this instance
+      if self.reading > 1 && self._awaitingOneShotResults.count == 0 {
+        return
+      }
+      let timer = Clock.createTimer()
+      guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
+        print("Got message could not decode as JSON: ", text)
+        return
+      }
+      self.processJSONMessage(json)
+      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
+      print("Reading: ", self.reading, ", awaiting: ", self._awaitingOneShotResults.count)
+      if self.dropped > 0 {
+        print("Dropped: ", self.dropped)
+        self.dropped = 0
+      }
+    }
   }
+  private var dropped : Int = 0
+  private var reading : Int = 0
+  private var errored = Set<String>()
   
   func processJSONMessage(json : [String : JSON]) {
     let time = CACurrentMediaTime()
+    
+    if let errors = json["errors"]?.dictionary {
+      for (api, error) in errors.filter({(a,b) in return !errored.contains(a)}) {
+        print("Error processing API: ", api, ";\n", error.stringValue, "\nUnsubscribing from ", api)
+        errored.insert(api)
+      }
+      unsubscribe(Array(errors.keys))
+    }
+    if let unknowns = json["unknown"]?.array {
+      let strApis = unknowns.map({ $0.stringValue })
+      print("Unknown APIs: ", strApis.joinWithSeparator(", "))
+      unsubscribe(Array(strApis))
+    }
+    
+    
     for entry in json
     {
-      _latestData[entry.0] = (time, entry.1)
+      _latestData[entry.0] = (time,
+        coerceTelemachusVariable(entry.0,
+                          value: entry.1))
+      if _awaitingOneShotResults.keys.contains(entry.0) {
+        _awaitingOneShotResults.removeValueForKey(entry.0)
+      }
     }
-      
   }
+  
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
     fatalError("Got binary packet; not expecting")
@@ -154,6 +221,10 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   func unsubscribe(apiNames : [String]) {
     if (!isConnected) { return }
     for name in apiNames {
+      if _awaitingOneShotResults.keys.contains(name) {
+        _awaitingOneShotResults.removeValueForKey(name)
+      }
+      
       let count = _subscriptions[name] ?? 0
       if count == 0 {
         print("Warning: Count mismatch for variable ", name)

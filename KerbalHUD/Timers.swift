@@ -99,6 +99,7 @@ private struct TimerImpl : Timer {
 }
 
 extension ITimerClock {
+  /// Create a basic, real-time timer with no special features
   func createTimer() -> Timer {
     return createTimer(.Real, duration: 0, scale: 1)
   }

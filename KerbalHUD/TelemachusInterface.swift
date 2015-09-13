@@ -11,13 +11,24 @@ import QuartzCore
 
 /// Stores result values sent from Kerbal
 protocol IKerbalDataStore {
+  /// Retrieve a single data value
   subscript(index : String) -> JSON? { get }
+  
+  /** Finds the age of the named data variable.
+  - parameter name The data variable to query
+  - returns: Number of seconds since update,
+             or infinity if unknown */
   func ageOfData(name : String) -> Double
   
+  /// Subscribe to a single API variable
   func subscribe(name : String)
+  /// Unsubscribe from a single API variable
   func unsubscribe(name : String)
+  /// Subscribe to a whole number of API variables
   func subscribe(apiNames : [String])
+  /// Unsubscribe from a whole number of API variables
   func unsubscribe(apiNames : [String])
+  /// Send an API request to the server only once
   func oneshot(name : String)
   
   /** 
@@ -45,26 +56,38 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     get { return _url }
   }
   
-  var isConnected : Bool { get { return _socket?.isConnected ?? false } }
-  
+  /// The websocket object being used to talk to telemachus
   private var _socket : WebSocket? = nil
-  /// Stores the last data packet recieved
-  private var _textMessage : String? = nil
 
+  /// The current data set, by integrating all the data recieved
   private var _latestData : [String: (time: Double, data: JSON)] = [:]
+  /// Subscriptions we have yet to dispatch. Used for e.g. subscriptions
+  /// requested without an active connection.
   private var _pendingSubscriptions : [String] = []
+  /// One-time requests we have yet to dispatch. Used for e.g. subscriptions
+  /// requested without an active connection.
   private var _pendingOneshots : [String] = []
   
-  /// Temporary subscriptions, that we only need the data once
+  /// Temporary subscriptions, that we only need the data once for. Once a
+  /// value is recieved for each of these variables, we will be unsubscribed
+  /// from it.
   private var _temporarySubscriptions = Set<String>()
   
+  /// Timer initialised when the connection connects
   private var _connectionTime : Timer?
+  /// Timer to keep track of the last time we debug printed a data dump
   private var _dumpTimer : Timer?
   
-  private var _subscriptions : [String : Int ] = [:]
+  /// The current subscriptions, and the number of times it has been subscribed
+  var _subscriptions : [String : Int ] = [:]
+  /// GCD Queue for processing incoming websocket messages
   private var _parseQueue : dispatch_queue_t
+  
+  /// Tracks number of dropped messages due to still processing
   private var dropped : Int = 0
+  /// The number of messages we are currently reading
   private var reading : Int = 0
+  /// Varaibles we have recieved an error for. Each variable will only be printed once.
   private var errored = Set<String>()
   
   init (hostname : String, port : UInt) throws {
@@ -83,16 +106,25 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _socket!.connect()
   }
   
+  /// Is the websocket actively connected?
+  var isConnected : Bool { get { return _socket?.isConnected ?? false } }
+  
   func websocketDidConnect(socket: WebSocket)
   {
     print("Connected to socket!")
     _connectionTime = Clock.createTimer()
+    // Reset the subscriptions
+    _subscriptions = [:]
     // Form an initial subscription packet
     var apiParts : [String] = ["\"rate\": 0"]
     _pendingSubscriptions.append("p.paused")
     if _pendingSubscriptions.count > 0 {
       let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"+\": [\(list)]")
+      for name in _pendingSubscriptions {
+        let val = _subscriptions[name] ?? 0
+        _subscriptions[name] = val + 1
+      }
       _pendingSubscriptions.removeAll()
     }
     if _pendingOneshots.count > 0 {
@@ -115,6 +147,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     }
     print ("Attempting connection again..")
     _pendingSubscriptions.appendContentsOf(_subscriptions.keys)
+    _subscriptions.removeAll()
     socket.connect()
   }
   
@@ -125,7 +158,6 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       _dumpTimer = Clock.createTimer()
     }
     
-
     if reading < 0 {
       fatalError()
     }
@@ -141,7 +173,6 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       defer {
         self.reading -= 1
       }
-//      let timer = Clock.createTimer()
       guard let json = JSON(data: text.dataUsingEncoding(NSUTF8StringEncoding)!).dictionary else {
         print("Got message could not decode as JSON: ", text)
         return
@@ -197,7 +228,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   }
   
   func ageOfData(name : String) -> Double {
-    return CACurrentMediaTime() - (_latestData[name]?.time ?? 0)
+    return CACurrentMediaTime() - (_latestData[name]?.time ?? -Double.infinity)
   }
   
   func subscribe(name : String) {
@@ -227,13 +258,19 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
       let count = _subscriptions[name] ?? 0
       if count == 0 {
         print("Warning: Count mismatch for variable ", name)
+        print("Data: ", _subscriptions)
         continue
       }
       _subscriptions[name] = count - 1
     }
-    let list = apiNames.map({"\"" + $0 + "\""}).joinWithSeparator(",")
-    let api = "\"-\": [\(list)]"
-    _socket?.writeString("{\(api)}")
+    // Unsubscribe from anything with a count of zero
+    let toUnsubscribe = _subscriptions.filter({(k,v) in v == 0}).map({$0.0})
+    if !toUnsubscribe.isEmpty {
+      print("Unsubscribing really from " + toUnsubscribe.joinWithSeparator(", "))
+      let list = toUnsubscribe.map({"\"" + $0 + "\""}).joinWithSeparator(",")
+      let api = "\"-\": [\(list)]"
+      _socket?.writeString("{\(api)}")
+    }
   }
   
   func oneshot(name : String) {

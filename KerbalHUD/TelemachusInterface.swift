@@ -9,6 +9,15 @@
 import Foundation
 import QuartzCore
 
+enum TelemachusState : Int {
+  case Paused = 1
+  case OutOfPower = 2
+  case SwitchedOff = 3
+  case NoPart = 4
+  case NotInFlightScene = 5
+  case Unknown = 666
+}
+
 /// Stores result values sent from Kerbal
 protocol IKerbalDataStore {
   /// Retrieve a single data value
@@ -30,6 +39,9 @@ protocol IKerbalDataStore {
   func unsubscribe(apiNames : [String])
   /// Send an API request to the server only once
   func oneshot(name : String)
+  
+  /// Request the current state of the uplink
+  var uplinkState : TelemachusState { get }
   
   /** 
   Subscribe to a variable such that we only need it once, rather than continuously.
@@ -89,6 +101,10 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var reading : Int = 0
   /// Varaibles we have recieved an error for. Each variable will only be printed once.
   private var errored = Set<String>()
+  
+  var uplinkState : TelemachusState {
+    return TelemachusState(rawValue: _latestData["p.paused"]?.1.intValue ?? 666) ?? .Unknown
+  }
   
   init (hostname : String, port : UInt) throws {
     _parseQueue = dispatch_queue_create("kerbalhud_queue", DISPATCH_QUEUE_SERIAL)

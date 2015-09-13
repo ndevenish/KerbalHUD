@@ -42,6 +42,10 @@ func *(left: GLKMatrix4, right: GLKVector3) -> GLKVector3 {
   return GLKMatrix4MultiplyVector3(left, right)
 }
 
+func *(left: GLKMatrix4, right: GLKVector4) -> GLKVector4 {
+  return GLKMatrix4MultiplyVector4(left, right)
+}
+
 func *(left: GLKMatrix4, right: GLKMatrix4) -> GLKMatrix4 {
   return GLKMatrix4Multiply(left, right)
 }

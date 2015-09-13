@@ -15,6 +15,8 @@ class NavBallWidget : Widget {
     var Pitch : Float = 0
     var Heading : Float = 0
     
+    var speedDisplay : SpeedDisplay = .Orbit
+    
     private struct Ends {
       var Pro : Direction
       var Retro : Direction
@@ -57,7 +59,11 @@ class NavBallWidget : Widget {
                    Vars.Flight.Pitch,
                    Vars.Flight.Heading,
                    Vars.Node.Exists,
-                   Vars.Target.Exists]
+                   Vars.Target.Exists,
+                   Vars.Aero.AngleOfAttack,
+                   Vars.Aero.Sideslip,
+                   Vars.Vessel.SpeedDisplay]
+    
     varList.appendContentsOf(Vars.RPM.Direction.allCardinal)
     varList.appendContentsOf(Vars.RPM.Direction.Node.all)
     varList.appendContentsOf(Vars.RPM.Direction.Target.all)
@@ -72,35 +78,41 @@ class NavBallWidget : Widget {
   
   func update(data : [String : JSON]) {
     var out = FlightData()
-    out.Roll = -(data[Vars.Flight.Roll]?.floatValue ?? 0)
+    out.Roll = (data[Vars.Flight.Roll]?.floatValue ?? 0)
     out.Pitch = data[Vars.Flight.Pitch]?.floatValue ?? 0
     out.Heading = data[Vars.Flight.Heading]?.floatValue ?? 0
+    out.speedDisplay = SpeedDisplay(rawValue: data[Vars.Vessel.SpeedDisplay]?.intValue ?? 1) ?? .Orbit
     
+    var markers : [String:FlightData.Direction] = [:]
     
-    
-    let primary = FlightData.Ends(data: data, pro: "PROGRADE", ret: "RETROGRADE")
-    let normal =  FlightData.Ends(data: data, pro: "NORMALPLUS", ret: "NORMALMINUS")
-    let radial =  FlightData.Ends(data: data, pro: "RADIALIN", ret: "RADIALOUT")
-    var markers : [String: FlightData.Direction] = [
-      "Prograde": primary.Pro,
-      "Retrograde": primary.Retro,
-      "RadialIn": radial.Pro,
-      "RadialOut": radial.Retro,
-      "Normal": normal.Pro,
-      "AntiNormal": normal.Retro
-    ]
-    if data[Vars.Node.Exists]?.boolValue ?? false {
-      markers["Maneuver"] = FlightData.Direction(data: data, name: "NODE")
+    switch out.speedDisplay {
+    case .Orbit:
+      let primary = FlightData.Ends(data: data, pro: "PROGRADE", ret: "RETROGRADE")
+      let normal =  FlightData.Ends(data: data, pro: "NORMALPLUS", ret: "NORMALMINUS")
+      let radial =  FlightData.Ends(data: data, pro: "RADIALIN", ret: "RADIALOUT")
+      markers = [
+        "Prograde": primary.Pro,
+        "Retrograde": primary.Retro,
+        "RadialIn": radial.Pro,
+        "RadialOut": radial.Retro,
+        "Normal": normal.Pro,
+        "AntiNormal": normal.Retro
+      ]
+      if data[Vars.Node.Exists]?.boolValue ?? false {
+        markers["Maneuver"] = FlightData.Direction(data: data, name: "NODE")
+      }
+      if data[Vars.Target.Exists]?.boolValue ?? false {
+        markers["TargetPrograde"] = FlightData.Direction(data: data, name: "TARGET")
+      }
+    case .Surface:
+      if let pitch = data[Vars.Aero.AngleOfAttack]?.floatValue,
+              let yaw   = data[Vars.Aero.Sideslip]?.floatValue
+      {
+        markers["Prograde"] = FlightData.Direction(p: pitch, y: yaw)
+      }
+    case .Target:
+      break
     }
-    if data[Vars.Target.Exists]?.boolValue ?? false {
-      markers["TargetPrograde"] = FlightData.Direction(data: data, name: "TARGET")
-    }
-//    markers = [
-//      "Prograde": FlightData.Direction(p: out.Pitch, y: out.Heading),
-//      "Retrograde": FlightData.Direction(p: 45-out.Pitch, y: 45-out.Heading),
-//      "RadialIn": FlightData.Direction(p: 0, y: 45),
-//    ]
-    
     out.markers = markers
     self.data = out
   }
@@ -116,7 +128,7 @@ class NavBallWidget : Widget {
       bounds.left+bounds.width/2, bounds.bottom+bounds.height/2, 0)
     sphMat = GLKMatrix4Scale(sphMat, bounds.width/2, bounds.height/2, 1)
     // Roll
-    sphMat = GLKMatrix4Rotate(sphMat, (data.Roll) * π/180, 0, 0, 1)
+    sphMat = GLKMatrix4Rotate(sphMat, -(data.Roll) * π/180, 0, 0, 1)
     // Pitch?
     sphMat = GLKMatrix4Rotate(sphMat, (data.Pitch) * π/180, 1, 0, 0)
     // Heading
@@ -152,6 +164,12 @@ class NavBallWidget : Widget {
       spec = GLKMatrix4Scale(spec, 0.3, 0.3, 1)
       drawing.program.setModelView(spec)
       
+      // What colour? White, other than the transparency...
+//      let position = spec * GLKVector4Make(0,0,0,1)
+      let zPosition = cos(dir.Yaw)*cos(dir.Pitch)
+      print("Position for " + name + ": ", zPosition, "(", dir.Pitch, ", ", dir.Yaw, ")")
+      
+//      drawing.program.setColor(Color4(r: 1, g: 1, b: 1, a: min(1, position.z+1)))
       drawing.draw(drawing.texturedCenterSquare!)
     }
   }

@@ -16,6 +16,12 @@ import Foundation
 /// Top level variable name structure. Intended to be referenced as a static
 /// global reference source.
 
+enum SpeedDisplay : Int {
+  case Surface = 0
+  case Orbit = 1
+  case Target = -1
+}
+
 struct Vars {
   static let Flight = FlightDataVarNames()
   static let Vessel = VesselDataVarNames()
@@ -53,6 +59,8 @@ extension Vars {
     
     let Altitude = "v.altitude"
     let Throttle = "f.throttle"
+    
+    let SpeedDisplay = "rpm.SPEEDDISPLAYMODE"
     
     private init() {
       

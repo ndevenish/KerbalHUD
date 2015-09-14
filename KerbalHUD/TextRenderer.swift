@@ -357,3 +357,35 @@ class AtlasTextRenderer : TextRenderer {
   }
 }
 
+class TextureAtlas {
+  /// The framebuffer and texture used for atlas rendering
+  private var framebuffer : Framebuffer
+  /// The size of a single item in the atlas
+  private var itemSize : Size2D<Int>
+  /// Precalculated rects for every item in the atlas
+  private var items : [String : CGRect] = [:]
+  private var atlasSize : Size2D<Int>
+  
+  init(tools: DrawingTools, fromExistingAtlas: Texture, withItemSize: Size2D<Int>, andItems: [String])
+  {
+    guard fromExistingAtlas.size != nil else {
+      fatalError("Cannot create atlas from unknown texture size")
+    }
+    atlasSize = Size2D(w: fromExistingAtlas.size!.w / withItemSize.w,
+      h: fromExistingAtlas.size!.h / withItemSize.h)
+    // Build a new framebuffer from this texture
+    framebuffer = tools.createFramebufferForTexture(fromExistingAtlas)
+    self.itemSize = withItemSize
+    
+    // Calculate rects on this texture for every item
+    for (i, item) in andItems.enumerate() {
+      let indexY = i / atlasSize.w
+      let indexX = i - (atlasSize.w * indexY)
+      let fullW = CGFloat(itemSize.w)/CGFloat(framebuffer.size.w)
+      let fullH = CGFloat(itemSize.h)/CGFloat(framebuffer.size.h)
+      let cPos = CGRectMake(CGFloat(indexX)*fullW, CGFloat(indexY)*fullH,fullW,fullH)
+      items[item] = cPos
+    }
+  }
+}
+

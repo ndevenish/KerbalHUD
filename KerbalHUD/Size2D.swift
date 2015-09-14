@@ -7,9 +7,9 @@
 //
 
 
-import Foundation
+import UIKit
 
-protocol FloatConvertible {
+protocol FloatConvertible : Comparable {
   var asFloat : Float { get }
 }
 
@@ -59,15 +59,28 @@ extension Size2D {
   func map<U>(meth: (T -> U)) -> Size2D<U> {
     return Size2D<U>(w: meth(w), h: meth(h))
   }
+  
+  var asCGSize : CGSize {
+    return CGSizeMake(CGFloat(w.asFloat), CGFloat(h.asFloat))
+  }
+}
+
+func Size2DFromCGSize(size : CGSize) -> Size2D<Float> {
+  return Size2D<Float>(w: Float(size.width), h: Float(size.height))
 }
 
 func *(size: Size2D<Float>, scale: Float) -> Size2D<Float>{
   return Size2D(w: size.w*scale, h: size.h*scale)
 }
+
 func *(scale: Float, size: Size2D<Float>) -> Size2D<Float>{
   return Size2D(w: size.w*scale, h: size.h*scale)
 }
+
 func min<T : Comparable>(size : Size2D<T>) -> T {
   return min(size.w, size.h)
 }
 
+func max<T>(size: Size2D<T>) -> T {
+  return max(size.w, size.h)
+}

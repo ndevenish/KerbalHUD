@@ -61,6 +61,7 @@ class AtlasTextRenderer : TextRenderer {
     let text : String
     // Location of characters
     let coords : [Character : (x: Int, y: Int)]
+    let newAtlas : TextureAtlas
   }
   private var textAtlasses : [TextAtlas] = []
   
@@ -178,6 +179,23 @@ class AtlasTextRenderer : TextRenderer {
     return entry
   }
   
+  
+  // Work out the size of texture we require for a particular count of characters
+  private func _required_texture_size(count: Int, size : Size2D<Int>) -> CGSize {
+    // Work out the power of two length required for the maximum dimension
+    let pwrMaxRequired = Int(ceil(log2(Float(max(size))*sqrt(Float(count)))))
+    // Check the power below this, as it MIGHT work with uneven character counts
+    let charCount2 = (x: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.w))),
+      y: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.h))))
+    let txSize : Int
+    if charCount2.x*charCount2.y > count {
+      txSize = Int(pow(2, Float(pwrMaxRequired-1)))
+    } else {
+      txSize = Int(pow(2, Float(pwrMaxRequired)))
+    }
+    return CGSize(width: txSize, height: txSize)
+  }
+  
   private func getAtlas(size: Int) -> TextAtlas? {
     // Try to find an atlas matching this
     for atlas in textAtlasses {
@@ -194,57 +212,39 @@ class AtlasTextRenderer : TextRenderer {
     let attrs : [String : AnyObject] = [NSFontAttributeName: font!, NSForegroundColorAttributeName: UIColor.whiteColor()]
     
     // How large is a single character?
-    let singleCharacterSizePts = ("W" as NSString).sizeWithAttributes(attrs)
+    let singleCharacterSizePts = Size2DFromCGSize(("W" as NSString).sizeWithAttributes(attrs))
+    let characterFullPointSize = singleCharacterSizePts.map({Int(ceil($0))})
+    let characterPixelSize = singleCharacterSizePts.map({$0*Float(UIScreen.mainScreen().scale)})
+    let characterFullPixelSize = singleCharacterSizePts.map({Int(ceil($0 * Float(UIScreen.mainScreen().scale)))})
     
-    let singleCharacterSize : (width : Float, height: Float) = (
-      Float(singleCharacterSizePts.width),
-      Float(singleCharacterSizePts.height)
-    )
-    // Work out the size of texture required
-    func _required_texture_size(count: Int, size : (width: Float, height: Float)) -> CGSize {
-      // Bump up any fractional sizes
-      let size = (width: ceil(size.width), height: ceil(size.height))
-      // Work out the power of two length required for the maximum dimension
-      let pwrMaxRequired = Int(ceil(log2(max(size.height, size.width)*sqrt(Float(count)))))
-      // Check the power below this, as it MIGHT work with uneven character counts
-      let charCount2 = (x: Int(floor(pow(2, Float(pwrMaxRequired-1))/size.width)),
-                       y: Int(floor(pow(2, Float(pwrMaxRequired-1))/size.height)))
-      let txSize : Int
-      if charCount2.x*charCount2.y > count {
-        txSize = Int(pow(2, Float(pwrMaxRequired-1)))
-      } else {
-        txSize = Int(pow(2, Float(pwrMaxRequired)))
-      }
-      return CGSize(width: txSize, height: txSize)
-    }
-    let textureSize = _required_texture_size(atlasText.characters.count, size: singleCharacterSize)
-    let characterCount = (x: Int(floor(textureSize.width/CGFloat(singleCharacterSize.width))),
-                          y: Int(floor(textureSize.height/CGFloat(singleCharacterSize.height))))
-    // Render the texture
-    UIGraphicsBeginImageContextWithOptions(textureSize, false, UIScreen.mainScreen().scale)
-    let context = UIGraphicsGetCurrentContext()
-    var charLookup : [Character: (x: Int, y: Int)] = [:]
-    for line in 0...characterCount.y {
-      // Don't go it we are over the end of the texture atlas
-      if line*characterCount.x > atlasText.characters.count {
-        break
-      }
-      // Get the subset of the text texture
-      let unboundEndIndex = (line+1)*characterCount.x
-      let endIndex = unboundEndIndex > atlasText.characters.count ?
-        atlasText.endIndex : atlasText.startIndex.advancedBy(unboundEndIndex)
-//        advance(atlasText.startIndex, )
-      let range = Range(start: atlasText.startIndex.advancedBy(line*characterCount.x),
-                        end: endIndex)
-      let renderText = atlasText.substringWithRange(range)
-//      print("Rendering \(renderText) to line \(line)")
-      for (x, char) in renderText.characters.enumerate() {
-        charLookup[char] = (x, line)
-      }
-      let point = CGPoint(x: 0, y: Int(ceil(singleCharacterSize.height*Float(line))))
-      (renderText as NSString).drawAtPoint(point, withAttributes: attrs)
-    }
+    let textureSize = _required_texture_size(atlasText.characters.count, size: characterFullPixelSize)
+    // Work out how many characters we can fit in wide and high
+    let characterCount = (x: Int(floor(textureSize.width/CGFloat(characterFullPixelSize.w))),
+                          y: Int(floor(textureSize.height/CGFloat(characterFullPixelSize.h))))
 
+    // Render the texture
+    UIGraphicsBeginImageContextWithOptions(textureSize, false, 1)
+    let context = UIGraphicsGetCurrentContext()
+    // We precalculated the adjustment due to screen scaling, so apply it manually
+    CGContextScaleCTM(context, UIScreen.mainScreen().scale, UIScreen.mainScreen().scale)
+    // Build a character position lookup
+    var charLookup : [Character: (x: Int, y: Int)] = [:]
+    // Now render every character
+    for char in 0..<atlasText.characters.count {
+      // Get the subset of the text string to render
+      let renderChar = atlasText.characters[atlasText.characters.startIndex.advancedBy(char)]
+      
+      // Calculate the lookup index for this
+      let lX = char % characterCount.x
+      let lY = (char - lX) / characterCount.x
+      charLookup[renderChar] = (lX, lY)
+      
+      // Work out the exact point to draw and do it
+      let point = CGPoint(x: lX*characterFullPointSize.w, y: lY*characterFullPointSize.h)
+      let drawString = (String(renderChar) as NSString)
+      drawString.drawAtPoint(point, withAttributes: attrs)
+    }
+    
     // Now, grab this as a texture
     let image = CGBitmapContextCreateImage(context)!
     UIGraphicsEndImageContext()
@@ -254,17 +254,22 @@ class AtlasTextRenderer : TextRenderer {
       tool.bind(texture)
       glGenerateMipmap(GLenum(GL_TEXTURE_2D));
       
-      // Use initial calculated values - texture size could be anything, depending on scale
-      let uvSize = (width: GLfloat(singleCharacterSize.width)/GLfloat(textureSize.width),
-        height: GLfloat(singleCharacterSize.height)/GLfloat(textureSize.height))
+      // Calculate the exact UV size to use
+      let uvSize = Size2D(w: GLfloat(characterPixelSize.w)/GLfloat(textureSize.width),
+                          h: GLfloat(characterPixelSize.h)/GLfloat(textureSize.height))
       
+      let ta = TextureAtlas(tools: tool, fromExistingAtlas: texture,
+        withItemSize: characterFullPixelSize, andItems: atlasText.characters.map({String($0)}),
+        precalculatedUVSize: uvSize)
+      
+      // Build the atlas texture object
       let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
-        uvSize: uvSize,
-        texelSize: (width: GLfloat(ceil(singleCharacterSize.width)), height: GLfloat(ceil(singleCharacterSize.height))),
-        text: atlasText, coords: charLookup)
+        uvSize: (uvSize.w, uvSize.h),
+        texelSize: (width: GLfloat(characterFullPixelSize.w), height: GLfloat(characterFullPixelSize.h)),
+        text: atlasText, coords: charLookup, newAtlas: ta)
       textAtlasses.append(atlas)
+      
       return atlas
-
     } catch let err as NSError {
       print("ERROR: " + err.localizedDescription)
       print (err)
@@ -332,12 +337,22 @@ class AtlasTextRenderer : TextRenderer {
               altTexture = false
               tool.bind(atlas.texture)
             }
-            tool.program.setUVProperties(
+            
+            if let rEntry = atlas.newAtlas.rectForEntry(String(char)) {
+              tool.program.setUVProperties(
+                xOffset: Float(rEntry.origin.x), yOffset: Float(rEntry.origin.y),
+                xScale: Float(rEntry.size.width), yScale: Float(rEntry.size.height))
+            } else {
+              print("Having to use backup")
+              tool.program.setUVProperties(
                 xOffset: atlas.uvSize.width*GLfloat(coords.x),
                 yOffset: atlas.uvSize.height*GLfloat(coords.y+1),
                 xScale:  atlas.uvSize.width,
                 yScale:  -atlas.uvSize.height)
-            //glDrawArrays(GLenum(GL_TRIANGLE_STRIP), 0, 4)
+            }
+            
+            
+            
             tool.draw(tool.texturedSquare!)
           } else {
             // We don't recognise this character. This is a problem.
@@ -366,26 +381,46 @@ class TextureAtlas {
   private var items : [String : CGRect] = [:]
   private var atlasSize : Size2D<Int>
   
-  init(tools: DrawingTools, fromExistingAtlas: Texture, withItemSize: Size2D<Int>, andItems: [String])
+  init(tools: DrawingTools, fromExistingAtlas: Texture,
+    withItemSize: Size2D<Int>,
+    andItems: [String],
+    precalculatedUVSize: Size2D<Float>? = nil)
   {
     guard fromExistingAtlas.size != nil else {
       fatalError("Cannot create atlas from unknown texture size")
     }
     atlasSize = Size2D(w: fromExistingAtlas.size!.w / withItemSize.w,
-      h: fromExistingAtlas.size!.h / withItemSize.h)
+                       h: fromExistingAtlas.size!.h / withItemSize.h)
     // Build a new framebuffer from this texture
     framebuffer = tools.createFramebufferForTexture(fromExistingAtlas)
     self.itemSize = withItemSize
+
+    let uvWidth : CGFloat
+    let uvHeight : CGFloat
+    if let uv = precalculatedUVSize {
+      uvWidth = CGFloat(uv.w)
+      uvHeight = CGFloat(uv.h)
+    } else {
+      uvWidth = CGFloat(itemSize.w)/CGFloat(framebuffer.size.w)
+      uvHeight = CGFloat(itemSize.h)/CGFloat(framebuffer.size.h)
+    }
     
     // Calculate rects on this texture for every item
     for (i, item) in andItems.enumerate() {
       let indexY = i / atlasSize.w
       let indexX = i - (atlasSize.w * indexY)
-      let fullW = CGFloat(itemSize.w)/CGFloat(framebuffer.size.w)
-      let fullH = CGFloat(itemSize.h)/CGFloat(framebuffer.size.h)
-      let cPos = CGRectMake(CGFloat(indexX)*fullW, CGFloat(indexY)*fullH,fullW,fullH)
+      
+      // Calculate the positions for the origin point
+      let xPos = CGFloat(itemSize.w*indexX)/CGFloat(framebuffer.size.w)
+      let yPos = CGFloat(itemSize.h*indexY)/CGFloat(framebuffer.size.h)
+      
+      let cPos = CGRectMake(xPos, yPos, uvWidth, uvHeight)
       items[item] = cPos
     }
+  }
+  
+  func rectForEntry(index : String) -> CGRect? {
+    return items[index]
   }
 }
 

@@ -166,8 +166,8 @@ class NavBallWidget : Widget {
       
       // What colour? White, other than the transparency...
 //      let position = spec * GLKVector4Make(0,0,0,1)
-      let zPosition = cos(dir.Yaw)*cos(dir.Pitch)
-      print("Position for " + name + ": ", zPosition, "(", dir.Pitch, ", ", dir.Yaw, ")")
+//      let zPosition = cos(dir.Yaw)*cos(dir.Pitch)
+//      print("Position for " + name + ": ", zPosition, "(", dir.Pitch, ", ", dir.Yaw, ")")
       
 //      drawing.program.setColor(Color4(r: 1, g: 1, b: 1, a: min(1, position.z+1)))
       drawing.draw(drawing.texturedCenterSquare!)

@@ -10,8 +10,27 @@ import Foundation
 import GLKit
 import UIKit
 
+protocol TextRenderer {
+  /// Returns the average aspect of a single character
+  var aspect : Float { get }
+  /// The font name being used by this texture renderer
+  var fontName : String { get }
+  
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment,
+  rotation: GLfloat, transform : GLKMatrix4)
+}
 
-class TextRenderer {
+extension TextRenderer {
+  func draw(text: String, size : GLfloat, position : (x: Float, y: Float), align : NSTextAlignment = .Left, rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+    return self.draw(text, size: size, position: Point2D(position.x,position.y), align: align, rotation: rotation, transform: transform)
+  }
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
+    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+      return self.draw(text, size: size, position: position, align: align, rotation: rotation, transform: transform)
+  }
+}
+
+class AtlasTextRenderer : TextRenderer {
   private var tool : DrawingTools
   private(set) var fontName : String
   private struct TextEntry {
@@ -83,10 +102,6 @@ class TextRenderer {
     return nil
   }
 
-  func draw(text: String, size : GLfloat, position : (x: Float, y: Float), align : NSTextAlignment = .Left,
-    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
-      draw(text, size: size, position: Point2D(x: position.x, y: position.y), align: align, rotation: rotation, transform: transform)
-  }
   func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
       // If we are monospaced, try from atlas

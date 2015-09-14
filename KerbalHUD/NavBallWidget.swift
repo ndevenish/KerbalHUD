@@ -196,7 +196,7 @@ class NavBallTextureRendering {
   
   func generateTextTextures() {
     processGLErrors()
-    let text = drawing.textRenderer("Menlo-Bold")
+    let text = drawing.textRenderer("Menlo-Bold") as! AtlasTextRenderer
     processGLErrors()
     for var angle = -80; angle <= 80; angle += 10 {
       let str = angle == 0 ? "N" : String(angle)

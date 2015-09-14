@@ -187,6 +187,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     // Read this message asynchronously
     reading += 1
     dispatch_async(_parseQueue) { () -> Void in
+      let timer = Clock.createTimer()
       defer {
         self.reading -= 1
       }
@@ -195,7 +196,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
         return
       }
       self.processJSONMessage(json)
-//      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
+      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
       if self.dropped > 0 {
 //        print("Dropped: ", self.dropped)
         self.dropped = 0
@@ -239,6 +240,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   }
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
+    let timer = Clock.createTimer()
     var rawDataType : UInt8 = 0
     data.getBytes(&rawDataType, length: 1)
     let packetType = DataPacketType(rawValue: rawDataType) ?? .Unknown
@@ -263,7 +265,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     default:
       fatalError("Unrecognised binary data packet")
     }
-    
+    print(String(format:"Processed binary in %.2fms", timer.elapsed));
   }
 
   func parseBinaryNavigationData(data: NSData) {
@@ -282,7 +284,6 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     _latestData[Vars.Flight.Pitch] = (time, JSON(pitch))
     _latestData[Vars.Flight.Roll] = (time, JSON(roll))
     _latestData["v.verticalSpeed"] = (time, JSON(deltaV))
-    print("Parsed binary flight data; H ", heading, " P ", pitch, " R ", roll, " dV ", deltaV)
   }
   
   subscript(index: String) -> JSON? {

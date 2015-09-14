@@ -55,6 +55,13 @@ private class TimerClock : ITimerClock {
     .Physics: 0
   ]
   
+  func getBase(category : TimerCategory) -> Double {
+    if category == .Real {
+      return CACurrentMediaTime()-startTime
+    }
+    return timeBases[category]!
+  }
+  
   init() {
     startTime = CACurrentMediaTime()
     
@@ -72,7 +79,7 @@ private class TimerClock : ITimerClock {
     } else {
       frameTime = time - startTime - timeBases[.Real]!
     }
-    timeBases[.Real] = CACurrentMediaTime()-startTime
+    timeBases[.Real] = time-startTime
 
     timeBases[.Animation] = timeBases[.Animation]! + frameTime
     timeBases[.Physics] = timeBases[.Physics]! + frameTime
@@ -88,7 +95,7 @@ private struct TimerImpl : Timer {
   let category : TimerCategory
   
   var elapsed : Double {
-    return scale*(clock.timeBases[category]!-baseTime)
+    return scale*(clock.getBase(category)-baseTime)
   }
   var remaining : Double {
     return duration - elapsed

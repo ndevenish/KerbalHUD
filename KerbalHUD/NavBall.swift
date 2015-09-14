@@ -38,12 +38,16 @@ class NavBall : LayeredInstrument {
       
       t("{0:SIP_6.1}m", "v.orbitalVelocity", x: 83.5, y: 115),
       t("{0:SIP4}m/s", "rpm.ACCEL", x: 556.5, y: 115),
-      t("{0:ORB;TGT;SRF}", "rpm.SPEEDDISPLAYMODE", x: 55, y: 177),
+      t("{0:ORB;TGT;SRF}", Vars.Vessel.SpeedDisplay, x: 55, y: 177),
       
       
-      t("{0:SIP_6.3}m", "rpm.RADARALTOCEAN", x: 95, y: 623),
-      t("{0:SIP_6.3}m", "rpm.HORZVELOCITY", x: 320, y: 623),
-      t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
+//      t("{0:SIP_6.3}m", "rpm.RADARALTOCEAN", x: 95, y: 623),
+//      t("{0:SIP_6.3}m", "rpm.HORZVELOCITY", x: 320, y: 623),
+//      t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
+        t("%.3f°", "rpm.YAWPROGRADE", x: 95, y: 623),
+        t("%.3f°", "rpm.YAWRETROGRADE", x: 320, y: 623),
+      //      t("{0:SIP_6.3}m", "v.verticalSpeed", x: 640-95, y: 623)
+
       ])
     
     // Various control Status displays

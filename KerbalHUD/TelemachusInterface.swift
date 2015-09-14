@@ -134,6 +134,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     // Form an initial subscription packet
     var apiParts : [String] = ["\"rate\": 0"]
     _pendingSubscriptions.append("p.paused")
+    _pendingSubscriptions.append("binaryNavigation")
     if _pendingSubscriptions.count > 0 {
       let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"+\": [\(list)]")
@@ -232,11 +233,58 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     }
   }
   
+  enum DataPacketType : UInt8 {
+    case BinaryNavigation = 1
+    case Unknown
+  }
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
-    fatalError("Got binary packet; not expecting")
+    var rawDataType : UInt8 = 0
+    data.getBytes(&rawDataType, length: 1)
+    let packetType = DataPacketType(rawValue: rawDataType) ?? .Unknown
+    switch packetType {
+    case .BinaryNavigation:
+      parseBinaryNavigationData(data.subdataWithRange(NSMakeRange(1, 16)))
+//      var number = 43
+
+      //      var dataArray : UnsafePointer<UInt8>
+//      data.getBytes
+      
+      
+      // Gives us Heading, Pitch, Roll, DeltaV as network-order 4-byte floats
+//      (0..<4).map({ (i) in
+//        var buff : Float32 = 0
+//        var buffer : UnsafePointer<Float._BitsType>
+//        
+//        data.getBytes(&buff, range: NSMakeRange(4*$0, 4))
+//
+//        
+//      })
+    default:
+      fatalError("Unrecognised binary data packet")
+    }
+    
   }
 
+  func parseBinaryNavigationData(data: NSData) {
+    var val : UInt32 = 0
+    data.getBytes(&val, range: NSMakeRange(0, 4))
+    let heading = Float(bigEndian: val)
+    data.getBytes(&val, range: NSMakeRange(4, 4))
+    let pitch = Float(bigEndian: val)
+    data.getBytes(&val, range: NSMakeRange(8, 4))
+    let roll = Float(bigEndian: val)
+    data.getBytes(&val, range: NSMakeRange(12, 4))
+    let deltaV = Float(bigEndian: val)
+    
+    let time = CACurrentMediaTime()
+    _latestData[Vars.Flight.Heading] = (time, JSON(heading))
+    _latestData[Vars.Flight.Pitch] = (time, JSON(pitch))
+    _latestData[Vars.Flight.Roll] = (time, JSON(roll))
+    _latestData["v.verticalSpeed"] = (time, JSON(deltaV))
+    print("Parsed binary flight data; H ", heading, " P ", pitch, " R ", roll, " dV ", deltaV)
+  }
+  
   subscript(index: String) -> JSON? {
     get {
       return _latestData[index]?.data
@@ -301,5 +349,11 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   func subscribeOnce(name: String) {
     _temporarySubscriptions.insert(name)
     subscribe(name)
+  }
+}
+extension Float {
+  init(bigEndian val : UInt32) {
+    let native = UInt32(bigEndian: val)
+    self.init(unsafeBitCast(native, Float32.self))
   }
 }

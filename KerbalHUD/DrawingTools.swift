@@ -262,7 +262,7 @@ class DrawingTools
   /// Clear memory that is no longer used
   func flush() {
     for txt in textRenderers.values {
-      txt.flush()
+      (txt as? AtlasTextRenderer)?.flush()
     }
   }
   
@@ -564,7 +564,7 @@ class DrawingTools
     if let existing = textRenderers[fontName] {
       return existing
     } else {
-      let new = TextRenderer(tool: self, font: fontName)
+      let new = AtlasTextRenderer(tool: self, font: fontName)
       textRenderers[fontName] = new
       return new
     }

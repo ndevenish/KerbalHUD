@@ -34,11 +34,6 @@ extension DrawingTools {
   func createTextureFramebuffer(
     size : Size2D<Int>, depth: Bool, stencil : Bool) -> Framebuffer
   {
-    // Generate a framebuffer
-    var fb : GLuint = 0
-    glGenFramebuffers(1, &fb)
-    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), fb)
-    
     // Generate a texture in the requested size
     var texColorBuffer : GLuint = 0
     glGenTextures(1, &texColorBuffer)
@@ -51,11 +46,27 @@ extension DrawingTools {
     // Non power-of-two textures require non-wrapping settings
     glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_S), GL_CLAMP_TO_EDGE)
     glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_T), GL_CLAMP_TO_EDGE)
+
+    let texture = Texture(glk: nil, name: texColorBuffer, target: GLenum(GL_TEXTURE_2D), size: size)
+    return createFramebufferForTexture(texture, addStencil: stencil)
+  }
+  
+  func createFramebufferForTexture(texture : Texture, addStencil stencil : Bool = false) -> Framebuffer
+  {
+    guard let size = texture.size else {
+      fatalError("Need a size for texture to create framebuffer")
+    }
+    
+    // Generate a framebuffer
+    var fb : GLuint = 0
+    glGenFramebuffers(1, &fb)
+    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), fb)
+    
     // Attach this texture to the framebuffer
     glFramebufferTexture2D(GLenum(GL_FRAMEBUFFER),
       GLenum(GL_COLOR_ATTACHMENT0), GLenum(GL_TEXTURE_2D),
-      texColorBuffer, 0);
-
+      texture.name, 0);
+    
     // Create a stencil buffer to attach, if we want it
     var stencilBuffer : GLuint = 0
     if stencil {
@@ -73,7 +84,7 @@ extension DrawingTools {
     forceBind(Framebuffer.Default)
     
     return Framebuffer(name: fb,
-      texture: Texture(glk: nil, name: texColorBuffer, target: GLenum(GL_TEXTURE_2D), size: size),
+      texture: texture,
       stencil: stencilBuffer,
       size: size)
   }

@@ -196,7 +196,7 @@ func generateTriangleStripGrid(bounds : Bounds, xSteps : UInt, ySteps : UInt)
       let xOffset = bounds.size.w * xFrac + bounds.left
       let yOffset = bounds.size.h * yFrac + bounds.bottom
       
-      let uv = Point2D(x: xFrac, y: 1-yFrac)
+      let uv = Point2D(x: xFrac, y: yFrac)
       
       // If we have data already, double-up the first vertex as we will
       // need to do so for a triangle strip
@@ -208,7 +208,7 @@ func generateTriangleStripGrid(bounds : Bounds, xSteps : UInt, ySteps : UInt)
       // Calculate the y of the next one up
       let nextYFrac = Float(iY+1)/Float(ySteps)
       let yOffset2 = bounds.size.h * nextYFrac + bounds.bottom
-      let uvUp = Point2D(x: xFrac, y: 1-nextYFrac)
+      let uvUp = Point2D(x: xFrac, y: nextYFrac)
       data.append((Point2D(x: xOffset, y: yOffset2), uvUp))
     }
     // Finish the triangle strip line

@@ -16,8 +16,7 @@ protocol TextRenderer {
   /// The font name being used by this texture renderer
   var fontName : String { get }
   
-  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment,
-  rotation: GLfloat, transform : GLKMatrix4)
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4)
 }
 
 extension TextRenderer {
@@ -28,6 +27,24 @@ extension TextRenderer {
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
       return self.draw(text, size: size, position: position, align: align, rotation: rotation, transform: transform)
   }
+}
+
+
+
+/// Work out the size of texture we require for a particular count of characters
+private func _required_texture_size(count: Int, size : Size2D<Int>) -> CGSize {
+  // Work out the power of two length required for the maximum dimension
+  let pwrMaxRequired = Int(ceil(log2(Float(max(size))*sqrt(Float(count)))))
+  // Check the power below this, as it MIGHT work with uneven character aspect
+  let charCount2 = (x: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.w))),
+    y: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.h))))
+  let txSize : Int
+  if charCount2.x*charCount2.y > count {
+    txSize = Int(pow(2, Float(pwrMaxRequired-1)))
+  } else {
+    txSize = Int(pow(2, Float(pwrMaxRequired)))
+  }
+  return CGSize(width: txSize, height: txSize)
 }
 
 class AtlasTextRenderer : TextRenderer {
@@ -45,24 +62,7 @@ class AtlasTextRenderer : TextRenderer {
   private var foundTextures : Set<Int> = []
   private var monospaced : Bool = false
   private(set) var aspect : Float
-  
-//  private struct TextAtlas {
-////    let texture : GLKTextureInfo
-//    let texture : Texture
-//    // What font size was this generated at?
-//    let fontSize : Int
-//    // How many characters do we hold horizontally
-//    let widthInCharacters : Int
-//    // How big is a single character in UV
-//    let uvSize : (width: GLfloat, height: GLfloat)
-//    // Physical size of a single character
-//    let texelSize : (width: GLfloat, height: GLfloat)
-//    // The collection of characters in this atlas
-//    let text : String
-//    // Location of characters
-//    let coords : [Character : (x: Int, y: Int)]
-//    let newAtlas : TextureAtlas
-//  }
+
   private var textAtlasses : [Int: TextureAtlas] = [:]
   
   /// Cleans out textures not used recently
@@ -191,27 +191,7 @@ class AtlasTextRenderer : TextRenderer {
     textures.append(entry)
     return entry
   }
-  
-  
-  // Work out the size of texture we require for a particular count of characters
-  private func _required_texture_size(count: Int, size : Size2D<Int>) -> CGSize {
-    guard size.w != 0 else {
-      return CGSizeMake(0, 0)
-    }
-    // Work out the power of two length required for the maximum dimension
-    let pwrMaxRequired = Int(ceil(log2(Float(max(size))*sqrt(Float(count)))))
-    // Check the power below this, as it MIGHT work with uneven character counts
-    let charCount2 = (x: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.w))),
-      y: Int(floor(pow(2, Float(pwrMaxRequired-1))/Float(size.h))))
-    let txSize : Int
-    if charCount2.x*charCount2.y > count {
-      txSize = Int(pow(2, Float(pwrMaxRequired-1)))
-    } else {
-      txSize = Int(pow(2, Float(pwrMaxRequired)))
-    }
-    return CGSize(width: txSize, height: txSize)
-  }
-  
+
   private func createAtlas(size: Int) -> TextureAtlas {
     guard size > 0 && size < 100 else {
       fatalError("Invalid atlas size")
@@ -238,10 +218,6 @@ class AtlasTextRenderer : TextRenderer {
     let characterFullPixelSize = characterFullPointSize.map({Int(ceil(Float($0) * scale))})
     
     let textureSize = _required_texture_size(atlasText.characters.count, size: characterFullPixelSize)
-    
-//    // Work out how many characters we can fit in wide and high
-//    let characterCount = (x: Int(floor(textureSize.width/CGFloat(characterFullPixelSize.w))),
-//                          y: Int(floor(textureSize.height/CGFloat(characterFullPixelSize.h))))
 
     // Calculate the exact UV size to use
     let uvSize = Size2D(w: GLfloat(characterPixelSize.w)/GLfloat(textureSize.width),
@@ -258,56 +234,7 @@ class AtlasTextRenderer : TextRenderer {
       try! atlas.addItem(char, item: tex)
       tool.deleteTexture(tex)
     }
-//    
-//    // Create the CG context to build the texture from
-//    UIGraphicsBeginImageContextWithOptions(textureSize, false, 1)
-//    let context = UIGraphicsGetCurrentContext()
-//    // We precalculated the adjustment due to screen scaling, so apply it manually
-//    // Also, flip the coordinates so it is upright in texture memory
-//    CGContextTranslateCTM(context, 0, textureSize.height)
-//    CGContextScaleCTM(context, CGFloat(scale), -CGFloat(scale))
-//    
-//    // Now render every character
-//    for char in 0..<atlasText.characters.count {
-//      // Get the character of the text string to render
-//      let renderChar = atlasText.characters[atlasText.characters.startIndex.advancedBy(char)]
-//      
-//      // Calculate the lookup index for this
-//      let lX = char % characterCount.x
-//      let lY = (char - lX) / characterCount.x
-//      
-//      // Work out the exact point to draw and do it
-//      let point = CGPoint(x: lX*characterFullPointSize.w, y: lY*characterFullPointSize.h)
-//      let drawString = (String(renderChar) as NSString)
-//      drawString.drawAtPoint(point, withAttributes: attrs)
-//    }
-//    
-//    // Now, grab this as a texture
-//    let image = CGBitmapContextCreateImage(context)!
-//    UIGraphicsEndImageContext()
-//    do {
-//      let texture = Texture(glk: try GLKTextureLoader.textureWithCGImage(image, options: nil))
-//      texture.debugName(fontName + " " + String(size))
-//
-//      // Bind this, and generate a mipmap
-//      tool.bind(texture)
-//      glGenerateMipmap(GLenum(GL_TEXTURE_2D));
-//
-//      
-//      let atlas = TextureAtlas(tools: tool, totalSize: Size2DFromCGSize(textureSize).map({UInt($0)}), itemSize: characterFullPixelSize.map({UInt($0)}))
-//      
-      // Build the atlas texture object
-//      let charLookup : [Character : (x: Int, y: Int)] = [:]
-//      let atlas = TextAtlas(texture: texture, fontSize: size, widthInCharacters: characterCount.x,
-//        uvSize: (uvSize.w, uvSize.h),
-//        texelSize: (width: GLfloat(characterFullPixelSize.w), height: GLfloat(characterFullPixelSize.h)),
-//        text: atlasText, coords: charLookup, newAtlas: newAtlas)
-//      textAtlasses[siz].append(atlas)
-//      
-//      return atlas
-//    } catch let err as NSError {
-//      fatalError("ERROR: " + err.localizedDescription)
-//    }
+
     textAtlasses[size] = atlas
     return atlas
   }
@@ -456,23 +383,8 @@ class TextureAtlas {
   subscript (index: String) -> CGRect? {
     return items[index]
   }
-  
-//  private func rectForIndex(index i : UInt) -> CGRect {
-//    let indexY = UInt(i / atlasSize.w)
-//    let indexX = UInt(i - (atlasSize.w * indexY))
-//    
-//    // Calculate the positions for the origin point
-//    let xPos = CGFloat(itemSize.w*indexX)/CGFloat(framebuffer.size.w)
-//    let yPos = CGFloat((atlasSize.h - indexY - 1)*itemSize.h)/CGFloat(framebuffer.size.h)
-//    // Standard widths
-//    let uvWidth = CGFloat(itemSize.w)/CGFloat(framebuffer.size.w)
-//    let uvHeight = CGFloat(itemSize.h)/CGFloat(framebuffer.size.h)
-//
-//    return CGRectMake(xPos, yPos, uvWidth, uvHeight)
-//  }
-  
-  /** Add an item to the atlas texture.
 
+  /** Add an item to the atlas texture.
   - parameters item     The texture to place in the atlas entry
   - parameters uvWidth  The proportion of the texture that covers the actual
                         physical size (for e.g. font fractionals) */

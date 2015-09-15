@@ -95,7 +95,7 @@ class GameViewController: GLKViewController {
     
     let markers = SVGImage(fromBundleFile: "Markers.svg")
     markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
-    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
+//    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
 
     
 //   display = RPMPlaneHUD(tools: drawing!)
@@ -104,9 +104,9 @@ class GameViewController: GLKViewController {
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
     panel = InstrumentPanel(tools: drawing!)
-//    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
-//    panel?.AddInstrument(NavBall(tools: drawing!))
-//    glPopGroupMarkerEXT()
+    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
+    panel?.AddInstrument(NavBall(tools: drawing!))
+    glPopGroupMarkerEXT()
     glPushGroupMarkerEXT(0, "Create Instrument: HSI")
     panel?.AddInstrument(HSIIndicator(tools: drawing!))
     glPopGroupMarkerEXT()

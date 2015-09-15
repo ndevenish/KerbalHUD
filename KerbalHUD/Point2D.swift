@@ -42,8 +42,28 @@ public struct Point2D : Point, NilLiteralConvertible {
   }
 }
 
+public struct TexturedPoint2D : Point {
+  var x : Float
+  var y : Float
+  var u : Float
+  var v : Float
+  
+  public init(_ x: Float, _ y: Float, u: Float, v: Float) {
+    self.x = x
+    self.y = y
+    self.u = u
+    self.v = v
+  }
+  public func flatten() -> [Float] {
+    return []
+  }
+}
 public func +(left: Point2D, right: Point2D) -> Point2D {
   return Point2D(x: left.x+right.x, y: left.y+right.y)
+}
+
+public func +(left: TexturedPoint2D, right: TexturedPoint2D) -> TexturedPoint2D {
+  return TexturedPoint2D(left.x+right.x, left.y+right.y, u: left.u+right.u, v: left.v+right.v)
 }
 
 

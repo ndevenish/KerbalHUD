@@ -355,6 +355,19 @@ class DrawingTools
     return LoadVertices(.Triangles, vertices: vertexList)
   }
 
+  func LoadTriangles(triangles : [Triangle<TexturedPoint2D>]) -> Drawable
+  {
+    var vertexList : [TexturedPoint2D] = []
+    for tri in triangles {
+      vertexList.append(tri.p1)
+      vertexList.append(tri.p2)
+      vertexList.append(tri.p3)
+    }
+    fatalError()
+//    return LoadVertices(.Triangles, vertices: vertexList)
+    
+  }
+
   func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], texture: Texture, color: Color4? = nil) -> Drawable
   {
     var data = triangles.flatMap { (tri) -> [GLfloat] in

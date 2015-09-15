@@ -444,3 +444,111 @@ class TextureAtlas {
   }
 }
 
+class DeferredAtlasRenderer : TextRenderer {
+  private var parent : AtlasTextRenderer
+  private var tools : DrawingTools
+  var aspect : Float { return parent.aspect }
+  var fontName : String { return parent.fontName }
+  
+  struct TextEntry {
+    var text : String
+    var size : GLfloat
+    var position : Point2D
+    var align : NSTextAlignment
+    var rotation : GLfloat
+    var transform : GLKMatrix4
+  }
+  var unprocessedEntries : [TextEntry] = []
+  
+  init(tools: DrawingTools, parent: AtlasTextRenderer) {
+    self.parent = parent
+    self.tools = tools
+  }
+  
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4)
+  {
+    unprocessedEntries.append(TextEntry(text: text, size: size, position: position, align: align, rotation: rotation, transform: transform))
+  }
+  
+  func generateDrawable() -> Drawable? {
+    guard !unprocessedEntries.isEmpty else {
+      return nil
+    }
+    let maxSize = unprocessedEntries.map({$0.size}).maxElement()!
+    // Generate an atlas for this
+    let atlas = parent.createAtlas(Int(ceil(maxSize)))
+    
+    // Now generate every entry
+    let triangles = unprocessedEntries.flatMap {self.trianglesFor($0, atlas: atlas)}
+    return tools.LoadTriangles(triangles)
+  }
+  
+  func trianglesFor(entry: TextEntry, atlas: TextureAtlas)
+    -> [Triangle<TexturedPoint2D>]
+  {
+    let fontSize = Int(entry.size)
+    
+    // Work out the end size for the entry
+    let entrySize = entry.size * Size2D(w: aspect*Float(entry.text.characters.count), h: 1)
+    // Start from whatever extra transform we have been passed
+    var baseMatrix = entry.transform
+    // Now adjust the position
+    baseMatrix = GLKMatrix4Translate(baseMatrix, entry.position.x, entry.position.y, 0)
+    // And apply the alignment
+    let offset : GLfloat
+    switch(entry.align) {
+    case .Right:
+      offset = -entrySize.w
+    case .Center:
+      offset = -entrySize.w/2
+    default:
+      offset = 0
+    }
+    baseMatrix = GLKMatrix4Translate(baseMatrix, offset, 0, 0)
+    // Apply the rotation
+    baseMatrix = GLKMatrix4Rotate(baseMatrix, entry.rotation, 0, 0, 1)
+    // Scale to match the shape and size of a single character
+    baseMatrix = GLKMatrix4Scale(baseMatrix, entry.size, entry.size, 1)
+    // Offset so that the text is center-aligned
+    baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
+    
+    // Loop over every character
+    var triangles : [Triangle<TexturedPoint2D>] = []
+    for (i, char) in entry.text.characters.map({String($0)}).enumerate() {
+      if char == " " {
+        continue
+      }
+      // calculate the matrix for positioning this character
+      let charMatrix = GLKMatrix4Translate(baseMatrix, GLfloat(i), 0, 0)
+      
+      // Apply this to each of the vertex points
+      let bL = charMatrix * GLKVector3Make(0, 0, 0)
+      let bR = charMatrix * GLKVector3Make(1, 0, 0)
+      let tL = charMatrix * GLKVector3Make(0, 1, 0)
+      let tR = charMatrix * GLKVector3Make(1, 1, 0)
+      
+      // Work out the UV rect for this character
+      let r : CGRect
+      if let entrySource = atlas[char] {
+        r = entrySource
+      } else {
+        let tex = parent.drawToTexture(char, size: fontSize)
+        r = try! atlas.addItem(char, item: tex)
+        tools.deleteTexture(tex)
+      }
+      
+      let vtxBL = TexturedPoint2D(bL.x, bL.y, u: Float(r.minX), v: Float(r.minY))
+      let vtxTL = TexturedPoint2D(tL.x, tL.y, u: Float(r.minX), v: Float(r.maxY))
+      let vtxTR = TexturedPoint2D(tR.x, tR.y, u: Float(r.maxX), v: Float(r.maxY))
+      let vtxBR = TexturedPoint2D(bR.x, bR.y, u: Float(r.maxX), v: Float(r.minY))
+      
+      // We now have enough information to build the triangles
+      let TriA = Triangle<TexturedPoint2D>(vtxBR, vtxBL, vtxTL)
+      let TriB = Triangle<TexturedPoint2D>(vtxBR, vtxTL, vtxTR)
+      
+      triangles.appendContentsOf([TriA, TriB])
+    }
+    
+    return triangles
+  }
+}

@@ -91,9 +91,12 @@ class GameViewController: GLKViewController {
     drawing?.defaultFramebuffer = GLuint(defaultFBO)
     print("Default framebuffer is \(defaultFBO)")
     //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
+//    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
     
     let markers = SVGImage(fromBundleFile: "Markers.svg")
     markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
+    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
+
     
 //   display = RPMPlaneHUD(tools: drawing!)
 //    display = HSIIndicator(tools: drawing!)
@@ -101,9 +104,9 @@ class GameViewController: GLKViewController {
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
     panel = InstrumentPanel(tools: drawing!)
-    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
-    panel?.AddInstrument(NavBall(tools: drawing!))
-    glPopGroupMarkerEXT()
+//    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
+//    panel?.AddInstrument(NavBall(tools: drawing!))
+//    glPopGroupMarkerEXT()
     glPushGroupMarkerEXT(0, "Create Instrument: HSI")
     panel?.AddInstrument(HSIIndicator(tools: drawing!))
     glPopGroupMarkerEXT()
@@ -114,7 +117,7 @@ class GameViewController: GLKViewController {
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
     glFrontFace(GLenum(GL_CW))
-    glFinish()
+    //glFinish()
   }
   
   func tearDownGL() {
@@ -131,24 +134,6 @@ class GameViewController: GLKViewController {
     drawing!.screenSizePhysical = Size2D(
       w: Int(self.view.bounds.size.width * UIScreen.mainScreen().scale),
       h: Int(self.view.bounds.size.height * UIScreen.mainScreen().scale))
-    
-//    let aspect = fabsf(Float(self.view.bounds.size.width / self.view.bounds.size.height))
-//    let drawWidth = display?.screenWidth ?? 1.0
-//    let drawHeight = display?.screenHeight ?? 1.0
-//    
-//    if aspect > 1 {
-//      let edge = (aspect-1)*0.5
-//      program!.projection = GLKMatrix4MakeOrtho(-edge*drawWidth, (1+edge)*drawWidth, 0, drawHeight, -10, 10)
-//      drawing!.pointsToScreenScale = Float(self.view.bounds.size.height) / drawHeight
-//    } else {
-//      let edge = (1.0/aspect - 1)*0.5
-//      program!.projection = GLKMatrix4MakeOrtho(0, drawWidth, (-edge)*drawHeight, (1+edge)*drawHeight, -10, 10)
-//      drawing!.pointsToScreenScale = Float(self.view.bounds.size.width) / drawWidth
-//    }
-//    
-    //      let edge = (1.0/aspect - 1)*0.5
-//    program!.projection = GLKMatrix4MakeOrtho(0, 600, 0, 600, -10, 10)
-//    drawing!.setOrthProjection(left: 0, right: 600, bottom: 0, top: 600)
     
     if (telemachus?.isConnected ?? false == false) {
       let current = Clock.time
@@ -195,7 +180,6 @@ class GameViewController: GLKViewController {
       fakeData["navutil.bearing"] = JSON(sin(current)*20)
       fakeData["navutil.runwayheading"] = JSON(90)
       fakeData["navutil.runway"] = JSON(["altitude": 78, "identity": "Nowhere in particular", "markers": [10000, 7000, 3000]])
-//      fakeData["rpm.MNODEEXISTS"] = JSON(true)
       telemachus?.processJSONMessage(fakeData)
     }
 
@@ -207,15 +191,10 @@ class GameViewController: GLKViewController {
   var nb : NavBall? = nil
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
+    
     glClearColor(0,0,0,1)
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_DEPTH_BUFFER_BIT))
-    
-//    panel = InstrumentPanel(tools: drawing!)
-//    panel?.AddInstrument(NavBall(tools: drawing!))
-//    panel?.AddInstrument(HSIIndicator(tools: drawing!))
-//    panel?.AddInstrument(NewPlaneHud(tools: drawing!))
-//    panel?.connection = telemachus!
-    
+
     if let program = program {
       program.use()
       program.setColor(red: 0, green: 1, blue: 0)
@@ -223,23 +202,6 @@ class GameViewController: GLKViewController {
       if let instr = panel {
         instr.draw()
       }
-//
-//      if nb == nil {
-//        nb = NavBall(tools: drawing!)
-//      }
-//      nb!.draw()
-//      return
-      
-      
-//      if let tm = telemachus {
-//        if !tm.isConnected {
-//          program.setColor(red: 1, green: 0, blue: 0)
-//          drawing?.drawText("NO DATA", size: display!.screenHeight/10,
-//            position: ((display!.screenWidth/2),(display!.screenHeight/2)), align: .Center)
-//          drawing?.drawText("(Connecting)", size: display!.screenHeight/15,
-//            position: ((display!.screenWidth/2),(display!.screenHeight/30)), align: .Center)
-//        }
-//      }
     }
     processGLErrors()
   

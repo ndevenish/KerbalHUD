@@ -216,9 +216,15 @@ class AtlasTextRenderer : TextRenderer {
     guard size > 0 && size < 100 else {
       fatalError("Invalid atlas size")
     }
+    glPushGroupMarkerEXT(0, "Creating texture atlas \(fontName)_\(size)")
+    
     // Clear any errors before running this process
     processGLErrors()
-    
+    tool.saveState()
+    defer {
+      tool.restoreState()
+      glPopGroupMarkerEXT()
+    }
     let scale : Float = Float(UIScreen.mainScreen().scale)
     
     let atlasText = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~Δ☊¡¢£¤¥¦§¨©ª«¬☋®¯°±²³´µ¶·¸¹º»¼½¾¿˚π"

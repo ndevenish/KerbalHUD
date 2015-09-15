@@ -20,113 +20,9 @@ func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
   return p.advancedBy(i)
 }
 
-/// Builds a 1X1 white texture to use for non-texture drawing
-func generate1X1Texture() -> Texture {
-  var tex : GLuint = 0
-  glGenTextures(1, &tex)
-  glBindTexture(GLenum(GL_TEXTURE_2D), tex)
-  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_S), GL_REPEAT);
-  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_T), GL_REPEAT);
-  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MIN_FILTER), GL_LINEAR);
-  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MAG_FILTER), GL_LINEAR);
-  var data : [GLubyte] = [255]
-  glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_LUMINANCE, 1, 1, 0, GLenum(GL_LUMINANCE), GLenum(GL_UNSIGNED_BYTE), &data)
-  glBindTexture(GLenum(GL_TEXTURE_2D), 0)
-  return Texture(name: tex, width: 1, height: 1)
-}
-
-func generateCenteredTextureSquare(tools: DrawingTools) -> Drawable {
-  let centerTA = tools.createVertexArray(positions: 2, textures: 2)
-  var texturedSquareO : [GLfloat] = [
-    -0.5,-0.5,0,0,
-    -0.5, 0.5,0,1,
-    0.5,-0.5,1,0,
-    0.5, 0.5,1,1
-  ]
-  glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquareO.count, &texturedSquareO, GLenum(GL_STATIC_DRAW))
-  tools.bind(VertexArray.Empty)
-  return SimpleMesh(array: centerTA, texture: nil, vertexType: .TriangleStrip, bufferOffset: 0, bufferCount: 4, color: nil)
-}
-
-func generateOriginTextureSquare(tools: DrawingTools) -> Drawable {
-  let texturedArray = tools.createVertexArray(positions: 2, textures: 2)
-  // Now copy the data into the buffer
-  var texturedSquare : [GLfloat] = [
-    0,0,0,0,
-    0,1,0,1,
-    1,0,1,0,
-    1,1,1,1
-  ]
-  glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*texturedSquare.count, &texturedSquare, GLenum(GL_STATIC_DRAW))
-  tools.bind(VertexArray.Empty)
-  return SimpleMesh(array: texturedArray, texture: nil, vertexType: .TriangleStrip, bufferOffset: 0, bufferCount: 4, color: nil)
-}
-protocol Mesh : Drawable {
-  
-}
-
-private struct SimpleMesh : Mesh {
-  var array : VertexArray
-  var texture : Texture?
-  var vertexType : VertexRepresentation
-  var bufferOffset : GLuint
-  var bufferCount : GLuint
-  var color : Color4?
-}
-
-struct MultiDrawable : Drawable {
-  let drawables : [Drawable]
-}
-
-enum VertexRepresentation : GLenum {
-  case Points
-  case LineStrip
-  case LineLoop
-  case Lines
-  case TriangleStrip
-  case TriangleFan
-  case Triangles
-}
-
-extension VertexRepresentation {
-  var GLenum : GLKit.GLenum {
-    switch self {
-    case .Points:
-      return GLKit.GLenum(GL_POINTS)
-    case LineStrip:
-      return GLKit.GLenum(GL_LINE_STRIP)
-    case LineLoop:
-      return GLKit.GLenum(GL_LINE_LOOP)
-    case Lines:
-      return GLKit.GLenum(GL_LINES)
-    case TriangleStrip:
-      return GLKit.GLenum(GL_TRIANGLE_STRIP)
-    case TriangleFan:
-      return GLKit.GLenum(GL_TRIANGLE_FAN)
-    case Triangles:
-      return GLKit.GLenum(GL_TRIANGLES)
-    }
-  }
-}
-
-//typealias Point2D = (x: Float, y: Float)
-
-//typealias Triangle = (Point2D, Point2D, Point2D)
-
-
-func ShiftPoint2D(base : Point2D, shift : Point2D) -> Point2D {
-  return Point2D(x: base.x + shift.x, y: base.y + shift.y)
-}
-func ShiftTriangle<T : Point>(base : Triangle<T>, shift : T) -> Triangle<T> {
-  return Triangle(base.p1 + shift, base.p2 + shift, base.p3 + shift)
-}
-func ShiftTriangles<T : Point>(base : [Triangle<T>], shift : T) -> [Triangle<T>] {
-  return base.map({ ShiftTriangle($0, shift: shift) });
-}
-
 /// A real, cyclic mod
-private func mod(x : Int, m : Int) -> Int {
-  let rem = x % m
+public func cyc_mod(x: Int, m : Int) -> Int {
+  let rem = x % m;
   return rem < 0 ? rem + m : rem
 }
 public func cyc_mod(x: Float, m : Float) -> Float {
@@ -138,54 +34,6 @@ public func cyc_mod(x: Double, m : Double) -> Double {
   return rem < 0 ? rem + m : rem
 }
 
-/// Use barycentric coordinates to determine if a point is inside a triangle
-func isPointInside(p : Point2D, x : (a: Point2D, b: Point2D, c: Point2D)) -> Bool {
-  let area = 0.5 * (-x.b.y*x.c.x  + x.a.y*(x.c.x-x.b.x) + x.a.x*(x.b.y - x.c.y) + x.b.x*x.c.y)
-  
-  let s = (x.a.y*x.c.x - x.a.x*x.c.y + (x.c.y - x.a.y)*p.x + (x.a.x - x.c.x)*p.y) / (2*area)
-  let t = (x.a.x*x.b.y - x.a.y*x.b.x + (x.a.y - x.b.y)*p.x + (x.b.x - x.a.x)*p.y) / (2*area)
-  let u = 1-s-t
-  // Inside the triangle, OR, on the edge, but not a shared vertex
-  return s>0 && t>0 && u>0 || (s>=0 && t>=0 && u>=0 && s < 1 && t < 1 && u < 1)
-}
-
-enum TriangleClassification {
-  case Closed
-  case Open
-  case Degenerate
-}
-private func isPointConvex(let points : [Point2D], index : Int) -> TriangleClassification
-{
-  let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
-  let x = (a: points[indices.0], b: points[indices.1], c: points[indices.2])
-  let area = 0.5 * (-x.b.y*x.c.x  + x.a.y*(x.c.x-x.b.x) + x.a.x*(x.b.y - x.c.y) + x.b.x*x.c.y)
-  return area < 0 ? .Closed : (area > 0 ? .Open : .Degenerate)
-}
-
-private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
-  let indices = (mod(index-1, m: points.count), index, mod(index+1, m: points.count))
-  let triangle = (points[indices.0], points[indices.1], points[indices.2])
-  
-  let classify = isPointConvex(points, index: index)
-  if classify == .Open {
-    return false
-  } else if classify == .Degenerate {
-    return true
-  }
-  
-  // This vertex, v, is an ear if v-1, v, v contains no other points
-  for p in 0..<points.count {
-    // Skip testing points that form part of this triangle
-    if p == indices.0 || p == indices.1 || p == indices.2 {
-      continue
-    }
-    if isPointInside(points[p], x: triangle) {
-      return false
-    }
-  }
-  // If here, no other points are inside
-  return true
-}
 
 /// Contains tools for drawing simple objects
 class DrawingTools
@@ -197,6 +45,7 @@ class DrawingTools
     var vertexBuffer : GLuint = 0
     var stencilTesting : Bool = false
     var program : ShaderState?
+    var scaleToPoints = Point2D(1,1)
   }
   
   // State storing
@@ -205,32 +54,34 @@ class DrawingTools
   
   var program : ShaderProgram
 
+  /// The default framebuffer
   var defaultFramebuffer : GLuint = 0
   
   /// The size, in pixels, of the entire hardware screen, in current orientation
   var screenSizePhysical : Size2D<Int>
   /// The multiplier to convert the current rendering target to pixels
-  var scaleToPoints = Point2D(0,0)
+  var scaleToPoints : Point2D { return currentState.scaleToPoints }
   /// The physical size (in pixels) of the currently bound render target
   var renderTargetPixels : Size2D<Int>
   
   var images : ImageLibrary { return _images! }
   private var _images : ImageLibrary? = nil
   
-  // For textured squares
-  var texturedSquare : Drawable? = nil
-
+  // For textured squares, offset and centered
+  private(set) var texturedSquare : Drawable? = nil
   private(set) var texturedCenterSquare : Drawable? = nil
+  /// An untextured square
+  private var meshSquare : Mesh?
+  /// A blank 1x1 white texture
+  private let blankTexture : Texture
   
+  /// Tracks buffer objects for loading shared
   private var buffers : [GLuint : BufferInfo] = [:]
+  /// Tracks every text renderer we have created
   private var textRenderers : [String : TextRenderer] = [:]
   
   /// Scale for turning point values into current projection
   var pointsToScreenScale : GLfloat = 1
-  
-  private var meshSquare : Mesh?
-  
-  private let blankTexture : Texture
   
   private struct BufferInfo {
     let array : VertexArray
@@ -285,7 +136,7 @@ class DrawingTools
     program.setProjection(GLKMatrix4MakeOrtho(left, right, bottom, top, -abs(top-bottom)/2, abs(top-bottom)))
     let mss = Float(UIScreen.mainScreen().scale)
     let pointSize = Size2D(w: Float(renderTargetPixels.w)/mss, h: Float(renderTargetPixels.h)/mss)
-    scaleToPoints = Point2D(pointSize.w/abs(right-left), pointSize.h/abs(top-bottom))
+    currentState.scaleToPoints = Point2D(pointSize.w/abs(right-left), pointSize.h/abs(top-bottom))
   }
   
   func saveState() {
@@ -465,7 +316,7 @@ class DrawingTools
       lastRemaining = remaining.count
       // Step over every vertex, and check to see if it is an ear
       for v in 0..<remaining.count {
-        let indices = (mod(v-1, m: remaining.count), v, mod(v+1, m: remaining.count))
+        let indices = (cyc_mod(v-1, m: remaining.count), v, cyc_mod(v+1, m: remaining.count))
         let triangle = Triangle(remaining[indices.0], remaining[indices.1], remaining[indices.2])
 //        print("Examining \(triangle.0), \(triangle.1), \(triangle.2)")
         if isPolygonEar(remaining, index: v) {

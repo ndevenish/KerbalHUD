@@ -45,3 +45,12 @@ public struct Point2D : Point, NilLiteralConvertible {
 public func +(left: Point2D, right: Point2D) -> Point2D {
   return Point2D(x: left.x+right.x, y: left.y+right.y)
 }
+
+
+func ShiftTriangle<T : Point>(base : Triangle<T>, shift : T) -> Triangle<T> {
+  return Triangle(base.p1 + shift, base.p2 + shift, base.p3 + shift)
+}
+func ShiftTriangles<T : Point>(base : [Triangle<T>], shift : T) -> [Triangle<T>] {
+  return base.map({ ShiftTriangle($0, shift: shift) });
+}
+

@@ -50,3 +50,19 @@ extension DrawingTools {
     }
   }
 }
+
+
+/// Builds a 1X1 white texture to use for non-texture drawing
+func generate1X1Texture() -> Texture {
+  var tex : GLuint = 0
+  glGenTextures(1, &tex)
+  glBindTexture(GLenum(GL_TEXTURE_2D), tex)
+  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_S), GL_REPEAT);
+  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_WRAP_T), GL_REPEAT);
+  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MIN_FILTER), GL_LINEAR);
+  glTexParameteri(GLenum(GL_TEXTURE_2D), GLenum(GL_TEXTURE_MAG_FILTER), GL_LINEAR);
+  var data : [GLubyte] = [255]
+  glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_LUMINANCE, 1, 1, 0, GLenum(GL_LUMINANCE), GLenum(GL_UNSIGNED_BYTE), &data)
+  glBindTexture(GLenum(GL_TEXTURE_2D), 0)
+  return Texture(name: tex, width: 1, height: 1)
+}

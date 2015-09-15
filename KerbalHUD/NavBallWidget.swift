@@ -71,8 +71,9 @@ class NavBallWidget : Widget {
     variables = varList
     
     self.bounds = bounds
-    
+    glPushGroupMarkerEXT(0, "Navball Texture Generation")
     sphereTexture = NavBallTextureRendering(tools: drawing).generate()
+    glPopGroupMarkerEXT()
     sphere = tools.LoadTriangles(generateSphereTriangles(1, latSteps: 50, longSteps: 100), texture: sphereTexture)
   }
   
@@ -347,6 +348,7 @@ class NavBallTextureRendering {
     drawing.bind(Framebuffer.Default)
     let tex = texture.texture
     drawing.deleteFramebuffer(texture, texture: false)
+    tex.debugName("NavBall")
     return tex
   }
   

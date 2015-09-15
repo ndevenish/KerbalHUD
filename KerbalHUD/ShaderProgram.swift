@@ -9,6 +9,12 @@
 import Foundation
 import GLKit
 
+struct ShaderState {
+  var color : Color4 = Color4.White
+  var uvScales : (GLfloat, GLfloat, GLfloat, GLfloat) = (0,0,0,0)
+  var modelViewProjection = GLKMatrix4Identity
+  var projection = GLKMatrix4Identity
+}
 
 class ShaderProgram {
 
@@ -20,7 +26,16 @@ class ShaderProgram {
   var attributes : (position : GLuint, texture : GLuint)
   private var uniforms : (mvp : Int32, color : Int32, uvOffset: Int32, uvScale: Int32)
   
-  private(set) var projection : GLKMatrix4 = GLKMatrix4Identity
+  private var _state = ShaderState()
+  var state : ShaderState {
+    get { return _state }
+    set {
+      setColor(newValue.color)
+      setProjection(newValue.projection)
+      setModelViewProjection(newValue.modelViewProjection)
+      setUVProperties(xOffset: newValue.uvScales.0, yOffset: newValue.uvScales.1, xScale: newValue.uvScales.2, yScale: newValue.uvScales.3)
+    }
+  }
   
   init() {
     _program = loadShaders()!
@@ -40,40 +55,44 @@ class ShaderProgram {
   }
   
   func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat) {
+    _state.color = Color4(r: red, g: green, b: blue)
     glUniform3f(uniforms.color, red, green, blue)
   }
   func setColor(color : Color4) {
-      glUniform3f(uniforms.color, color.r, color.g, color.b)
+    _state.color = color
+    glUniform3f(uniforms.color, color.r, color.g, color.b)
   }
-  var lastOffset : (GLfloat, GLfloat) = (0,0)
-  var lastScale : (GLfloat, GLfloat) = (0,0)
   
   func setUVProperties(xOffset xOffset : GLfloat = 0, yOffset : GLfloat = 0, xScale : GLfloat = 1, yScale : GLfloat = 1)
   {
-    if xOffset != lastOffset.0 || yOffset != lastOffset.1 {
+    if xOffset != _state.uvScales.0 || yOffset != _state.uvScales.1 {
       glUniform2f(uniforms.uvOffset, xOffset, yOffset)
-      lastOffset = (xOffset, yOffset)
+//      lastOffset = (xOffset, yOffset)
     }
-    if xScale != lastScale.0 || yScale != lastScale.1 {
+    if xScale != _state.uvScales.2 || yScale != _state.uvScales.3 {
       glUniform2f(uniforms.uvScale, xScale, yScale)
-      lastScale = (xScale, yScale)
+//      lastScale = (xScale, yScale)
     }
+    _state.uvScales = (xOffset, yOffset, xScale, yScale)
   }
   
   func setModelViewProjection(matrix : GLKMatrix4) {
     var mvp = matrix
+    _state.modelViewProjection = matrix
     withUnsafePointer(&mvp, {
       glUniformMatrix4fv(uniforms.mvp, 1, 0, UnsafePointer($0));
     })
   }
   
+  var projection : GLKMatrix4 { return _state.projection }
+
   /// Sets the modelViewProjection matrix, by multiplying in the projection
   func setModelView(matrix : GLKMatrix4) {
-    setModelViewProjection(GLKMatrix4Multiply(projection, matrix))
+    setModelViewProjection(GLKMatrix4Multiply(_state.projection, matrix))
   }
   
   func setProjection(matrix : GLKMatrix4) {
-    projection = matrix
+    _state.projection = matrix
   }
   
   deinit {

@@ -37,6 +37,9 @@ extension Texture {
     self.size = Size2D(w: Int(width), h: Int(height))
   }
   
+  func debugName(name : String) {
+    glLabelObjectEXT(GLenum(GL_TEXTURE), self.name, 0, name)
+  }
 }
 
 extension DrawingTools {

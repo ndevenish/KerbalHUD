@@ -20,17 +20,6 @@ func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
   return p.advancedBy(i)
 }
 
-//private struct Mesh : Drawable {
-//  // Need array here? Probably not, as anything in the same buffer
-//  // should match formats
-//  //  var vertexArray  : GLuint = 0
-////  var vertexArray : GLuint = 0
-//  var vertexBuffer : GLuint = 0
-//  var bufferOffset : GLuint = 0
-//  var bufferCount  : GLuint = 0
-//  var vertexType : GLenum = GLenum(GL_INVALID_ENUM)
-//}
-
 /// Builds a 1X1 white texture to use for non-texture drawing
 func generate1X1Texture() -> Texture {
   var tex : GLuint = 0
@@ -179,11 +168,8 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
   
   let classify = isPointConvex(points, index: index)
   if classify == .Open {
-//    print ("   Is Open - not an ear.")
     return false
   } else if classify == .Degenerate {
-    // for now, treat them as a valid triangle
-//    print ("   Is Degenerate - counts as an ear.")
     return true
   }
   
@@ -194,8 +180,6 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
       continue
     }
     if isPointInside(points[p], x: triangle) {
-      // Not an ear, as another point is inside
-//      print ("   Contains point \(p).")
       return false
     }
   }
@@ -206,11 +190,18 @@ private func isPolygonEar(let points : [Point2D], index : Int) -> Bool {
 /// Contains tools for drawing simple objects
 class DrawingTools
 {
+  private struct DrawingToolState {
+    var array : GLuint = 0
+    var framebuffer : Framebuffer = Framebuffer.Default
+    var texture : GLuint = 0
+    var vertexBuffer : GLuint = 0
+    var stencilTesting : Bool = false
+    var program : ShaderState?
+  }
+  
   // State storing
-  private var lastArray : GLuint = 0
-  private var lastFramebuffer : Framebuffer = Framebuffer.Default
-  private var lastTexture : GLuint = 0
-  private var lastVertexBuffer : GLuint = 0
+  private var currentState = DrawingToolState()
+  private var stateStack : [DrawingToolState] = []
   
   var program : ShaderProgram
 
@@ -243,8 +234,6 @@ class DrawingTools
   
   private struct BufferInfo {
     let array : VertexArray
-//    let array : GLuint
-//    let name : GLuint
     let size : GLsizeiptr
     var offset : GLintptr = 0
     var spaceFree : GLsizeiptr {
@@ -288,7 +277,6 @@ class DrawingTools
     meshSquare = LoadVertices(VertexRepresentation.TriangleStrip, vertices: sqVpoints) as! SimpleMesh
     bind(VertexArray.Empty)
     
-    
     texturedSquare =       generateOriginTextureSquare(self)
     texturedCenterSquare = generateCenteredTextureSquare(self)
   }
@@ -300,9 +288,49 @@ class DrawingTools
     scaleToPoints = Point2D(pointSize.w/abs(right-left), pointSize.h/abs(top-bottom))
   }
   
-//  private var current_buffer : GLuint
+  func saveState() {
+    currentState.program = program.state
+    stateStack.append(currentState)
+    glPushGroupMarkerEXT(0, "Entering State Group " + String(stateStack.count))
+  }
+  func restoreState() {
+    guard let state = stateStack.popLast() else {
+      fatalError("Run out of states")
+    }
+    glPushGroupMarkerEXT(0, "Restoring previous state's state")
+    if currentState.array != state.array {
+      glBindVertexArray(state.array)
+    }
+    if currentState.framebuffer != state.framebuffer {
+      if state.framebuffer.name == 0 {
+        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
+      } else {
+        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), state.framebuffer.name)
+      }
+    }
+    if currentState.texture != state.texture {
+      glBindTexture(GLenum(GL_TEXTURE_2D), state.texture)
+    }
+    if currentState.vertexBuffer != state.vertexBuffer {
+      glBindBuffer(GLenum(GL_ARRAY_BUFFER), state.vertexBuffer)
+    }
+    if currentState.stencilTesting != state.stencilTesting {
+      if state.stencilTesting {
+        glEnable(GLenum(GL_STENCIL_TEST))
+      } else {
+        glDisable(GLenum(GL_STENCIL_TEST))
+      }
+    }
+    if let ps = state.program {
+      program.state = ps
+    }
+    currentState = state
+    currentState.program = nil
+    glPopGroupMarkerEXT()
+    glPopGroupMarkerEXT()
+  }
+  
   private func generate_buffer(size : GLsizeiptr = 1024*sizeof(GLfloat)) -> BufferInfo {
-    
     let array = createVertexArray(positions: 2, textures: 0)
     let buffer = array.buffer_name
     
@@ -315,27 +343,33 @@ class DrawingTools
   }
 
   func bind(array : VertexArray) {
-    if lastArray == array.name {
+    if currentState.array == array.name {
       return
     }
     glBindVertexArray(array.name)
-    lastArray = array.name
+    currentState.array = array.name
   }
   
   
-  func bind(buffer : Framebuffer) {
-    if lastFramebuffer.name == buffer.name {
+  func bind(buffer : Framebuffer, clear : Bool = true) {
+    if currentState.framebuffer.name == buffer.name {
       return
     }
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
-    lastFramebuffer = buffer
+    currentState.framebuffer = buffer
     let size = name == defaultFramebuffer ? screenSizePhysical : buffer.size
     glViewport(0, 0, GLsizei(size.w), GLsizei(size.h))
     renderTargetPixels = size
     
-//    glClearColor(0,0,0,1)
-    glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_STENCIL_BUFFER_BIT))
+    // Clear the framebuffer, unless we are asked not to
+    if clear {
+      glClear(GLbitfield(GL_COLOR_BUFFER_BIT) | GLbitfield(GL_STENCIL_BUFFER_BIT))
+    }
+    // If we have no stencil buffer, ensure we don't stencil test
+    if buffer.stencil == 0 && buffer.name != 0 {
+      UnconstrainDrawing()
+    }
 
   }
   
@@ -345,7 +379,7 @@ class DrawingTools
       return
     }
     let name = texture.name
-    if name != lastTexture {
+    if name != currentState.texture {
       glBindTexture(texture.target, name)
       program.setUVProperties()
     }
@@ -355,11 +389,11 @@ class DrawingTools
   func forceBind(buffer : Framebuffer) {
     let name = buffer.name == 0 ? defaultFramebuffer : buffer.name
     glBindFramebuffer(GLenum(GL_FRAMEBUFFER), name)
-    lastFramebuffer = buffer
+    currentState.framebuffer = buffer
   }
   
   func getCurrentFramebuffer() -> Framebuffer {
-    return lastFramebuffer
+    return currentState.framebuffer
   }
   private func bufferWithSpace(space : GLsizeiptr) -> BufferInfo
   {
@@ -595,14 +629,17 @@ class DrawingTools
     startWritingStencilBuffer()
     DrawSquare(left, bottom: bottom, right: right, top: top)
     stopWritingStencilBuffer()
+    currentState.stencilTesting = true
   }
   func ConstrainDrawing(bounds : Bounds) {
     startWritingStencilBuffer()
     DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
     stopWritingStencilBuffer()
+    currentState.stencilTesting = true
   }
 
   func UnconstrainDrawing() {
+    currentState.stencilTesting = false
     glDisable(GLenum(GL_STENCIL_TEST))
   }
 }

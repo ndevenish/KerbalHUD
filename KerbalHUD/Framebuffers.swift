@@ -32,6 +32,11 @@ extension Framebuffer {
 
 extension DrawingTools {
   func createTextureFramebuffer(
+    size : Size2D<UInt>, depth: Bool, stencil : Bool) -> Framebuffer
+  {
+    return createTextureFramebuffer(size.map({Int($0)}), depth: depth, stencil: stencil)
+  }
+  func createTextureFramebuffer(
     size : Size2D<Int>, depth: Bool, stencil : Bool) -> Framebuffer
   {
     // Generate a texture in the requested size

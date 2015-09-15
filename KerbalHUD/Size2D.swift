@@ -22,6 +22,9 @@ extension Double : FloatConvertible {
 extension Float : FloatConvertible {
   var asFloat : Float { return self }
 }
+extension UInt : FloatConvertible {
+  var asFloat : Float { return Float(self) }
+}
 
 struct Size2D<T where T : FloatConvertible, T: Equatable> {
   var w : T

@@ -84,14 +84,16 @@ class GameViewController: GLKViewController {
     drawing = DrawingTools(shaderProgram: program!)
     program!.use()
     
-    let markers = SVGImage(fromBundleFile: "Markers.svg")
-    markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
-    
     // Extract the default FBO so we can bind back
     (self.view as! GLKView).bindDrawable()
     var defaultFBO : GLint = 0
     glGetIntegerv(GLenum(GL_FRAMEBUFFER_BINDING), &defaultFBO)
     drawing?.defaultFramebuffer = GLuint(defaultFBO)
+    print("Default framebuffer is \(defaultFBO)")
+    //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
+    
+    let markers = SVGImage(fromBundleFile: "Markers.svg")
+    markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
     
 //   display = RPMPlaneHUD(tools: drawing!)
 //    display = HSIIndicator(tools: drawing!)
@@ -99,13 +101,20 @@ class GameViewController: GLKViewController {
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
     
     panel = InstrumentPanel(tools: drawing!)
+    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
     panel?.AddInstrument(NavBall(tools: drawing!))
+    glPopGroupMarkerEXT()
+    glPushGroupMarkerEXT(0, "Create Instrument: HSI")
     panel?.AddInstrument(HSIIndicator(tools: drawing!))
+    glPopGroupMarkerEXT()
+    glPushGroupMarkerEXT(0, "Create Instrument: HUD")
     panel?.AddInstrument(NewPlaneHud(tools: drawing!))
+    glPopGroupMarkerEXT()
     
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
     glFrontFace(GLenum(GL_CW))
+    glFinish()
   }
   
   func tearDownGL() {

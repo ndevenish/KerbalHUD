@@ -66,6 +66,7 @@ extension SVGImage
     processGLErrors()
     let texture = try! GLKTextureLoader.textureWithCGImage(image, options: nil)
     let entry = Texture(glk:texture)
+    entry.debugName("SVG-" + id)
     return entry
   }
   

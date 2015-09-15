@@ -231,7 +231,7 @@ class AtlasTextRenderer : TextRenderer {
     
     for char in atlasText.characters.map({ String($0) }) {
       let tex = drawToTexture(char, size: size)
-      try! atlas.addItem(char, item: tex)
+      try! atlas.addItem(char, item: tex, realAspect: uvSize.aspect)
       tool.deleteTexture(tex)
     }
 
@@ -385,10 +385,10 @@ class TextureAtlas {
   }
 
   /** Add an item to the atlas texture.
-  - parameters item     The texture to place in the atlas entry
-  - parameters uvWidth  The proportion of the texture that covers the actual
-                        physical size (for e.g. font fractionals) */
-  func addItem(itemName: String, item: Texture, uvWidth: Size2D<Float> = Size2D(w:1,h:1)) throws -> CGRect {
+  - parameters item       The texture to place in the atlas entry
+  - parameters realAspect The *real* aspect ratio of the image, allowing for
+                          e.g. fractional font sizes */
+  func addItem(itemName: String, item: Texture, realAspect: Float = 1) throws -> CGRect {
     guard slotsRemaining > 0 else {
       throw TextureAtlasError.AtlasFull
     }
@@ -427,14 +427,18 @@ class TextureAtlas {
     tools.program.setColor(Color4.White)
     tools.bind(item)
     tools.DrawTexturedSquare(dr)
+    
+    // Scale the UVWidth to 1
+    let uvScaled = Size2D(w: realAspect/itemSize.aspect, h: 1)
+
     // Add this entry to the index
     let origin = Point2D(x: Float(xPos)/Float(framebuffer.size.w),
                          y: Float(yPos)/Float(framebuffer.size.h))
     let itemBox = Size2D(w: Float(itemSize.w)/Float(framebuffer.size.w),
                          h: Float(itemSize.h)/Float(framebuffer.size.h))
     let result = CGRectMake(CGFloat(origin.x), CGFloat(origin.y),
-      CGFloat(itemBox.w)*CGFloat(uvWidth.w),
-      CGFloat(itemBox.h)*CGFloat(uvWidth.h))
+      CGFloat(itemBox.w)*CGFloat(uvScaled.w),
+      CGFloat(itemBox.h)*CGFloat(uvScaled.h))
     items[itemName] = result
     return result
   }

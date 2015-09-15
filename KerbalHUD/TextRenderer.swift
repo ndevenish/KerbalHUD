@@ -182,6 +182,9 @@ class AtlasTextRenderer : TextRenderer {
   
   // Work out the size of texture we require for a particular count of characters
   private func _required_texture_size(count: Int, size : Size2D<Int>) -> CGSize {
+    guard size.w != 0 else {
+      return CGSizeMake(0, 0)
+    }
     // Work out the power of two length required for the maximum dimension
     let pwrMaxRequired = Int(ceil(log2(Float(max(size))*sqrt(Float(count)))))
     // Check the power below this, as it MIGHT work with uneven character counts
@@ -203,9 +206,14 @@ class AtlasTextRenderer : TextRenderer {
         return atlas
       }
     }
-    
+    guard size > 0 && size < 100 else {
+      print("Invalid atlas size")
+      return nil
+    }
     // Clear any errors before running this process
     processGLErrors()
+    
+    let scale : Float = 2.0
     
     let atlasText = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~Δ☊¡¢£¤¥¦§¨©ª«¬☋®¯°±²³´µ¶·¸¹º»¼½¾¿˚π"
     let font = UIFont(name: fontName, size: CGFloat(size))
@@ -214,9 +222,12 @@ class AtlasTextRenderer : TextRenderer {
     // How large is a single character?
     let singleCharacterSizePts = Size2DFromCGSize(("W" as NSString).sizeWithAttributes(attrs))
     let characterFullPointSize = singleCharacterSizePts.map({Int(ceil($0))})
-    let characterPixelSize = singleCharacterSizePts.map({$0*Float(UIScreen.mainScreen().scale)})
-    let characterFullPixelSize = singleCharacterSizePts.map({Int(ceil($0 * Float(UIScreen.mainScreen().scale)))})
+    let characterPixelSize = singleCharacterSizePts.map({$0*scale})
+    let characterFullPixelSize = characterFullPointSize.map({Int(ceil(Float($0) * scale))})
     
+    if characterFullPixelSize.w == 29 || characterFullPixelSize.w == 30 {
+      print(size)
+    }
     let textureSize = _required_texture_size(atlasText.characters.count, size: characterFullPixelSize)
     // Work out how many characters we can fit in wide and high
     let characterCount = (x: Int(floor(textureSize.width/CGFloat(characterFullPixelSize.w))),
@@ -226,7 +237,7 @@ class AtlasTextRenderer : TextRenderer {
     UIGraphicsBeginImageContextWithOptions(textureSize, false, 1)
     let context = UIGraphicsGetCurrentContext()
     // We precalculated the adjustment due to screen scaling, so apply it manually
-    CGContextScaleCTM(context, UIScreen.mainScreen().scale, UIScreen.mainScreen().scale)
+    CGContextScaleCTM(context, CGFloat(scale), CGFloat(scale))
     // Build a character position lookup
     var charLookup : [Character: (x: Int, y: Int)] = [:]
     // Now render every character
@@ -291,7 +302,9 @@ class AtlasTextRenderer : TextRenderer {
       let scaledY = (transform * GLKVector3.eY).length * tool.scaleToPoints.y//*  Float(tool.screenSizePhysical.h)
       let scaledAspect = scaledX/scaledY
       
-      
+      if scaledY.isNaN {
+        return false
+      }
       let fontSize = Int(ceil(size*scaledY / tool.pointsToScreenScale))
       guard fontSize < 100 else {
 //        fatalError()
@@ -339,6 +352,7 @@ class AtlasTextRenderer : TextRenderer {
             }
             
             if let rEntry = atlas.newAtlas.rectForEntry(String(char)) {
+              tool.bind(atlas.newAtlas.framebuffer.texture)
               tool.program.setUVProperties(
                 xOffset: Float(rEntry.origin.x), yOffset: Float(rEntry.origin.y),
                 xScale: Float(rEntry.size.width), yScale: Float(rEntry.size.height))

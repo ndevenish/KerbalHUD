@@ -34,6 +34,7 @@ class NewPlaneHud : LayeredInstrument {
     var config = InstrumentConfiguration()
     config.size = Size2D(w: 1, h: 1)
     config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("PlaneHUD_Overlay", withExtension: "svg")!)
+    config.textColor = Color4.Green
     // Now do the text
     config.text.appendContentsOf([
       t("PRS: {0,7:0,.000}kPa",  "v.dynamicPressure", x: 1, y: 1, align: .Left),

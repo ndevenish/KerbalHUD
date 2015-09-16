@@ -174,13 +174,18 @@ class LayeredInstrument : Instrument {
       let entry = fullEntry.entry
       let varEntries = entry.variables.map { (varValues[$0] ?? 0) as Any }
       let str = try! String.Format(entry.string, argList: varEntries)
-//      drawing.program.setColor(entry.color ?? config.textColor)
-      dr.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
+      if let col = entry.color where col != config.textColor {
+        drawing.program.setColor(col)
+        defaultText.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
+      } else {
+        dr.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
+      }
     }
-    let drawable = dr.generateDrawable()!
-    drawing.program.setModelView(GLKMatrix4Identity)
-    //print("Drawing text into screensize \(screenSize)")
-    drawing.draw(drawable)
-    drawing.deleteVertexArray((drawable as! SimpleMesh).array)
+    if let drawable = dr.generateDrawable() {
+      drawing.program.setModelView(GLKMatrix4Identity)
+      drawing.program.setColor(config.textColor)
+      drawing.draw(drawable)
+      drawing.deleteVertexArray((drawable as! SimpleMesh).array)
+    }
   }
 }

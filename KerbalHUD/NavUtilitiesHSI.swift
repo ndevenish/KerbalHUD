@@ -361,6 +361,7 @@ class HSIIndicator : RPMInstrument {
     drawCourseNeedle()
     
     // Draw the overlay texture now
+    drawing.program.setColor(Color4.White)
     drawing.bind(overlayTexture)
     drawing.DrawTexturedSquare(0, bottom: 0, right: 640, top: 640)
 //

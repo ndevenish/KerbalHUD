@@ -15,7 +15,7 @@ import GLKit
 //  
 //}
 
-struct Color4 {
+struct Color4 : Equatable {
   var r : GLfloat
   var g : GLfloat
   var b : GLfloat
@@ -39,7 +39,10 @@ struct Color4 {
     self.b = Float(b)/255.0
     self.a = 1
   }
-  
+}
+
+func ==(left : Color4, right: Color4) -> Bool {
+  return left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a
 }
 
 extension Color4 {

@@ -33,6 +33,8 @@ class GameViewController: GLKViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    // Prevent sleep
+    UIApplication.sharedApplication().idleTimerDisabled = true
     
     self.context = EAGLContext(API: .OpenGLES2)
     
@@ -42,7 +44,6 @@ class GameViewController: GLKViewController {
     
     let view = self.view as! GLKView
     view.context = self.context!
-//    view.drawableDepthFormat = .Format24
     view.drawableStencilFormat = .Format8
     
     self.setupGL()
@@ -89,17 +90,11 @@ class GameViewController: GLKViewController {
     var defaultFBO : GLint = 0
     glGetIntegerv(GLenum(GL_FRAMEBUFFER_BINDING), &defaultFBO)
     drawing?.defaultFramebuffer = GLuint(defaultFBO)
-    print("Default framebuffer is \(defaultFBO)")
-    //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
-//    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
-    
+
+    // Load the prograde etc markers
     let markers = SVGImage(fromBundleFile: "Markers.svg")
     markers.addElementsToImageLibrary(drawing!.images, size: Size2D(w: 256, h: 256))
-//    glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
 
-    
-//   display = RPMPlaneHUD(tools: drawing!)
-//    display = HSIIndicator(tools: drawing!)
     glEnable(GLenum(GL_BLEND));
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
 
@@ -119,7 +114,6 @@ class GameViewController: GLKViewController {
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
     glFrontFace(GLenum(GL_CW))
-    //glFinish()
   }
   
   func tearDownGL() {

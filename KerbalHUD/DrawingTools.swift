@@ -153,7 +153,7 @@ class DrawingTools
       glBindVertexArray(state.array)
     }
     if currentState.framebuffer != state.framebuffer {
-      bind(state.framebuffer)
+      bind(state.framebuffer, clear: false)
 //      if state.framebuffer.name == 0 {
 //        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
 //      } else {

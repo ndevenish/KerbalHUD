@@ -90,6 +90,9 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   /// Timer to keep track of the last time we debug printed a data dump
   private var _dumpTimer : Timer?
   
+  /// The current list and order of binary subscriptions
+  var _binarySubscriptions : [String] = []
+  
   /// The current subscriptions, and the number of times it has been subscribed
   var _subscriptions : [String : Int ] = [:]
   /// GCD Queue for processing incoming websocket messages
@@ -134,7 +137,13 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     // Form an initial subscription packet
     var apiParts : [String] = ["\"rate\": 0"]
     _pendingSubscriptions.append("p.paused")
-    _pendingSubscriptions.append("binaryNavigation")
+//    _pendingSubscriptions.append("binaryNavigation")
+    let binaryVars = [Vars.Flight.Heading, Vars.Flight.Pitch, Vars.Flight.Roll, "v.verticalSpeed"]
+    if binaryVars.count > 0 {
+      let list = binaryVars.map({"\"" + $0 + "\""}).joinWithSeparator(",")
+      apiParts.append("\"binary\": [\(list)]");
+      _binarySubscriptions = binaryVars
+    }
     if _pendingSubscriptions.count > 0 {
       let list = _pendingSubscriptions.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"+\": [\(list)]")
@@ -187,7 +196,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     // Read this message asynchronously
     reading += 1
     dispatch_async(_parseQueue) { () -> Void in
-      let timer = Clock.createTimer()
+//      let timer = Clock.createTimer()
       defer {
         self.reading -= 1
       }
@@ -196,7 +205,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
         return
       }
       self.processJSONMessage(json)
-      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
+//      print("Done processing in ", String(format: "%.0fms (%.0ffps)", timer.elapsed*1000, 1.0/timer.elapsed))
       if self.dropped > 0 {
 //        print("Dropped: ", self.dropped)
         self.dropped = 0
@@ -235,55 +244,32 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   }
   
   enum DataPacketType : UInt8 {
-    case BinaryNavigation = 1
+    case BinaryVariables = 1
     case Unknown
   }
   func websocketDidReceiveData(socket: WebSocket, data: NSData)
   {
-    let timer = Clock.createTimer()
+//    let timer = Clock.createTimer()
     var rawDataType : UInt8 = 0
     data.getBytes(&rawDataType, length: 1)
     let packetType = DataPacketType(rawValue: rawDataType) ?? .Unknown
     switch packetType {
-    case .BinaryNavigation:
-      parseBinaryNavigationData(data.subdataWithRange(NSMakeRange(1, 16)))
-//      var number = 43
-
-      //      var dataArray : UnsafePointer<UInt8>
-//      data.getBytes
-      
-      
-      // Gives us Heading, Pitch, Roll, DeltaV as network-order 4-byte floats
-//      (0..<4).map({ (i) in
-//        var buff : Float32 = 0
-//        var buffer : UnsafePointer<Float._BitsType>
-//        
-//        data.getBytes(&buff, range: NSMakeRange(4*$0, 4))
-//
-//        
-//      })
+    case .BinaryVariables:
+      parseBinaryNavigationData(data.subdataWithRange(NSMakeRange(1, 4*_binarySubscriptions.count)))
     default:
       fatalError("Unrecognised binary data packet")
     }
-    print(String(format:"Processed binary in %.2fms", timer.elapsed));
+//    print(String(format:"Processed binary in %.2fms", timer.elapsed));
   }
 
   func parseBinaryNavigationData(data: NSData) {
     var val : UInt32 = 0
-    data.getBytes(&val, range: NSMakeRange(0, 4))
-    let heading = Float(bigEndian: val)
-    data.getBytes(&val, range: NSMakeRange(4, 4))
-    let pitch = Float(bigEndian: val)
-    data.getBytes(&val, range: NSMakeRange(8, 4))
-    let roll = Float(bigEndian: val)
-    data.getBytes(&val, range: NSMakeRange(12, 4))
-    let deltaV = Float(bigEndian: val)
-    
     let time = CACurrentMediaTime()
-    _latestData[Vars.Flight.Heading] = (time, JSON(heading))
-    _latestData[Vars.Flight.Pitch] = (time, JSON(pitch))
-    _latestData[Vars.Flight.Roll] = (time, JSON(roll))
-    _latestData["v.verticalSpeed"] = (time, JSON(deltaV))
+    for (index, name) in _binarySubscriptions.enumerate() {
+      // Get this data
+      data.getBytes(&val, range: NSMakeRange(4*index, 4))
+      _latestData[name] = (time, JSON(Float(bigEndian: val)))
+    }
   }
   
   subscript(index: String) -> JSON? {

@@ -49,7 +49,7 @@ class HSIIndicator : RPMInstrument {
   
   private var markerIndicator : (marker: BeaconMarker, timer: Timer)? = nil
   
-  private let _dispatch : dispatch_queue_t
+//  private let _dispatch : dispatch_queue_t
   
   private var data : FlightData = FlightData()
   
@@ -110,7 +110,7 @@ class HSIIndicator : RPMInstrument {
     let set = RPMPageSettings(textSize: (40,23), screenSize: Size2D(w: 640,h: 640),
       backgroundColor: Color4(0,0,0,1), fontName: "Menlo", fontColor: Color4(1,1,1,1))
     boldText = tools.textRenderer("Menlo-Bold")
-    _dispatch = dispatch_queue_create("com.kerbalhud.queue", nil)
+//    _dispatch = dispatch_queue_create("com.kerbalhud.queue", nil)
     
     // Generate the overlay texture
     let svgFile = NSBundle.mainBundle().URLForResource("Navutils_Overlay", withExtension: "svg")!
@@ -320,10 +320,10 @@ class HSIIndicator : RPMInstrument {
     }
     // Play a sound!
     if let sound = soundToPlay {
-//      dispatch_async(_dispatch, {
+      dispatch_async(dispatch_get_main_queue(), {
         sound.prepareToPlay()
         sound.play()        
-//      })
+      })
     }
   }
   

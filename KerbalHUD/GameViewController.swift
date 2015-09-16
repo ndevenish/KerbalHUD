@@ -102,7 +102,9 @@ class GameViewController: GLKViewController {
 //    display = HSIIndicator(tools: drawing!)
     glEnable(GLenum(GL_BLEND));
     glBlendFunc(GLenum(GL_SRC_ALPHA), GLenum(GL_ONE_MINUS_SRC_ALPHA));
-    
+
+    //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
+
     panel = InstrumentPanel(tools: drawing!)
     glPushGroupMarkerEXT(0, "Create Instrument: Navball")
     panel?.AddInstrument(NavBall(tools: drawing!))

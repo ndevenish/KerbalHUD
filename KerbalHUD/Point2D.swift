@@ -55,7 +55,7 @@ public struct TexturedPoint2D : Point {
     self.v = v
   }
   public func flatten() -> [Float] {
-    return []
+    return [x, y, u, v]
   }
 }
 public func +(left: Point2D, right: Point2D) -> Point2D {

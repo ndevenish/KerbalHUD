@@ -65,6 +65,10 @@ class AtlasTextRenderer : TextRenderer {
 
   private var textAtlasses : [Int: TextureAtlas] = [:]
   
+  func createDeferredRenderer() -> DeferredAtlasRenderer {
+    return DeferredAtlasRenderer(tools: tool, parent: self)
+  }
+  
   /// Cleans out textures not used recently
   func flush() {
     let to_remove = Set(0..<textures.count).subtract(foundTextures)
@@ -474,19 +478,23 @@ class DeferredAtlasRenderer : TextRenderer {
     guard !unprocessedEntries.isEmpty else {
       return nil
     }
-    let maxSize = unprocessedEntries.map({$0.size}).maxElement()!
+    glPushGroupMarkerEXT(0, "Generating text drawable")
+    defer {
+      glPopGroupMarkerEXT()
+    }
+    let maxSize = Int(ceil(unprocessedEntries.map({(a:TextEntry) -> Float in a.size * max(tools.scaleToPoints.x, tools.scaleToPoints.y)/tools.pointsToScreenScale}).maxElement()!))
     // Generate an atlas for this
-    let atlas = parent.createAtlas(Int(ceil(maxSize)))
+    let atlas = parent.textAtlasses[maxSize] ?? parent.createAtlas(maxSize)
     
     // Now generate every entry
     let triangles = unprocessedEntries.flatMap {self.trianglesFor($0, atlas: atlas)}
-    return tools.LoadTriangles(triangles)
+    return tools.LoadTriangles(triangles, texture: atlas.texture)
   }
   
   func trianglesFor(entry: TextEntry, atlas: TextureAtlas)
     -> [Triangle<TexturedPoint2D>]
   {
-    let fontSize = Int(entry.size)
+    let fontSize = Int(ceil(entry.size))
     
     // Work out the end size for the entry
     let entrySize = entry.size * Size2D(w: aspect*Float(entry.text.characters.count), h: 1)
@@ -508,7 +516,7 @@ class DeferredAtlasRenderer : TextRenderer {
     // Apply the rotation
     baseMatrix = GLKMatrix4Rotate(baseMatrix, entry.rotation, 0, 0, 1)
     // Scale to match the shape and size of a single character
-    baseMatrix = GLKMatrix4Scale(baseMatrix, entry.size, entry.size, 1)
+    baseMatrix = GLKMatrix4Scale(baseMatrix, entry.size*aspect, entry.size, 1)
     // Offset so that the text is center-aligned
     baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
     
@@ -522,10 +530,10 @@ class DeferredAtlasRenderer : TextRenderer {
       let charMatrix = GLKMatrix4Translate(baseMatrix, GLfloat(i), 0, 0)
       
       // Apply this to each of the vertex points
-      let bL = charMatrix * GLKVector3Make(0, 0, 0)
-      let bR = charMatrix * GLKVector3Make(1, 0, 0)
-      let tL = charMatrix * GLKVector3Make(0, 1, 0)
-      let tR = charMatrix * GLKVector3Make(1, 1, 0)
+      let bL = charMatrix * GLKVector4Make(0, 0, 0, 1)
+      let bR = charMatrix * GLKVector4Make(1, 0, 0, 1)
+      let tL = charMatrix * GLKVector4Make(0, 1, 0, 1)
+      let tR = charMatrix * GLKVector4Make(1, 1, 0, 1)
       
       // Work out the UV rect for this character
       let r : CGRect

@@ -153,11 +153,12 @@ class DrawingTools
       glBindVertexArray(state.array)
     }
     if currentState.framebuffer != state.framebuffer {
-      if state.framebuffer.name == 0 {
-        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
-      } else {
-        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), state.framebuffer.name)
-      }
+      bind(state.framebuffer)
+//      if state.framebuffer.name == 0 {
+//        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), defaultFramebuffer)
+//      } else {
+//        glBindFramebuffer(GLenum(GL_FRAMEBUFFER), state.framebuffer.name)
+//      }
     }
     if currentState.texture != state.texture {
       glBindTexture(GLenum(GL_TEXTURE_2D), state.texture)
@@ -355,7 +356,7 @@ class DrawingTools
     return LoadVertices(.Triangles, vertices: vertexList)
   }
 
-  func LoadTriangles(triangles : [Triangle<TexturedPoint2D>]) -> Drawable
+  func LoadTriangles(triangles : [Triangle<TexturedPoint2D>], texture: Texture) -> Drawable
   {
     var vertexList : [TexturedPoint2D] = []
     for tri in triangles {
@@ -363,9 +364,10 @@ class DrawingTools
       vertexList.append(tri.p2)
       vertexList.append(tri.p3)
     }
-    fatalError()
-//    return LoadVertices(.Triangles, vertices: vertexList)
-    
+    var data = vertexList.flatMap({$0.flatten()})
+    let array = createVertexArray(positions: 2, textures: 2)
+    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STREAM_DRAW))
+    return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(vertexList.count), color: nil)
   }
 
   func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], texture: Texture, color: Color4? = nil) -> Drawable

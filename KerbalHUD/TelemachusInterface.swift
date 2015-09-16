@@ -138,7 +138,7 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
     var apiParts : [String] = ["\"rate\": 0"]
     _pendingSubscriptions.append("p.paused")
 //    _pendingSubscriptions.append("binaryNavigation")
-    let binaryVars = [Vars.Flight.Heading, Vars.Flight.Pitch, Vars.Flight.Roll, "v.verticalSpeed"]
+    let binaryVars = [Vars.Flight.Heading, Vars.Flight.Pitch, Vars.Flight.Roll, "v.verticalSpeed"] + Vars.RPM.Direction.allPositive
     if binaryVars.count > 0 {
       let list = binaryVars.map({"\"" + $0 + "\""}).joinWithSeparator(",")
       apiParts.append("\"binary\": [\(list)]");

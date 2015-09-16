@@ -8,12 +8,12 @@
 //
 precision highp float;
 
-uniform lowp vec3 color;
+uniform lowp vec4 color;
 uniform sampler2D tex;
 
 varying vec2 Texcoord;
 
 void main()
 {
-    gl_FragColor = texture2D(tex, Texcoord)*vec4(color,1);
+    gl_FragColor = texture2D(tex, Texcoord)*color;
 }

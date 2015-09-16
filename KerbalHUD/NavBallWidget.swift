@@ -9,6 +9,10 @@
 import Foundation
 import GLKit
 
+private prefix func -(dir : NavBallWidget.FlightData.Direction) -> NavBallWidget.FlightData.Direction {
+  return NavBallWidget.FlightData.Direction(p: -dir.Pitch, y: dir.Yaw+180)
+}
+
 class NavBallWidget : Widget {
   private struct FlightData {
     var Roll : Float = 0
@@ -24,6 +28,10 @@ class NavBallWidget : Widget {
       init(data : [String:JSON], pro: String, ret: String) {
         Pro = Direction(data: data, name: pro)
         Retro = Direction(data: data, name: ret)
+      }
+      init(data : [String:JSON], pro: String) {
+        Pro = Direction(data: data, name: pro)
+        Retro = -Pro
       }
     }
     private struct Direction {
@@ -88,9 +96,10 @@ class NavBallWidget : Widget {
     
     switch out.speedDisplay {
     case .Orbit:
-      let primary = FlightData.Ends(data: data, pro: "PROGRADE", ret: "RETROGRADE")
-      let normal =  FlightData.Ends(data: data, pro: "NORMALPLUS", ret: "NORMALMINUS")
-      let radial =  FlightData.Ends(data: data, pro: "RADIALIN", ret: "RADIALOUT")
+      let primary = FlightData.Ends(data: data, pro: "PROGRADE")
+      let normal =  FlightData.Ends(data: data, pro: "NORMALPLUS")
+      let radial =  FlightData.Ends(data: data, pro: "RADIALIN")
+
       markers = [
         "Prograde": primary.Pro,
         "Retrograde": primary.Retro,
@@ -146,7 +155,10 @@ class NavBallWidget : Widget {
     mkMat = GLKMatrix4Translate(mkMat, bounds.center.x, bounds.center.y, 1)
     mkMat = GLKMatrix4Scale(mkMat, bounds.width/2, bounds.height/2, 1)
 //    sphMat = GLKMatrix4Scale(sphMat, bounds.width/2, bounds.height/2, 1)
-
+    glPushGroupMarkerEXT(0, "Drawing NavBall Markers")
+    defer {
+      glPopGroupMarkerEXT()
+    }
     drawing.program.setModelView(mkMat)
     // Draw all the nav markers
     for (name, dir) in data.markers {
@@ -166,13 +178,11 @@ class NavBallWidget : Widget {
       drawing.program.setModelView(spec)
       
       // What colour? White, other than the transparency...
-      let position = spec * GLKVector4Make(0,0,0,1)
-      let zPosition = -cos(dir.Yaw * π/180)*cos(dir.Pitch * π/180)
-      print("Position for " + name + ": ", zPosition, "(", dir.Pitch, ", ", dir.Yaw, ") [", NSStringFromGLKVector4(position), "]")
-      
-//      drawing.program.setColor(Color4(r: 1, g: 1, b: 1, a: min(1, position.z+1)))
+      let zPosition = cos(dir.Yaw * π/180)*cos(dir.Pitch * π/180)
+      drawing.program.setColor(Color4(r: 1, g: 1, b: 1, a: min(1,2*(zPosition+0.5))))
       drawing.draw(drawing.texturedCenterSquare!)
     }
+    drawing.program.setColor(Color4.White)
   }
 }
 

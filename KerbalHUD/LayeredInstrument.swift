@@ -181,5 +181,6 @@ class LayeredInstrument : Instrument {
     drawing.program.setModelView(GLKMatrix4Identity)
     //print("Drawing text into screensize \(screenSize)")
     drawing.draw(drawable)
+    drawing.deleteVertexArray((drawable as! SimpleMesh).array)
   }
 }

@@ -54,13 +54,13 @@ class ShaderProgram {
     uniforms = (uMVP, uCol, uOff, uSca)
   }
   
-  func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat) {
-    _state.color = Color4(r: red, g: green, b: blue)
-    glUniform3f(uniforms.color, red, green, blue)
+  func setColor(red red : GLfloat, green : GLfloat, blue : GLfloat, alpha: GLfloat = 1.0) {
+    _state.color = Color4(r: red, g: green, b: blue, a: alpha)
+    glUniform4f(uniforms.color, red, green, blue, 1.0)
   }
   func setColor(color : Color4) {
     _state.color = color
-    glUniform3f(uniforms.color, color.r, color.g, color.b)
+    glUniform4f(uniforms.color, color.r, color.g, color.b, color.a)
   }
   
   func setUVProperties(xOffset xOffset : GLfloat = 0, yOffset : GLfloat = 0, xScale : GLfloat = 1, yScale : GLfloat = 1)

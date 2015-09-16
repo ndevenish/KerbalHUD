@@ -121,6 +121,7 @@ extension Vars {
     var allNormal : [String] { return Array([NormalPlus.all, NormalMinus.all].flatten()) }
     var allProAxis : [String] { return Array([Prograde.all, Retrograde.all].flatten()) }
     var allCardinal : [String] { return Array([allRadial, allNormal, allProAxis].flatten()) }
+    var allPositive : [String] { return Array([Prograde.all, RadialIn.all, NormalPlus.all, Node.all, Target.all].flatten()) }
   }
   
   struct TargetNames {

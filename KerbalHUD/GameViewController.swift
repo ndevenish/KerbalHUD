@@ -101,15 +101,9 @@ class GameViewController: GLKViewController {
     //glInsertEventMarkerEXT(0, "com.apple.GPUTools.event.debug-frame")
 
     panel = InstrumentPanel(tools: drawing!)
-    glPushGroupMarkerEXT(0, "Create Instrument: Navball")
     panel?.AddInstrument(NavBall(tools: drawing!))
-    glPopGroupMarkerEXT()
-    glPushGroupMarkerEXT(0, "Create Instrument: HSI")
     panel?.AddInstrument(HSIIndicator(tools: drawing!))
-    glPopGroupMarkerEXT()
-    glPushGroupMarkerEXT(0, "Create Instrument: HUD")
     panel?.AddInstrument(NewPlaneHud(tools: drawing!))
-    glPopGroupMarkerEXT()
     
     glEnable(GLenum(GL_CULL_FACE))
     glCullFace(GLenum(GL_BACK))
@@ -183,8 +177,6 @@ class GameViewController: GLKViewController {
     // Just flush unused textures every frame for now
     drawing?.flush()
   }
-  
-  var nb : NavBall? = nil
   
   override func glkView(view: GLKView, drawInRect rect: CGRect) {
     

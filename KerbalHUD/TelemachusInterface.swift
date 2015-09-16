@@ -16,6 +16,7 @@ enum TelemachusState : Int {
   case NoPart = 4
   case NotInFlightScene = 5
   case Unknown = 666
+  case Disconnected = 1337
 }
 
 /// Stores result values sent from Kerbal
@@ -106,6 +107,9 @@ class TelemachusInterface : WebSocketDelegate, IKerbalDataStore {
   private var errored = Set<String>()
   
   var uplinkState : TelemachusState {
+    if !isConnected {
+      return .Disconnected
+    }
     return TelemachusState(rawValue: _latestData["p.paused"]?.1.intValue ?? 666) ?? .Unknown
   }
   

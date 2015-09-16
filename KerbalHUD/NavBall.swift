@@ -10,6 +10,10 @@ import UIKit
 
 class NavBall : LayeredInstrument {
   init(tools : DrawingTools) {
+    glPushGroupMarkerEXT(0, "Creating Instrument: Navball")
+    defer {
+      glPopGroupMarkerEXT()
+    }
     var config = InstrumentConfiguration()
     config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("RPM_NavBall_Overlay", withExtension: "svg")!)
     

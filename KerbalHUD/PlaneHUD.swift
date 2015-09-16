@@ -31,6 +31,9 @@ private func t(format : String, x: Float, y: Float, align: NSTextAlignment = .Ce
 
 class NewPlaneHud : LayeredInstrument {
   init(tools : DrawingTools) {
+    glPushGroupMarkerEXT(0, "Creating Instrument: Plane HUD")
+    defer { glPopGroupMarkerEXT() }
+    
     var config = InstrumentConfiguration()
     config.size = Size2D(w: 1, h: 1)
     config.overlay = SVGOverlay(url: NSBundle.mainBundle().URLForResource("PlaneHUD_Overlay", withExtension: "svg")!)

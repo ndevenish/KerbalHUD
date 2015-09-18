@@ -9,6 +9,23 @@
 import Foundation
 import GLKit
 
+
+private let _glErrors = [
+  GLenum(GL_NO_ERROR) : "",
+  GLenum(GL_INVALID_ENUM): "GL_INVALID_ENUM",
+  GLenum(GL_INVALID_VALUE): "GL_INVALID_VALUE",
+  GLenum(GL_INVALID_OPERATION): "GL_INVALID_OPERATION",
+  GLenum(GL_INVALID_FRAMEBUFFER_OPERATION): "GL_INVALID_FRAMEBUFFER_OPERATION",
+  GLenum(GL_OUT_OF_MEMORY): "GL_OUT_OF_MEMORY"
+]
+func processGLErrors() {
+  var error = glGetError()
+  while error != 0 {
+    print("OpenGL Error: " + _glErrors[error]!)
+    error = glGetError()
+  }
+}
+
 //infix operator • {}
 infix operator ± {}
 

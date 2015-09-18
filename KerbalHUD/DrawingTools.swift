@@ -332,17 +332,6 @@ class DrawingTools
     return LoadTriangles(DecomposePolygon(points))
   }
   
-//  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable
-//  {
-//    var vertexList : [Point2D] = []
-//    for tri in triangles {
-//      vertexList.append(tri.p1)
-//      vertexList.append(tri.p2)
-//      vertexList.append(tri.p3)
-//    }
-//    return LoadVertices(.Triangles, vertices: vertexList)
-//  }
-
   func LoadTriangles<T : Point>(triangles : [Triangle<T>], texture: Texture? = nil) -> Drawable
   {
     var vertexList : [T] = []
@@ -356,20 +345,6 @@ class DrawingTools
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STREAM_DRAW))
     return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(vertexList.count), color: nil)
   }
-
-//  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], texture: Texture, color: Color4? = nil) -> Drawable
-//  {
-//    var data = triangles.flatMap { (tri) -> [GLfloat] in
-//      var flat : [Float] = []
-//      flat.appendContentsOf(tri.p1.flatten())
-//      flat.appendContentsOf(tri.p2.flatten())
-//      flat.appendContentsOf(tri.p3.flatten())
-//      return flat.map({ GLfloat($0) })
-//    }
-//    let array = createVertexArray(positions: 3, textures: 2)
-//    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
-//    return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3), color:color)
-//  }
 
   func Draw(item : Drawable) {
     draw(item)
@@ -416,6 +391,7 @@ class DrawingTools
   {
     DrawSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
   }
+  
   func DrawSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat)
   {
     var baseMatrix = GLKMatrix4Identity
@@ -430,6 +406,7 @@ class DrawingTools
   func DrawTexturedSquare(bounds : Bounds) {
     DrawTexturedSquare(bounds.left, bottom: bounds.bottom, right: bounds.right, top: bounds.top)
   }
+  
   func DrawTexturedSquare(left: GLfloat, bottom: GLfloat, right: GLfloat, top: GLfloat, rotation: GLfloat = 0)
   {
     var baseMatrix = GLKMatrix4Identity
@@ -457,10 +434,6 @@ class DrawingTools
     }
   }
   
-  /// A convenience text renderer that avoids having to grab a font named explicitly
-  func drawText(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left, rotation : GLfloat = 0) {
-    textRenderer("Menlo").draw(text, size: size, position: position, align: align, rotation: rotation)
-  }
   var defaultTextRenderer : TextRenderer { return textRenderer("Menlo") }
   
   private func startWritingStencilBuffer() {
@@ -494,21 +467,5 @@ class DrawingTools
   func UnconstrainDrawing() {
     currentState.stencilTesting = false
     glDisable(GLenum(GL_STENCIL_TEST))
-  }
-}
-
-private let _glErrors = [
-  GLenum(GL_NO_ERROR) : "",
-  GLenum(GL_INVALID_ENUM): "GL_INVALID_ENUM",
-  GLenum(GL_INVALID_VALUE): "GL_INVALID_VALUE",
-  GLenum(GL_INVALID_OPERATION): "GL_INVALID_OPERATION",
-  GLenum(GL_INVALID_FRAMEBUFFER_OPERATION): "GL_INVALID_FRAMEBUFFER_OPERATION",
-  GLenum(GL_OUT_OF_MEMORY): "GL_OUT_OF_MEMORY"
-]
-func processGLErrors() {
-  var error = glGetError()
-  while error != 0 {
-    print("OpenGL Error: " + _glErrors[error]!)
-    error = glGetError()
   }
 }

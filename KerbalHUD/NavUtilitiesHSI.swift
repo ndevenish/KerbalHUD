@@ -58,7 +58,7 @@ class HSIIndicator : RPMInstrument {
   var needleNDB : Drawable?
   var courseWhite : Drawable?
   var coursePurpl : Drawable?
-  var gsIndicators : Drawable?
+//  var gsIndicators : Drawable?
   var purpleTriangles : Drawable?
   var roundBox : Drawable?
   
@@ -176,14 +176,14 @@ class HSIIndicator : RPMInstrument {
    //-127, 4x48
     
     // Generate glideslope indicators
-    var glideSlopes : [Triangle<Point2D>] = []
-    glideSlopes.appendContentsOf(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
-    let baseCircle = GenerateCircleTriangles(8, w: 4)
-    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))
-    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -50)))
-    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
-    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
-    gsIndicators = tools.LoadTriangles(glideSlopes);
+//    var glideSlopes : [Triangle<Point2D>] = []
+//    glideSlopes.appendContentsOf(GenerateBoxTriangles(-21, bottom: -3, right: 21, top: 3))
+//    let baseCircle = GenerateCircleTriangles(8, w: 4)
+//    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 50)))
+//    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -50)))
+//    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, 100)))
+//    glideSlopes.appendContentsOf(ShiftTriangles(baseCircle, shift:Point2D(0, -100)))
+//    gsIndicators = tools.LoadTriangles(glideSlopes);
     
     purpleTriangles = tools.LoadTriangles([
       Triangle(Point2D(0, 12.5), Point2D(28, 0), Point2D(0, -12.5)),

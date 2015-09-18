@@ -12,8 +12,9 @@ uniform lowp vec4 color;
 uniform sampler2D tex;
 
 varying vec2 Texcoord;
+varying vec4 colorVarying;
 
 void main()
 {
-    gl_FragColor = texture2D(tex, Texcoord)*color;
+    gl_FragColor = texture2D(tex, Texcoord)*color*colorVarying;
 }

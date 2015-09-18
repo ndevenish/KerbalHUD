@@ -174,16 +174,11 @@ class LayeredInstrument : Instrument {
       let entry = fullEntry.entry
       let varEntries = entry.variables.map { (varValues[$0] ?? 0) as Any }
       let str = try! String.Format(entry.string, argList: varEntries)
-      if let col = entry.color where col != config.textColor {
-        drawing.program.setColor(col)
-        defaultText.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
-      } else {
-        dr.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align)
-      }
+      dr.draw(str, size: GLfloat(entry.size), position: entry.position, align: entry.align, rotation: 0, transform: GLKMatrix4Identity, color: entry.color ?? Color4.White)
     }
     if let drawable = dr.generateDrawable() {
       drawing.program.setModelView(GLKMatrix4Identity)
-      drawing.program.setColor(config.textColor)
+      drawing.program.setColor(Color4.White)
       drawing.draw(drawable)
       drawing.deleteVertexArray((drawable as! SimpleMesh).array)
     }

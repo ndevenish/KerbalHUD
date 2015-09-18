@@ -23,7 +23,7 @@ class ShaderProgram {
   private var _program : GLuint = 0
   var program : GLuint { return _program }
 
-  var attributes : (position : GLuint, texture : GLuint)
+  var attributes : (position : GLuint, texture : GLuint, color: GLuint)
   private var uniforms : (mvp : Int32, color : Int32, uvOffset: Int32, uvScale: Int32)
   
   private var _state = ShaderState()
@@ -42,9 +42,11 @@ class ShaderProgram {
 
     let posAt = glGetAttribLocation(_program, "position")
     let texAt = glGetAttribLocation(_program, "texcoord")
+    let colAt = glGetAttribLocation(_program, "colorAttrib")
     assert(posAt >= 0)
     assert(texAt >= 0)
-    attributes = (GLuint(posAt), GLuint(texAt))
+    assert(colAt >= 0)
+    attributes = (GLuint(posAt), GLuint(texAt), GLuint(colAt))
 
     let uMVP = glGetUniformLocation(_program, "modelViewProjectionMatrix")
     let uCol = glGetUniformLocation(_program, "color")

@@ -9,31 +9,9 @@
 import Foundation
 import GLKit
 
-public let π : GLfloat = GLfloat(M_PI)
-
 protocol Drawable {
   
 }
-
-func BUFFER_OFFSET(i: Int) -> UnsafePointer<Void> {
-  let p: UnsafePointer<Void> = nil
-  return p.advancedBy(i)
-}
-
-/// A real, cyclic mod
-public func cyc_mod(x: Int, m : Int) -> Int {
-  let rem = x % m;
-  return rem < 0 ? rem + m : rem
-}
-public func cyc_mod(x: Float, m : Float) -> Float {
-  let rem = x % m;
-  return rem < 0 ? rem + m : rem
-}
-public func cyc_mod(x: Double, m : Double) -> Double {
-  let rem = x % m;
-  return rem < 0 ? rem + m : rem
-}
-
 
 /// Contains tools for drawing simple objects
 class DrawingTools
@@ -42,7 +20,8 @@ class DrawingTools
     var array : GLuint = 0
     var framebuffer : Framebuffer = Framebuffer.Default
     var texture : GLuint = 0
-    var vertexBuffer : GLuint = 0
+    var vertexArray : VertexArray = VertexArray.Empty
+    var usingColorAttrib : Bool = true
     var stencilTesting : Bool = false
     var program : ShaderState?
     var scaleToPoints = Point2D(1,1)
@@ -161,11 +140,14 @@ class DrawingTools
 //      }
     }
     if currentState.texture != state.texture {
+//      bind(state.texture)
       glBindTexture(GLenum(GL_TEXTURE_2D), state.texture)
     }
-    if currentState.vertexBuffer != state.vertexBuffer {
-      glBindBuffer(GLenum(GL_ARRAY_BUFFER), state.vertexBuffer)
+    if currentState.vertexArray != state.vertexArray {
+      //glBindBuffer(GLenum(GL_ARRAY_BUFFER), state.vertexArray.name)
+      bind(state.vertexArray)
     }
+
     if currentState.stencilTesting != state.stencilTesting {
       if state.stencilTesting {
         glEnable(GLenum(GL_STENCIL_TEST))
@@ -198,6 +180,11 @@ class DrawingTools
     if currentState.array == array.name {
       return
     }
+    // If we are moving away from a color array, then enable the default
+    if currentState.usingColorAttrib && !array.usesColor {
+      glVertexAttrib3f(program.attributes.color, 1, 1, 1)
+    }
+
     glBindVertexArray(array.name)
     currentState.array = array.name
   }
@@ -345,44 +332,44 @@ class DrawingTools
     return LoadTriangles(DecomposePolygon(points))
   }
   
-  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable
-  {
-    var vertexList : [Point2D] = []
-    for tri in triangles {
-      vertexList.append(tri.p1)
-      vertexList.append(tri.p2)
-      vertexList.append(tri.p3)
-    }
-    return LoadVertices(.Triangles, vertices: vertexList)
-  }
+//  func LoadTriangles(triangles : [Triangle<Point2D>]) -> Drawable
+//  {
+//    var vertexList : [Point2D] = []
+//    for tri in triangles {
+//      vertexList.append(tri.p1)
+//      vertexList.append(tri.p2)
+//      vertexList.append(tri.p3)
+//    }
+//    return LoadVertices(.Triangles, vertices: vertexList)
+//  }
 
-  func LoadTriangles(triangles : [Triangle<TexturedPoint2D>], texture: Texture) -> Drawable
+  func LoadTriangles<T : Point>(triangles : [Triangle<T>], texture: Texture? = nil) -> Drawable
   {
-    var vertexList : [TexturedPoint2D] = []
+    var vertexList : [T] = []
     for tri in triangles {
       vertexList.append(tri.p1)
       vertexList.append(tri.p2)
       vertexList.append(tri.p3)
     }
     var data = vertexList.flatMap({$0.flatten()})
-    let array = createVertexArray(positions: 2, textures: 2)
+    let array = createVertexArray(positions: T.vertexAttributes.pts, textures: T.vertexAttributes.tex, color: T.vertexAttributes.col)
     glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STREAM_DRAW))
     return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(vertexList.count), color: nil)
   }
 
-  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], texture: Texture, color: Color4? = nil) -> Drawable
-  {
-    var data = triangles.flatMap { (tri) -> [GLfloat] in
-      var flat : [Float] = []
-      flat.appendContentsOf(tri.p1.flatten())
-      flat.appendContentsOf(tri.p2.flatten())
-      flat.appendContentsOf(tri.p3.flatten())
-      return flat.map({ GLfloat($0) })
-    }
-    let array = createVertexArray(positions: 3, textures: 2)
-    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
-    return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3), color:color)
-  }
+//  func LoadTriangles(triangles : [Triangle<TexturedPoint3D>], texture: Texture, color: Color4? = nil) -> Drawable
+//  {
+//    var data = triangles.flatMap { (tri) -> [GLfloat] in
+//      var flat : [Float] = []
+//      flat.appendContentsOf(tri.p1.flatten())
+//      flat.appendContentsOf(tri.p2.flatten())
+//      flat.appendContentsOf(tri.p3.flatten())
+//      return flat.map({ GLfloat($0) })
+//    }
+//    let array = createVertexArray(positions: 3, textures: 2)
+//    glBufferData(GLenum(GL_ARRAY_BUFFER), sizeof(GLfloat)*data.count, &data, GLenum(GL_STATIC_DRAW))
+//    return SimpleMesh(array: array, texture: texture, vertexType: .Triangles, bufferOffset: 0, bufferCount: GLuint(triangles.count*3), color:color)
+//  }
 
   func Draw(item : Drawable) {
     draw(item)

@@ -34,6 +34,8 @@ public struct Point3D : Point, NilLiteralConvertible {
   public func flatten() -> [Float] {
     return [x, y, z]
   }
+  
+  public static var vertexAttributes = VertexAttributes(pts: 3, tex: 0, col: false)
 }
 
 public struct TexturedPoint3D : Point {
@@ -69,6 +71,7 @@ public struct TexturedPoint3D : Point {
   public func flatten() -> [Float] {
     return [x, y, z, u, v]
   }
+  public static var vertexAttributes = VertexAttributes(pts: 3, tex: 2, col: false)
 }
 
 

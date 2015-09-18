@@ -16,16 +16,16 @@ protocol TextRenderer {
   /// The font name being used by this texture renderer
   var fontName : String { get }
   
-  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4)
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4, color: Color4)
 }
 
 extension TextRenderer {
   func draw(text: String, size : GLfloat, position : (x: Float, y: Float), align : NSTextAlignment = .Left, rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
-    return self.draw(text, size: size, position: Point2D(position.x,position.y), align: align, rotation: rotation, transform: transform)
+    return self.draw(text, size: size, position: Point2D(position.x,position.y), align: align, rotation: rotation, transform: transform, color: Color4.White)
   }
   func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
     rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
-      return self.draw(text, size: size, position: position, align: align, rotation: rotation, transform: transform)
+      return self.draw(text, size: size, position: position, align: align, rotation: rotation, transform: transform, color: Color4.White)
   }
 }
 
@@ -107,7 +107,7 @@ class AtlasTextRenderer : TextRenderer {
   }
 
   func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment = .Left,
-    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity) {
+    rotation: GLfloat = 0, transform : GLKMatrix4 = GLKMatrix4Identity, color: Color4 = Color4.White) {
       glPushGroupMarkerEXT(0, "Drawing Text: " + text)
       defer {
         glPopGroupMarkerEXT()
@@ -461,6 +461,7 @@ class DeferredAtlasRenderer : TextRenderer {
     var align : NSTextAlignment
     var rotation : GLfloat
     var transform : GLKMatrix4
+    var color : Color4
   }
   var unprocessedEntries : [TextEntry] = []
   
@@ -469,9 +470,9 @@ class DeferredAtlasRenderer : TextRenderer {
     self.tools = tools
   }
   
-  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4)
+  func draw(text: String, size : GLfloat, position : Point2D, align : NSTextAlignment, rotation: GLfloat, transform : GLKMatrix4, color: Color4)
   {
-    unprocessedEntries.append(TextEntry(text: text, size: size, position: position, align: align, rotation: rotation, transform: transform))
+    unprocessedEntries.append(TextEntry(text: text, size: size, position: position, align: align, rotation: rotation, transform: transform, color: color))
   }
   
   func generateDrawable() -> Drawable? {
@@ -492,7 +493,7 @@ class DeferredAtlasRenderer : TextRenderer {
   }
   
   func trianglesFor(entry: TextEntry, atlas: TextureAtlas)
-    -> [Triangle<TexturedPoint2D>]
+    -> [Triangle<TexturedColoredPoint2D>]
   {
     let fontSize = Int(ceil(entry.size))
     
@@ -521,7 +522,7 @@ class DeferredAtlasRenderer : TextRenderer {
     baseMatrix = GLKMatrix4Translate(baseMatrix, 0, -0.5, 0)
     
     // Loop over every character
-    var triangles : [Triangle<TexturedPoint2D>] = []
+    var triangles : [Triangle<TexturedColoredPoint2D>] = []
     for (i, char) in entry.text.characters.map({String($0)}).enumerate() {
       if char == " " {
         continue
@@ -545,14 +546,14 @@ class DeferredAtlasRenderer : TextRenderer {
         tools.deleteTexture(tex)
       }
       
-      let vtxBL = TexturedPoint2D(bL.x, bL.y, u: Float(r.minX), v: Float(r.minY))
-      let vtxTL = TexturedPoint2D(tL.x, tL.y, u: Float(r.minX), v: Float(r.maxY))
-      let vtxTR = TexturedPoint2D(tR.x, tR.y, u: Float(r.maxX), v: Float(r.maxY))
-      let vtxBR = TexturedPoint2D(bR.x, bR.y, u: Float(r.maxX), v: Float(r.minY))
+      let vtxBL = TexturedColoredPoint2D(bL.x, bL.y, u: Float(r.minX), v: Float(r.minY), color: entry.color)
+      let vtxTL = TexturedColoredPoint2D(tL.x, tL.y, u: Float(r.minX), v: Float(r.maxY), color: entry.color)
+      let vtxTR = TexturedColoredPoint2D(tR.x, tR.y, u: Float(r.maxX), v: Float(r.maxY), color: entry.color)
+      let vtxBR = TexturedColoredPoint2D(bR.x, bR.y, u: Float(r.maxX), v: Float(r.minY), color: entry.color)
       
       // We now have enough information to build the triangles
-      let TriA = Triangle<TexturedPoint2D>(vtxBR, vtxBL, vtxTL)
-      let TriB = Triangle<TexturedPoint2D>(vtxBR, vtxTL, vtxTR)
+      let TriA = Triangle<TexturedColoredPoint2D>(vtxBR, vtxBL, vtxTL)
+      let TriB = Triangle<TexturedColoredPoint2D>(vtxBR, vtxTL, vtxTR)
       
       triangles.appendContentsOf([TriA, TriB])
     }

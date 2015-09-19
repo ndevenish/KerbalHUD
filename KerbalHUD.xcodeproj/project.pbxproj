@@ -68,6 +68,9 @@
 		0ACB10681BA89C97003CDE1A /* Meshes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACB10671BA89C97003CDE1A /* Meshes.swift */; settings = {ASSET_TAGS = (); }; };
 		0ADA5C371BA3363F0093049A /* Markers.svg in Resources */ = {isa = PBXBuildFile; fileRef = 0ADA5C361BA3363F0093049A /* Markers.svg */; };
 		0ADB78C51BAC9EF60081832A /* Maths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADB78C41BAC9EF60081832A /* Maths.swift */; settings = {ASSET_TAGS = (); }; };
+		0ADB78C71BACCD740081832A /* KerbalConfigFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADB78C61BACCD740081832A /* KerbalConfigFile.swift */; settings = {ASSET_TAGS = (); }; };
+		0ADB78C91BACD85E0081832A /* KerbalConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADB78C81BACD85E0081832A /* KerbalConfigTests.swift */; settings = {ASSET_TAGS = (); }; };
+		0ADB78CB1BADDF880081832A /* mfd.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0ADB78CA1BADDF880081832A /* mfd.txt */; settings = {ASSET_TAGS = (); }; };
 		0AF05C3C1B8E78F100908F37 /* Framebuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */; };
 /* End PBXBuildFile section */
 
@@ -147,6 +150,9 @@
 		0ACB10671BA89C97003CDE1A /* Meshes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Meshes.swift; sourceTree = "<group>"; };
 		0ADA5C361BA3363F0093049A /* Markers.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Markers.svg; path = ../../../SimpleSVG/TestApplication/Markers.svg; sourceTree = "<group>"; };
 		0ADB78C41BAC9EF60081832A /* Maths.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Maths.swift; sourceTree = "<group>"; };
+		0ADB78C61BACCD740081832A /* KerbalConfigFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KerbalConfigFile.swift; sourceTree = "<group>"; };
+		0ADB78C81BACD85E0081832A /* KerbalConfigTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KerbalConfigTests.swift; sourceTree = "<group>"; };
+		0ADB78CA1BADDF880081832A /* mfd.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mfd.txt; sourceTree = "<group>"; };
 		0AF05C3B1B8E78F100908F37 /* Framebuffers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Framebuffers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -229,6 +235,7 @@
 				0A5DB9C81B9214F2000174C7 /* Info.plist */,
 				0A1E71771B98816400C68683 /* RPMTextTests.swift */,
 				0A5A687B1B9E6CD300E9C5B9 /* StringFormatTests.swift */,
+				0ADB78C81BACD85E0081832A /* KerbalConfigTests.swift */,
 			);
 			path = KerbalHUDTests;
 			sourceTree = "<group>";
@@ -272,6 +279,7 @@
 				0A1177901B9CFD1D00FD8CA8 /* Coercion.swift */,
 				0A1177921B9D096900FD8CA8 /* TelemachusVariables.swift */,
 				0ADB78C41BAC9EF60081832A /* Maths.swift */,
+				0ADB78C61BACCD740081832A /* KerbalConfigFile.swift */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -301,6 +309,7 @@
 				0A21F5711B9ECC8B0046996C /* PlaneHUD_Overlay.svg */,
 				0A9B970A1B9B7BF600995795 /* Navutils_Overlay.svg */,
 				0A9B97021B9B6E7D00995795 /* RPM_NavBall_Overlay.svg */,
+				0ADB78CA1BADDF880081832A /* mfd.txt */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -415,6 +424,7 @@
 				0A67244D1B8CE5B800A38BE5 /* middle.wav in Resources */,
 				0A3594061B7136B80072CC18 /* Shader.fsh in Resources */,
 				0A1E717A1B9881DA00C68683 /* RPMHUD.txt in Resources */,
+				0ADB78CB1BADDF880081832A /* mfd.txt in Resources */,
 				0ADA5C371BA3363F0093049A /* Markers.svg in Resources */,
 				0A67244E1B8CE5B800A38BE5 /* outer.wav in Resources */,
 			);
@@ -478,6 +488,7 @@
 				0A1E71761B9869B900C68683 /* RPMTextFile.swift in Sources */,
 				0A9B970D1B9B99E700995795 /* LayeredInstrument.swift in Sources */,
 				0A77F7241B7CCC40002A760F /* DrawingTools.swift in Sources */,
+				0ADB78C71BACCD740081832A /* KerbalConfigFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -487,6 +498,7 @@
 			files = (
 				0A5DB9C71B9214F2000174C7 /* KerbalHUDTests.swift in Sources */,
 				0A5A687C1B9E6CD300E9C5B9 /* StringFormatTests.swift in Sources */,
+				0ADB78C91BACD85E0081832A /* KerbalConfigTests.swift in Sources */,
 				0A1E71781B98816400C68683 /* RPMTextTests.swift in Sources */,
 				0A5DB9CF1B921531000174C7 /* SphericalCoordTests.swift in Sources */,
 			);

@@ -170,8 +170,8 @@ func projectGridOntoSphere(position basePosition : SphericalPoint,
 //    let sphePos : SphericalPoint
     guard let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
       offset: pos, radius: 59) else {
-      let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
-        offset: pos, radius: 59)
+//      let sphePos = pointOffsetRayIntercept(sphericalPoint: position,
+//        offset: pos, radius: 59)
       fatalError()
     }
     

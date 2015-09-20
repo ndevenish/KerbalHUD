@@ -8,6 +8,187 @@
 
 import Foundation
 
+enum KerbalConfigError : ErrorType {
+  case InvalidIdentifier
+  case UnexpectedToken(type : KerbalConfigLexer.Token.TokenType)
+  case UnexpectedEOF
+}
+
+protocol KerbalConfigNode {
+  var type : String { get }
+  var values : [(name: String, value: String)] { get }
+  var nodes : [KerbalConfigNode] { get }
+
+  subscript(name : String) -> String? { get set }
+}
+
+extension KerbalConfigNode {
+  var name : String? {
+    get { return self["name"] }
+    set { self["name"] = newValue }
+  }
+  
+  /// Apply a filter to every node in the tree of nodes. Passing means children will not be processed.
+  func filterNodes(filter: (KerbalConfigNode) -> Bool) -> [KerbalConfigNode] {
+    var nodeList : [KerbalConfigNode] = []
+    for node in nodes {
+      if filter(node) {
+        nodeList.append(node)
+      } else {
+        nodeList.appendContentsOf(node.filterNodes(filter))
+      }
+    }
+    return nodeList
+  }
+}
+
+enum NodeEntry {
+  case Value(name: String, value: String)
+  case Node(KerbalConfigNode)
+}
+
+struct Node : KerbalConfigNode {
+  var type : String
+  var values : [(name: String, value: String)] = []
+  var nodes : [KerbalConfigNode] = []
+  
+  init(type : String, entries: [NodeEntry] = []) {
+    self.type = type
+    for entry in entries {
+      switch entry {
+      case .Value(let name, let value):
+        values.append((name, value))
+      case .Node(let node):
+        nodes.append(node)
+      }
+    }
+  }
+  
+  subscript(name : String) -> String? {
+    get { return getOnlyValueNamed(name) }
+    set {
+      let entries = values.filter({$0.name == name})
+      switch entries.count {
+      case 0:
+        if let newS = newValue {
+          values.append((name, newS))
+        }
+      case 1:
+        let nameEntry = values.indexOf({$0.name == "name"})!
+        if let newS = newValue {
+          values[nameEntry] = (name, newS)
+        } else {
+          values.removeAtIndex(nameEntry)
+        }
+      default:
+        // We have more than one entry for this name - cannot access via this
+        // convenience methos.
+        fatalError("Cannot access more than one value via convenience method")
+      }
+    }
+  }
+  
+  private func getOnlyValueNamed(name : String) -> String? {
+    let vals = values.filter({$0.name == name})
+    assert(vals.count <= 1)
+    return vals.last?.value
+  }
+}
+
+func parseKerbalConfig(withContentsOfFile data: String) throws -> KerbalConfigNode {
+  return try parse(KerbalConfigLexer(data: data))
+}
+
+private func parse(lexer : KerbalConfigLexer) throws -> Node {
+  let generator = lexer.generate()
+  return try parseNode(generator)
+}
+
+private func parseNode(lexer : KerbalConfigLexer.Generator) throws -> Node {
+  // Read the identifier
+  let identifier = try parseIdentifier(lexer)
+  try ensureToken(lexer, token: .OpenBrace)
+  let entries = try parseNodeContents(lexer)
+  try ensureToken(lexer, token: .CloseBrace)
+
+  return Node(type: identifier, entries: entries)
+}
+
+private func parseNodeContents(lexer : KerbalConfigLexer.Generator) throws -> [NodeEntry] {
+  var entries : [NodeEntry] = []
+
+  // Read tokens IDENT [= | OPENBRACE]* }
+  // Read node contents until we hit a closeBrace
+  while !peekCheckToken(lexer, token: .CloseBrace) {
+    // Read an identifier
+    let name = try parseIdentifier(lexer)
+    // Next is either an openBrace or =
+    if checkToken(lexer, token: .Equals) {
+      let value = try ensureToken(lexer, token: .Value(contents: ""))
+      entries.append(.Value(name: name, value: value))
+    } else if checkToken(lexer, token: .OpenBrace) {
+      let nodeEntry = try parseNodeContents(lexer)
+      try ensureToken(lexer, token: .CloseBrace)
+      entries.append(.Node(Node(type: name, entries: nodeEntry)))
+    } else {
+      // Unexpected - throw appropriate error
+      try throwAppropriateTokenError(lexer)
+    }
+  }
+  return entries
+}
+
+/// Throws 'UnexpectedToken' or 'UnexpectedEOF' depending on the situation
+private func throwAppropriateTokenError(lexer : KerbalConfigLexer.Generator) throws {
+  if let nextTok = lexer.next() {
+    throw KerbalConfigError.UnexpectedToken(type: nextTok.type)
+  }
+  throw KerbalConfigError.UnexpectedEOF
+}
+
+private func parseIdentifier(lexer : KerbalConfigLexer.Generator) throws -> String {
+  switch lexer.next()!.type {
+  case .Identifier(let i):
+    return i
+  default:
+    throw KerbalConfigError.InvalidIdentifier
+  }
+}
+
+private func ensureToken(lexer: KerbalConfigLexer.Generator, token: KerbalConfigLexer.Token.TokenType) throws -> String { //KerbalConfigLexer.Token.TokenType {
+  // Read the next token
+  guard let ob = lexer.next() else {
+    throw KerbalConfigError.UnexpectedEOF
+  }
+  switch (ob.type, token) {
+  case (.Value(let a), .Value):
+    return a
+  case (.Identifier(let a), .Identifier):
+    return a
+  default:
+    break
+  }
+  guard ob.type == token else {
+    throw KerbalConfigError.UnexpectedToken(type: ob.type)
+  }
+  return ""
+}
+
+private func checkToken(lexer: KerbalConfigLexer.Generator, token: KerbalConfigLexer.Token.TokenType, swallow: Bool = true) -> Bool {
+  guard let neT = lexer.peek() else {
+    return false
+  }
+  if neT.type != token {
+    return false
+  }
+  // Actually swallow the token if it is what we expected
+  if swallow { lexer.next() }
+  return true
+}
+private func peekCheckToken(lexer: KerbalConfigLexer.Generator, token: KerbalConfigLexer.Token.TokenType) -> Bool {
+  return checkToken(lexer, token: token, swallow: false)
+}
+
 func ==(left: KerbalConfigLexer.Token.TokenType, right: KerbalConfigLexer.Token.TokenType) -> Bool {
   switch (left, right) {
   case (.OpenBrace, .OpenBrace):
@@ -24,8 +205,37 @@ func ==(left: KerbalConfigLexer.Token.TokenType, right: KerbalConfigLexer.Token.
     return false
   }
 }
-class KerbalConfigLexer : SequenceType {
+
+class PeekableGenerator<T> : AnyGenerator<T>
+{
+  private var store : [Element] = []
+  private var generator : AnyGenerator<Element>
   
+  override func next() -> Element? {
+    if let entry = store.popLast() {
+      return entry
+    }
+    return generator.next()
+  }
+  
+  func peek() -> Element? {
+    if let elem = next() {
+      store.append(elem)
+      return elem
+    }
+    return nil
+  }
+  
+  init(generator: AnyGenerator<Element>) {
+    self.generator = generator
+  }
+}
+
+func peekableAnyGenerator<Element>(body: () -> Element?) -> PeekableGenerator<Element> {
+  return PeekableGenerator(generator: anyGenerator(body))
+}
+
+class KerbalConfigLexer : SequenceType {
   struct Token {
     enum TokenType : Equatable {
       case OpenBrace
@@ -38,8 +248,7 @@ class KerbalConfigLexer : SequenceType {
     var length : String.Index.Distance
     var position : String.Index
   }
-  
-  typealias Generator = AnyGenerator<Token>
+  typealias Generator = PeekableGenerator<Token>
 
   /// The entire set of data
   private let data : String
@@ -51,7 +260,8 @@ class KerbalConfigLexer : SequenceType {
   func generate() -> Generator {
     var position = data.startIndex
     var prevToken : Token.TokenType? = nil
-    return anyGenerator {
+
+    return peekableAnyGenerator {
       if let tok = self.tokenFromPosition(position, prevToken: prevToken) {
         position = tok.position.advancedBy(tok.length)
         prevToken = tok.type

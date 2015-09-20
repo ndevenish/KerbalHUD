@@ -28,5 +28,14 @@ class KerbalConfigTests: XCTestCase {
     }
   }
   
+  func testParser() {
+    let u = NSBundle.mainBundle().URLForResource("mfd.txt", withExtension: nil)!
+    let data = try! String(contentsOfURL: u)
+    let f = try! parseKerbalConfig(withContentsOfFile: data)
+//    print(f)
+    let pages = f.filterNodes { $0.type == "PAGE" }
+    print(pages)
+  }
+  
   
 }
